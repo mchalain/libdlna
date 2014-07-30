@@ -447,7 +447,7 @@ match_file_extension (const char *filename, const char *extensions)
 dlna_profile_t *
 dlna_guess_media_profile (dlna_t *dlna, const char *filename)
 {
-  AVFormatContext *ctx;
+  AVFormatContext *ctx = NULL;
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
   dlna_container_type_t st;
@@ -459,7 +459,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
   
-  if (av_open_input_file (&ctx, filename, NULL, 0, NULL) != 0)
+  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
@@ -646,7 +646,7 @@ dlna_metadata_free (dlna_metadata_t *meta)
 dlna_item_t *
 dlna_item_new (dlna_t *dlna, const char *filename)
 {
-  AVFormatContext *ctx;
+  AVFormatContext *ctx = NULL;
   dlna_item_t *item;
 
   if (!dlna || !filename)
@@ -655,7 +655,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
   
-  if (av_open_input_file (&ctx, filename, NULL, 0, NULL) != 0)
+  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
