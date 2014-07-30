@@ -614,6 +614,7 @@ dlna_item_get_metadata (AVFormatContext *ctx)
     return NULL;
 
   meta = malloc (sizeof (dlna_metadata_t));
+  memset(meta, 0, sizeof (dlna_metadata_t));
   meta->title   = strdup (ctx->title);
   meta->author  = strdup (ctx->author);
   meta->comment = strdup (ctx->comment);
