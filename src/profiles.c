@@ -473,7 +473,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   }
 
 #ifdef HAVE_DEBUG
-  dump_format (ctx, 0, NULL, 0);
+  av_dump_format (ctx, 0, NULL, 0);
 #endif /* HAVE_DEBUG */
 
   /* grab codecs info */
