@@ -609,18 +609,32 @@ static dlna_metadata_t *
 dlna_item_get_metadata (AVFormatContext *ctx)
 {
   dlna_metadata_t *meta;
+  AVDictionary *dict = ctx->metadata;
+  AVDictionaryEntry *entry;
   
   if (!ctx)
     return NULL;
 
   meta = malloc (sizeof (dlna_metadata_t));
   memset(meta, 0, sizeof (dlna_metadata_t));
-  meta->title   = strdup (ctx->title);
-  meta->author  = strdup (ctx->author);
-  meta->comment = strdup (ctx->comment);
-  meta->album   = strdup (ctx->album);
-  meta->track   = ctx->track;
-  meta->genre   = strdup (ctx->genre);
+  entry = av_dict_get(dict, "title", NULL, 0);
+  if (entry && entry->value)
+    meta->title   = strdup (entry->value);
+  entry = av_dict_get(dict, "author", NULL, 0);
+  if (entry && entry->value)
+    meta->author  = strdup (entry->value);
+  entry = av_dict_get(dict, "comment", NULL, 0);
+  if (entry && entry->value)
+    meta->comment = strdup (entry->value);
+  entry = av_dict_get(dict, "album", NULL, 0);
+  if (entry && entry->value)
+    meta->album   = strdup (entry->value);
+  entry = av_dict_get(dict, "track", NULL, 0);
+  if (entry && entry->value)
+    meta->track   = atoi(entry->value);
+  entry = av_dict_get(dict, "genre", NULL, 0);
+  if (entry && entry->value)
+    meta->genre   = strdup (entry->value);
 
   return meta;
 }
