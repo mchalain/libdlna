@@ -468,7 +468,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   if (av_find_stream_info (ctx) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
@@ -480,7 +480,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   codecs = av_profile_get_codecs (ctx);
   if (!codecs)
   {
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
@@ -515,7 +515,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
     p = p->next;
   }
 
-  av_close_input_file (ctx);
+  avformat_close_input (&ctx);
   free (codecs);
   return profile;
 }
@@ -664,7 +664,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (av_find_stream_info (ctx) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
@@ -676,7 +676,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!item->profile) /* not DLNA compliant */
   {
     free (item);
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
   item->filename   = strdup (filename);
@@ -684,7 +684,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->metadata   = dlna_item_get_metadata (ctx);
   item->media_class= item->profile->media_class;
 
-  av_close_input_file (ctx);
+  avformat_close_input (&ctx);
 
   return item;
 }
