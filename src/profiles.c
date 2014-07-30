@@ -579,7 +579,7 @@ dlna_item_get_properties (AVFormatContext *ctx)
     return NULL;
   
   prop = malloc (sizeof (dlna_properties_t));
-  prop->size = ctx->file_size;
+  prop->size = 1000;
 
   duration = (int) (ctx->duration / AV_TIME_BASE);
   hours = (int) (duration / 3600);
