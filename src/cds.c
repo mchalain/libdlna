@@ -253,7 +253,7 @@ didl_add_footer (buffer_t *out)
 static void
 didl_add_tag (buffer_t *out, char *tag, char *value)
 {
-  if (value)
+  if (value && strlen(value) > 1)
     buffer_appendf (out, "<%s>%s</%s>", tag, value, tag);
 }
 
