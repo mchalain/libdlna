@@ -44,7 +44,7 @@
 "    <modelURL>%s</modelURL>" \
 "    <serialNumber>%s</serialNumber>" \
 "    <UDN>uuid:%s</UDN>" \
-"    <presentationURL>%s/%s</presentationURL>" \
+"    <presentationURL>%s</presentationURL>" \
 "    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">DMS-1.00</dlna:X_DLNADOC>" \
 "    <serviceList>"
 
@@ -88,7 +88,7 @@ dlna_dms_description_get (dlna_t *dlna)
                   dlna->model_description, model_name,
                   dlna->model_number, dlna->model_url,
                   dlna->serial_number, dlna->uuid,
-                  SERVICES_VIRTUAL_DIR, dlna->presentation_url);
+                  dlna->presentation_url);
 
   free (model_name);
   
@@ -177,7 +177,7 @@ dms_set_sql_db (dlna_t *dlna, char *dbname)
     dms_set_memory (dlna);
     return;
   }
-  
+
   dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna_log (dlna, DLNA_MSG_INFO,
             "Use SQL database for VFS metadata storage.\n");
