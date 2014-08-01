@@ -117,6 +117,14 @@ dlna_dms_init (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
+  dlna->dms.vfs_root = NULL;
+  dlna->dms.vfs_items = 0;
+#ifdef HAVE_SQLITE
+  dlna->dms.db = NULL;
+#endif /* HAVE_SQLITE */
+  dms_set_memory(dlna);
+  dlna_vfs_add_container (dlna, "root", 0, 0);
+
   dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
   dlna_service_register (dlna, DLNA_SERVICE_CONTENT_DIRECTORY);
   dlna_service_register (dlna, DLNA_SERVICE_AV_TRANSPORT);
@@ -134,6 +142,11 @@ dlna_dms_uninit (dlna_t *dlna)
 
   if (!dlna->inited)
     return DLNA_ST_ERROR;
+
+  vfs_item_free (dlna, dlna->dms.vfs_root);
+#ifdef HAVE_SQLITE
+  sqlite3_close (dlna->dms.db);
+#endif /* HAVE_SQLITE */
 
   return upnp_uninit (dlna);
 }

@@ -67,14 +67,6 @@ dlna_init (void)
 
   dlna->services = NULL;
 
-  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
-  dlna->dms.vfs_root = NULL;
-  dlna->dms.vfs_items = 0;
-#ifdef HAVE_SQLITE
-  dlna->dms.db = NULL;
-#endif /* HAVE_SQLITE */
-  dlna_vfs_add_container (dlna, "root", 0, 0);
-  
   dlna->interface = strdup ("lo"); /* bind to loopback as a default */
   dlna->port = 0;
   
@@ -107,12 +99,7 @@ dlna_uninit (dlna_t *dlna)
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
   dlna->first_profile = NULL;
-  vfs_item_free (dlna, dlna->dms.vfs_root);
   free (dlna->interface);
-
-#ifdef HAVE_SQLITE
-  sqlite3_close (dlna->db);
-#endif /* HAVE_SQLITE */
   
   /* Internal HTTP Server */
   if (dlna->http_callback)
