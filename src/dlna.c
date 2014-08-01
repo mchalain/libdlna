@@ -45,6 +45,7 @@
 #endif
 
 #include "dlna_internals.h"
+#include "upnp_internals.h"
 #include "profiles.h"
 #include "containers.h"
 
@@ -87,7 +88,7 @@ dlna_init (void)
   dlna->model_url = strdup ("http://libdlna.geexbox.org/");
   dlna->serial_number = strdup ("libdlna-001");
   dlna->uuid = strdup ("01:23:45:67:89");
-  dlna->presentation_url = strdup ("presentation.html");
+  dlna->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
   
   /* register all FFMPEG demuxers */
   av_register_all ();
