@@ -78,6 +78,19 @@ vfs_item_t *vfs_get_item_by_id (dlna_t *dlna, uint32_t id);
 vfs_item_t *vfs_get_item_by_name (dlna_t *dlna, char *name);
 void vfs_item_free (dlna_t *dlna, vfs_item_t *item);
 
+typedef struct dlna_dms_s dlna_dms_t;
+struct dlna_dms_s
+{
+  /* VFS for Content Directory */
+  dlna_dms_storage_type_t storage_type;
+  vfs_item_t *vfs_root;
+  uint32_t vfs_items;
+#ifdef HAVE_SQLITE
+  sqlite3 *db;
+#endif /* HAVE_SQLITE */
+};
+
+/* UPnP Services */
 typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -130,14 +143,9 @@ struct dlna_s {
 
   /* UPnP Services */
   upnp_service_t *services;
-  
-  /* VFS for Content Directory */
-  dlna_dms_storage_type_t storage_type;
-  vfs_item_t *vfs_root;
-  uint32_t vfs_items;
-#ifdef HAVE_SQLITE
-  sqlite3 *db;
-#endif /* HAVE_SQLITE */
+
+  /* DMS Properties */
+  dlna_dms_t dms;
   
   /* UPnP Properties */
   char *interface;

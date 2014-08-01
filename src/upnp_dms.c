@@ -144,7 +144,7 @@ dms_set_memory (dlna_t *dlna)
   if (!dlna)
     return;
 
-  dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
+  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna_log (dlna, DLNA_MSG_INFO, "Use memory for VFS metadata storage.\n");
 }
 
@@ -166,14 +166,14 @@ dms_set_sql_db (dlna_t *dlna, char *dbname)
     return;
   }
 
-  res = sqlite3_open (dbname, &dlna->db);
+  res = sqlite3_open (dbname, &dlna->dms.db);
   if (res != SQLITE_OK)
   {
     dlna_log (dlna, DLNA_MSG_ERROR,
               "SQLite support is disabled. " \
               "Unable to open database '%s' (%s)",
-              dbname, sqlite3_errmsg (dlna->db));
-    sqlite3_close (dlna->db);
+              dbname, sqlite3_errmsg (dlna->dms.db));
+    sqlite3_close (dlna->dms.db);
     dms_set_memory (dlna);
     return;
   }
