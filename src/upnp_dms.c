@@ -62,6 +62,9 @@
 "        <eventSubURL>%s/%s</eventSubURL>" \
 "      </service>" \
 
+static void
+dms_set_memory (dlna_t *dlna);
+
 char *
 dlna_dms_description_get (dlna_t *dlna)
 {
@@ -117,12 +120,12 @@ dlna_dms_init (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
-  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna->dms.vfs_root = NULL;
   dlna->dms.vfs_items = 0;
 #ifdef HAVE_SQLITE
   dlna->dms.db = NULL;
 #endif /* HAVE_SQLITE */
+  dms_set_memory(dlna);
   dlna_vfs_add_container (dlna, "root", 0, 0);
 
   dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
