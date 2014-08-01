@@ -62,6 +62,9 @@
 "        <eventSubURL>%s/%s</eventSubURL>" \
 "      </service>" \
 
+static void
+dms_set_memory (dlna_t *dlna);
+
 char *
 dlna_dms_description_get (dlna_t *dlna)
 {
