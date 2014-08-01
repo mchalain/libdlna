@@ -250,11 +250,14 @@ didl_add_footer (buffer_t *out)
   buffer_appendf (out, "</%s>", DIDL_LITE);
 }
 
-static void
+static int
 didl_add_tag (buffer_t *out, char *tag, char *value)
 {
   if (value && *value != '\0')
     buffer_appendf (out, "<%s>%s</%s>", tag, value, tag);
+  else
+    return -1;
+  return 0;
 }
 
 static void
@@ -276,6 +279,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
 {
 
   char *class;
+  int add_item_name;
      
   buffer_appendf (out, "<%s", DIDL_ITEM);
   didl_add_value (out, DIDL_ITEM_ID, item->id);
@@ -286,10 +290,11 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
 
   class = dlna_profile_upnp_object_item (item->u.resource.item->profile);
 
+  add_item_name = 1;
   if (item->u.resource.item->metadata)
-    didl_add_tag (out, DIDL_ITEM_TITLE,
+    add_item_name = didl_add_tag (out, DIDL_ITEM_TITLE,
                   item->u.resource.item->metadata->title);
-  else
+  if (add_item_name)
     didl_add_tag (out, DIDL_ITEM_TITLE, item->title);
   
   didl_add_tag (out, DIDL_ITEM_CLASS, class);
