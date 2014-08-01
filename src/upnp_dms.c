@@ -143,6 +143,11 @@ dlna_dms_uninit (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
+  vfs_item_free (dlna, dlna->dms.vfs_root);
+#ifdef HAVE_SQLITE
+  sqlite3_close (dlna->dms.db);
+#endif /* HAVE_SQLITE */
+
   return upnp_uninit (dlna);
 }
 

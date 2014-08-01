@@ -98,12 +98,7 @@ dlna_uninit (dlna_t *dlna)
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
   dlna->first_profile = NULL;
-  vfs_item_free (dlna, dlna->dms.vfs_root);
   free (dlna->interface);
-
-#ifdef HAVE_SQLITE
-  sqlite3_close (dlna->db);
-#endif /* HAVE_SQLITE */
   
   /* Internal HTTP Server */
   if (dlna->http_callback)
