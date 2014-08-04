@@ -56,7 +56,8 @@ extern "C" {
 /* Status code for DLNA related functions */
 typedef enum {
   DLNA_ST_OK,
-  DLNA_ST_ERROR
+  DLNA_ST_ERROR,
+  DLNA_ST_VFSEMPTY
 } dlna_status_code_t;
 
 /* Verbosity level: defines which kind of log can be displayed */

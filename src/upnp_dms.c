@@ -193,8 +193,14 @@ dms_db_open (dlna_t *dlna, char *dbname)
   return 0;
 }
 
+static int
+dms_db_load (dlna_t *dlna, vfs_item_t *root)
+{
+  return DLNA_ST_VFSEMPTY;
+}
+
 static void
-dms_db_close(dlna_t *dlna)
+dms_db_close (dlna_t *dlna)
 {
   sqlite3_close (dlna->dms.db);
 }
@@ -205,25 +211,34 @@ dms_db_open (dlna_t *dlna, char *dbname)
 	return -1;
 }
 
+static int
+dms_db_load (dlna_t *dlna, vfs_item_t *root)
+{
+  return DLNA_ST_VFSEMPTY;
+}
+
 static void
 dms_db_close(dlna_t *dlna)
 {
 }
 #endif /* HAVE_SQLITE */
 
-void
+int
 dlna_dms_set_vfs_storage_type (dlna_t *dlna,
                                dlna_dms_storage_type_t type, char *data)
 {
+  int ret = DLNA_ST_VFSEMPTY;
   if (!dlna)
     return;
 
   if (type == DLNA_DMS_STORAGE_DB && !dms_db_open (dlna, dbname))
   {
-    dlna->storage_type = DLNA_DMS_STORAGE_DB,;
+    dlna->storage_type = DLNA_DMS_STORAGE_DB;
+    ret = dms_db_load(dlna, dlna->dms.vfs_root);
     dlna_log (dlna, DLNA_MSG_INFO,
             "Use SQL database for VFS metadata storage.\n");
     return;
   }
   dms_set_memory (dlna);
+  return ret;
 }
