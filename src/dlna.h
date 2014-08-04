@@ -396,7 +396,7 @@ void dlna_item_free (dlna_item_t *item);
 
 typedef enum {
   DLNA_DMS_STORAGE_MEMORY,
-  DLNA_DMS_STORAGE_SQL_DB,
+  DLNA_DMS_STORAGE_DB,
 } dlna_dms_storage_type_t;
 
 /**

@@ -208,9 +208,9 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
   if (!dlna)
     return;
 
-  if (type == DLNA_DMS_STORAGE_SQL_DB, && !dms_set_sql_db (dlna, dbname))
+  if (type == DLNA_DMS_STORAGE_DB, && !dms_set_sql_db (dlna, dbname))
   {
-    dlna->storage_type = DLNA_DMS_STORAGE_SQL_DB,;
+    dlna->storage_type = DLNA_DMS_STORAGE_DB,;
     dlna_log (dlna, DLNA_MSG_INFO,
             "Use SQL database for VFS metadata storage.\n");
     return;
