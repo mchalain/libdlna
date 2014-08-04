@@ -165,21 +165,20 @@ dms_set_memory (dlna_t *dlna)
 }
 
 #ifdef HAVE_SQLITE
-static void
+static int
 dms_set_sql_db (dlna_t *dlna, char *dbname)
 {
   int res;
-  
+
   if (!dlna)
-    return;
+    return -1;
 
   if (!dbname)
   {
     dlna_log (dlna, DLNA_MSG_ERROR,
               "SQLite support is disabled. " \
               "No database name has been provided");
-    dms_set_memory (dlna);
-    return;
+    return -1;
   }
 
   res = sqlite3_open (dbname, &dlna->dms.db);
@@ -190,13 +189,15 @@ dms_set_sql_db (dlna_t *dlna, char *dbname)
               "Unable to open database '%s' (%s)",
               dbname, sqlite3_errmsg (dlna->dms.db));
     sqlite3_close (dlna->dms.db);
-    dms_set_memory (dlna);
-    return;
+    return -1;
   }
-  
-  dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
-  dlna_log (dlna, DLNA_MSG_INFO,
-            "Use SQL database for VFS metadata storage.\n");
+  return 0;
+}
+#else
+static int
+dms_set_sql_db (dlna_t *dlna, char *dbname)
+{
+	return -1;
 }
 #endif /* HAVE_SQLITE */
 
@@ -207,18 +208,12 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
   if (!dlna)
     return;
 
-  if (type == DLNA_DMS_STORAGE_MEMORY)
-    dms_set_memory (dlna);
-  else if (type == DLNA_DMS_STORAGE_SQL_DB)
+  if (type == DLNA_DMS_STORAGE_SQL_DB, && !dms_set_sql_db (dlna, dbname))
   {
-#ifdef HAVE_SQLITE
-    dms_set_sql_db (dlna, data);
-#else
-    data = NULL;
-    dms_set_memory (dlna);
-    dlna_log (dlna, DLNA_MSG_WARNING,
-              "SQLite support is disabled. " \
-              "Failing back to Memory based VFS storage.\n");
-#endif
+    dlna->storage_type = DLNA_DMS_STORAGE_SQL_DB,;
+    dlna_log (dlna, DLNA_MSG_INFO,
+            "Use SQL database for VFS metadata storage.\n");
+    return;
   }
+  dms_set_memory (dlna);
 }
