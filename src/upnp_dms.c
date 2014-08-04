@@ -64,6 +64,8 @@
 
 static void
 dms_set_memory (dlna_t *dlna);
+static void
+dms_db_close(dlna_t *dlna);
 
 char *
 dlna_dms_description_get (dlna_t *dlna)
@@ -108,7 +110,6 @@ dlna_dms_description_get (dlna_t *dlna)
   buffer_free (b);
   
   return desc;
-
 }
 
 int
@@ -147,10 +148,8 @@ dlna_dms_uninit (dlna_t *dlna)
     return DLNA_ST_ERROR;
 
   vfs_item_free (dlna, dlna->dms.vfs_root);
-#ifdef HAVE_SQLITE
-  sqlite3_close (dlna->dms.db);
-#endif /* HAVE_SQLITE */
-
+  if (dlna->dms.storage_type == DLNA_DMS_STORAGE_DB)
+    dms_db_close (dlna);
   return upnp_uninit (dlna);
 }
 
@@ -166,7 +165,7 @@ dms_set_memory (dlna_t *dlna)
 
 #ifdef HAVE_SQLITE
 static int
-dms_set_sql_db (dlna_t *dlna, char *dbname)
+dms_db_open (dlna_t *dlna, char *dbname)
 {
   int res;
 
@@ -193,11 +192,22 @@ dms_set_sql_db (dlna_t *dlna, char *dbname)
   }
   return 0;
 }
+
+static void
+dms_db_close(dlna_t *dlna)
+{
+  sqlite3_close (dlna->dms.db);
+}
 #else
 static int
-dms_set_sql_db (dlna_t *dlna, char *dbname)
+dms_db_open (dlna_t *dlna, char *dbname)
 {
 	return -1;
+}
+
+static void
+dms_db_close(dlna_t *dlna)
+{
 }
 #endif /* HAVE_SQLITE */
 
@@ -208,7 +218,7 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
   if (!dlna)
     return;
 
-  if (type == DLNA_DMS_STORAGE_DB, && !dms_set_sql_db (dlna, dbname))
+  if (type == DLNA_DMS_STORAGE_DB && !dms_db_open (dlna, dbname))
   {
     dlna->storage_type = DLNA_DMS_STORAGE_DB,;
     dlna_log (dlna, DLNA_MSG_INFO,
