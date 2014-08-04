@@ -218,7 +218,7 @@ dms_db_load (dlna_t *dlna, vfs_item_t *root)
 }
 
 static void
-dms_db_close(dlna_t *dlna)
+dms_db_close (dlna_t *dlna)
 {
 }
 #endif /* HAVE_SQLITE */
@@ -228,17 +228,18 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
                                dlna_dms_storage_type_t type, char *data)
 {
   int ret = DLNA_ST_VFSEMPTY;
-  if (!dlna)
-    return;
 
-  if (type == DLNA_DMS_STORAGE_DB && !dms_db_open (dlna, dbname))
+  if (!dlna)
+    return DLNA_ST_ERROR;
+
+  if (type == DLNA_DMS_STORAGE_DB && !dms_db_open (dlna, data))
   {
-    dlna->storage_type = DLNA_DMS_STORAGE_DB;
-    ret = dms_db_load(dlna, dlna->dms.vfs_root);
+    dlna->dms.storage_type = DLNA_DMS_STORAGE_DB;
+    ret = dms_db_load (dlna, dlna->dms.vfs_root);
     dlna_log (dlna, DLNA_MSG_INFO,
             "Use SQL database for VFS metadata storage.\n");
-    return;
   }
-  dms_set_memory (dlna);
+  else
+	dms_set_memory (dlna);
   return ret;
 }

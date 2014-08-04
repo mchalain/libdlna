@@ -434,10 +434,11 @@ char *dlna_dms_description_get (dlna_t *dlna);
  * @param[in] type  The VFS storage type.
  * @param[in] data  Optional cookie depending on storage type:
  *                   - May be NULL for memory storage.
- *                   - Path to databased file for SQL_DB storage.
- * 
+ *                   - Path to databased file for DB storage.
+ * @return DLNA_ST_OK in case of success, 
+ *          DLNA_ST_VFSEMPTY if the VFS has to be rebuild
  */
-void dlna_dms_set_vfs_storage_type (dlna_t *dlna,
+int dlna_dms_set_vfs_storage_type (dlna_t *dlna,
                                     dlna_dms_storage_type_t type, char *data);
 
 /***************************************************************************/
