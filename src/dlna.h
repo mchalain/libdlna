@@ -572,13 +572,11 @@ uint32_t dlna_vfs_add_container (dlna_t *dlna, char *name,
  * @param[in] dlna         The DLNA library's controller.
  * @param[in] name         Displayed name of the resource.
  * @param[in] fullname     Full path to the specified resource.
- * @param[in] size         Resource file size (in bytes).
  * @param[in] container_id UPnP object ID of its parent.
  * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
  */
 uint32_t dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                                char *fullpath, off_t size,
-                                uint32_t container_id);
+                                char *fullpath, uint32_t container_id);
 
 /**
  * Remove an existing item (and all its children) from VFS layer by ID.

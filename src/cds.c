@@ -26,6 +26,8 @@
  */
 
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "upnp_internals.h"
 #include "minmax.h"
@@ -324,7 +326,11 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
     free (protocol_info);
     
     if (filter_has_val (filter, "@"DIDL_RES_SIZE))
-      didl_add_value (out, DIDL_RES_SIZE, item->u.resource.size);
+    {
+      struct stat st;
+      if (!stat (item->u.resource.fullpath, &st))
+        didl_add_value (out, DIDL_RES_SIZE, st.st_size);
+    }
     
     didl_add_param (out, DIDL_RES_DURATION,
                     item->u.resource.item->properties->duration);

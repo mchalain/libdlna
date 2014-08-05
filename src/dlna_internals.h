@@ -60,7 +60,6 @@ typedef struct vfs_item_s {
       dlna_org_conversion_t cnv;
       char *fullpath;
       char *url;
-      off_t size;
       int fd;
     } resource;
     struct {

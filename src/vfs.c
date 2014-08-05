@@ -209,7 +209,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
 
 uint32_t
 dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                       char *fullpath, off_t size, uint32_t container_id)
+                       char *fullpath, uint32_t container_id)
 {
   vfs_item_t *item, *parent;
   
@@ -246,7 +246,6 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%d (%s)\n",
             item->id, item->title);
   item->u.resource.fullpath = strdup (fullpath);
-  item->u.resource.size = size;
   item->u.resource.fd = -1;
   
   /* determine parent */
