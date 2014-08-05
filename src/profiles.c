@@ -444,45 +444,17 @@ match_file_extension (const char *filename, const char *extensions)
   return 0;
 }
 
-dlna_profile_t *
-dlna_guess_media_profile (dlna_t *dlna, const char *filename)
+static dlna_profile_t *
+dlna_guess_media_profile (dlna_t *dlna,
+                           const char *filename, AVFormatContext *ctx, av_codecs_t *codecs)
 {
-  AVFormatContext *ctx = NULL;
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
   dlna_container_type_t st;
-  av_codecs_t *codecs;
-
-  if (!dlna)
-    return NULL;
-  
-  if (!dlna->inited)
-    dlna = dlna_init ();
-  
-  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
-  {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
-    return NULL;
-  }
-
-  if (av_find_stream_info (ctx) < 0)
-  {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    avformat_close_input (&ctx);
-    return NULL;
-  }
 
 #ifdef HAVE_DEBUG
   av_dump_format (ctx, 0, NULL, 0);
 #endif /* HAVE_DEBUG */
-
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-  {
-    avformat_close_input (&ctx);
-    return NULL;
-  }
 
   /* check for container type */
   st = stream_get_container (dlna, ctx);
@@ -515,17 +487,14 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
     p = p->next;
   }
 
-  avformat_close_input (&ctx);
-  free (codecs);
   return profile;
 }
 
 static dlna_profile_t *
 upnp_guess_media_profile (dlna_t *dlna,
-                          const char *filename, AVFormatContext *ctx)
+                          const char *filename, AVFormatContext *ctx, av_codecs_t *codecs)
 {
   dlna_profile_t *profile = NULL;
-  av_codecs_t *codecs;
   char *extension;
   int i;
   
@@ -534,11 +503,6 @@ upnp_guess_media_profile (dlna_t *dlna,
 
   extension = get_file_extension (filename);
   if (!extension)
-    return NULL;
-  
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
     return NULL;
   
   profile = malloc (sizeof (dlna_profile_t));
@@ -557,27 +521,19 @@ upnp_guess_media_profile (dlna_t *dlna,
     profile->media_class = DLNA_CLASS_AUDIO;
   else if (ctx->nb_streams > 1 && codecs->vc && !codecs->ac)
     profile->media_class = DLNA_CLASS_IMAGE;
-  
-  free (codecs);
-  
+
   return profile;
 }
 
 static dlna_properties_t *
-dlna_item_get_properties (AVFormatContext *ctx)
+dlna_item_get_properties (AVFormatContext *ctx, av_codecs_t *codecs)
 {
   dlna_properties_t *prop;
-  av_codecs_t *codecs;
   int duration, hours, min, sec;
   
   if (!ctx)
     return NULL;
 
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-    return NULL;
-  
   prop = malloc (sizeof (dlna_properties_t));
   prop->size = 1000;
 
@@ -601,7 +557,6 @@ dlna_item_get_properties (AVFormatContext *ctx)
     sprintf (prop->resolution, "%dx%d",
              codecs->vc->width, codecs->vc->height);
 
-  free (codecs);
   return prop;
 }
 
@@ -663,6 +618,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 {
   AVFormatContext *ctx = NULL;
   dlna_item_t *item;
+  av_codecs_t *codecs;
 
   if (!dlna || !filename)
     return NULL;
@@ -676,30 +632,37 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     return NULL;
   }
 
-  if (av_find_stream_info (ctx) < 0)
+  if (avformat_find_stream_info (ctx, NULL) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
     avformat_close_input (&ctx);
     return NULL;
   }
 
+  /* grab codecs info */
+  codecs = av_profile_get_codecs (ctx);
+  if (!codecs)
+    return NULL;
+
   item = malloc (sizeof (dlna_item_t));
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = dlna_guess_media_profile (dlna, filename);
+    item->profile    = dlna_guess_media_profile (dlna, filename, ctx, codecs);
   else
-    item->profile    = upnp_guess_media_profile (dlna, filename, ctx);
+    item->profile    = upnp_guess_media_profile (dlna, filename, ctx, codecs);
   if (!item->profile) /* not DLNA compliant */
   {
     free (item);
     avformat_close_input (&ctx);
+    free (codecs);
     return NULL;
   }
   item->filename   = strdup (filename);
-  item->properties = dlna_item_get_properties (ctx);
+  item->properties = dlna_item_get_properties (ctx, codecs);
   item->metadata   = dlna_item_get_metadata (ctx);
   item->media_class= item->profile->media_class;
 
   avformat_close_input (&ctx);
+  free (codecs);
 
   return item;
 }

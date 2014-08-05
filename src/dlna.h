@@ -291,16 +291,6 @@ typedef struct dlna_profile_s {
 } dlna_profile_t;
 
 /**
- * Guess which DLNA profile one input file/stream is compatible with.
- *
- * @warning This function returns a pointer, do _NOT_ free it.
- * @param[in] dlna     The DLNA library's controller.
- * @param[in] filename The file to be checked for compliance.
- * @return A pointer on file's DLNA profile if compatible, NULL otherwise.
- */
-dlna_profile_t *dlna_guess_media_profile (dlna_t *dlna, const char *filename);
-
-/**
  * Provides UPnP A/V ContentDirectory Object Item associated to profile.
  *
  * @warning This function returns a pointer, do _NOT_ free it.
