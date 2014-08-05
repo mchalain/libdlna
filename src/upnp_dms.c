@@ -193,10 +193,55 @@ dms_db_open (dlna_t *dlna, char *dbname)
   return 0;
 }
 
-static int
-dms_db_load (dlna_t *dlna, vfs_item_t *root)
+/**
+ * DB structure:
+ *  table 1: items
+ *    - int uid : the uniq ID for the item
+ *    - char type : 0 for container, 1 for resource
+ *    - blob name : the name of the entry
+ *    - int parentid : the uid of the parent, 0 for root
+ **/
+typedef struct db_item_s
 {
-  return DLNA_ST_VFSEMPTY;
+  int uid;
+  char *name;
+  int parentid;
+  char type;
+} db_item_t;
+
+static db_item_t *
+dms_db_get (dlna_t *dlna, int parentid, db_item_t *previous)
+{
+	return NULL;
+}
+
+static int
+dms_db_load (dlna_t *dlna, vfs_item_t *root, int parentid)
+{
+  int ret = DLNA_ST_VFSEMPTY;
+  db_item_t *item = NULL;
+
+  for (;;)
+  {
+    item = dms_db_get(dlna, parentid, item);
+    if (!item)
+      break;
+    if (item->type == DLNA_CONTAINER)
+    {
+      vfs_item_t *container;
+      container = calloc (1, sizeof (vfs_item_t));
+      container->type = DLNA_CONTAINER;
+
+      dms_db_load(dlna, container, item->uid);
+    }
+    else if (item->type == DLNA_RESOURCE)
+    {
+      vfs_item_t *resource;
+      resource = calloc (1, sizeof (vfs_item_t));
+      resource->type = DLNA_RESOURCE;
+    }
+  }
+  return ret;
 }
 
 static void
