@@ -380,8 +380,9 @@ av_profile_get_codecs (AVFormatContext *ctx)
   int audio_stream = -1, video_stream = -1;
  
   codecs = malloc (sizeof (av_codecs_t));
+  codecs->nb_streams = ctx->nb_streams;
 
-  for (i = 0; i < ctx->nb_streams; i++)
+  for (i = 0; i < codecs->nb_streams; i++)
   {
     if (audio_stream == -1 &&
         ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -492,13 +493,13 @@ dlna_guess_media_profile (dlna_t *dlna,
 
 static dlna_profile_t *
 upnp_guess_media_profile (dlna_t *dlna,
-                          const char *filename, AVFormatContext *ctx, av_codecs_t *codecs)
+                          const char *filename, av_codecs_t *codecs)
 {
   dlna_profile_t *profile = NULL;
   char *extension;
   int i;
   
-  if (!dlna || !ctx)
+  if (!dlna || !codecs)
     return NULL;
 
   extension = get_file_extension (filename);
@@ -519,7 +520,7 @@ upnp_guess_media_profile (dlna_t *dlna,
     profile->media_class = DLNA_CLASS_AV;
   else if (stream_ctx_is_audio (codecs))
     profile->media_class = DLNA_CLASS_AUDIO;
-  else if (ctx->nb_streams > 1 && codecs->vc && !codecs->ac)
+  else if (codecs->nb_streams > 1 && codecs->vc && !codecs->ac)
     profile->media_class = DLNA_CLASS_IMAGE;
 
   return profile;
@@ -648,7 +649,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
     item->profile    = dlna_guess_media_profile (dlna, filename, ctx, codecs);
   else
-    item->profile    = upnp_guess_media_profile (dlna, filename, ctx, codecs);
+    item->profile    = upnp_guess_media_profile (dlna, filename, codecs);
   if (!item->profile) /* not DLNA compliant */
   {
     free (item);

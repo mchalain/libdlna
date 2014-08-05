@@ -64,6 +64,7 @@
 #define LABEL_VIDEO_HD                    "HD"
 
 typedef struct av_codecs_s {
+  unsigned int nb_streams;
   /* audio stream and codec */
   AVStream *as;
   AVCodecContext *ac;
