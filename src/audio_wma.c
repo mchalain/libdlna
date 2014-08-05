@@ -85,14 +85,13 @@ audio_profile_guess_wma (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_wma (AVFormatContext *ctx dlna_unused,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
   /* check for supported container */
-  if (st != CT_ASF)
+  if (stream_get_container (ctx) != CT_ASF)
     return NULL;
   
   switch (audio_profile_guess_wma (codecs->ac))

@@ -1210,12 +1210,12 @@ avc_video_get_profile (AVFormatContext *ctx, AVStream *vs, AVCodecContext *vc)
 
 static dlna_profile_t *
 probe_avc (AVFormatContext *ctx,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
   avc_video_profile_t vp;
   audio_profile_t ap;
   int i;
+  dlna_container_type_t st;
   
   if (!stream_ctx_is_av (codecs))
     return NULL;
@@ -1224,6 +1224,7 @@ probe_avc (AVFormatContext *ctx,
   if (codecs->vc->codec_id != CODEC_ID_H264)
     return NULL;
 
+  st = stream_get_container (ctx);
   /* check for a supported container */
   if (st != CT_3GP &&
       st != CT_MP4 &&

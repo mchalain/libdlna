@@ -48,7 +48,6 @@ audio_profile_guess_atrac (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_atrac3 (AVFormatContext *ctx dlna_unused,
-              dlna_container_type_t st dlna_unused,
               av_codecs_t *codecs)
 {
   if (!stream_ctx_is_audio (codecs))

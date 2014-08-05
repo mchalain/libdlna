@@ -451,15 +451,11 @@ dlna_guess_media_profile (dlna_t *dlna,
 {
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
-  dlna_container_type_t st;
 
 #ifdef HAVE_DEBUG
   av_dump_format (ctx, 0, NULL, 0);
 #endif /* HAVE_DEBUG */
 
-  /* check for container type */
-  st = stream_get_container (dlna, ctx);
-  
   p = dlna->first_profile;
   while (p)
   {
@@ -478,7 +474,7 @@ dlna_guess_media_profile (dlna_t *dlna,
       }
     }
     
-    prof = p->probe (ctx, st, codecs);
+    prof = p->probe (ctx, codecs);
     if (prof)
     {
       profile = prof;
@@ -711,14 +707,14 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
 
 int
 stream_ctx_is_image (AVFormatContext *ctx,
-                     av_codecs_t *codecs, dlna_container_type_t st)
+                     av_codecs_t *codecs)
 {
   /* should only have 1 stream */
   if (ctx->nb_streams > 1)
     return 0;
 
   /* should be inside image container */
-  if (st != CT_IMAGE)
+  if (stream_get_container (ctx) != CT_IMAGE)
     return 0;
 
   if (!codecs->vc)

@@ -67,12 +67,11 @@ static const struct {
 
 static dlna_profile_t *
 probe_png (AVFormatContext *ctx,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
   int i;
 
-  if (!stream_ctx_is_image (ctx, codecs, st))
+  if (!stream_ctx_is_image (ctx, codecs))
     return NULL;
   
   /* check for PNG compliant codec */

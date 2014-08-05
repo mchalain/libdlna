@@ -608,9 +608,10 @@ probe_mpeg_ts (AVFormatContext *ctx,
 
 static dlna_profile_t *
 probe_mpeg2 (AVFormatContext *ctx,
-             dlna_container_type_t st,
              av_codecs_t *codecs)
 {
+  dlna_container_type_t st;
+
   if (!stream_ctx_is_av (codecs))
     return NULL;
   
@@ -618,6 +619,7 @@ probe_mpeg2 (AVFormatContext *ctx,
   if (codecs->vc->codec_id != CODEC_ID_MPEG2VIDEO)
     return NULL;
 
+  st = stream_get_container (ctx);
   switch (st)
   {
   case CT_MPEG_ELEMENTARY_STREAM:
