@@ -79,7 +79,6 @@ upnp_http_get_info (void *cookie,
   uint32_t id;
   vfs_item_t *item;
   char *content_type;
-  char *protocol_info;
   struct stat st;
   
   if (!cookie || !filename || !info)
@@ -153,23 +152,9 @@ upnp_http_get_info (void *cookie,
   info->last_modified = st.st_mtime;
   info->is_directory = S_ISDIR (st.st_mode);
 
-  protocol_info = 
-    dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
-                              DLNA_ORG_PLAY_SPEED_NORMAL,
-                              DLNA_ORG_CONVERSION_NONE,
-                              DLNA_ORG_OPERATION_RANGE,
-                              dlna->flags, item->u.resource.item->profile);
-
-  content_type =
-    strndup ((protocol_info + PROTOCOL_TYPE_PRE_SZ),
-             strlen (protocol_info + PROTOCOL_TYPE_PRE_SZ)
-             - PROTOCOL_TYPE_SUFF_SZ);
-  free (protocol_info);
-
-  if (content_type)
+  if (item->u.resource.item->profile->mime)
   {
-    info->content_type = ixmlCloneDOMString (content_type);
-    free (content_type);
+    info->content_type = ixmlCloneDOMString (item->u.resource.item->profile->mime);
   }
   else
     info->content_type = ixmlCloneDOMString ("");
