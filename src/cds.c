@@ -26,8 +26,6 @@
  */
 
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "upnp_internals.h"
 #include "minmax.h"
@@ -318,17 +316,6 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       char *protocol_info;
       int size = 0;
 
-      if (filter_has_val (filter, "@"DIDL_RES_SIZE))
-      {
-        struct stat st;
-        if (!stat (dlna_item->filename, &st))
-          size = st.st_size;
-       else
-       {
-          buffer_appendf (out, "</%s>", DIDL_ITEM);
-          return;
-        }
-      }
       protocol_info =
         dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
@@ -340,8 +327,8 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       didl_add_param (out, DIDL_RES_INFO, protocol_info);
       free (protocol_info);
     
-      if (size > 0)
-        didl_add_value (out, DIDL_RES_SIZE, size);
+      if (dlna_item->filesize && filter_has_val (filter, "@"DIDL_RES_SIZE))
+        didl_add_value (out, DIDL_RES_SIZE, dlna_item->filesize);
     
       if (dlna_item->properties)
       {
