@@ -343,17 +343,20 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       if (size > 0)
         didl_add_value (out, DIDL_RES_SIZE, size);
     
-      didl_add_param (out, DIDL_RES_DURATION,
+      if (dlna_item->properties)
+      {
+        didl_add_param (out, DIDL_RES_DURATION,
                     dlna_item->properties->duration);
-      didl_add_value (out, DIDL_RES_BITRATE,
+        didl_add_value (out, DIDL_RES_BITRATE,
                     dlna_item->properties->bitrate);
-      didl_add_value (out, DIDL_RES_BPS,
+        didl_add_value (out, DIDL_RES_BPS,
                     dlna_item->properties->bps);
-      didl_add_value (out, DIDL_RES_AUDIO_CHANNELS,
+        didl_add_value (out, DIDL_RES_AUDIO_CHANNELS,
                     dlna_item->properties->channels);
-      if (strlen (dlna_item->properties->resolution) > 1)
-        didl_add_param (out, DIDL_RES_RESOLUTION,
+        if (strlen (dlna_item->properties->resolution) > 1)
+          didl_add_param (out, DIDL_RES_RESOLUTION,
                       dlna_item->properties->resolution);
+      }
 
       buffer_append (out, ">");
       buffer_appendf (out, "http://%s:%d%s/%d",
