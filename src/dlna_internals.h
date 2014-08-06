@@ -179,7 +179,6 @@ typedef struct dlna_metadata_s {
  * DLNA Media Object item properties
  */
 typedef struct dlna_properties_s {
-  int64_t  size;                  /* res@size */
   char     duration[64];          /* res@duration */
   uint32_t bitrate;               /* res@bitrate */
   uint32_t sample_frequency;      /* res@sampleFrequency */
@@ -193,6 +192,7 @@ typedef struct dlna_properties_s {
  */
 struct dlna_item_s {
   char *filename;
+  int64_t filesize;
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
   dlna_profile_t *profile;

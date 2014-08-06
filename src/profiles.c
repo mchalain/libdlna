@@ -21,6 +21,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "dlna_internals.h"
 #include "profiles.h"
@@ -542,7 +544,6 @@ dlna_item_get_properties (AVFormatContext *ctx)
     return NULL;
 
   prop = malloc (sizeof (dlna_properties_t));
-  prop->size = 1000;
 
   duration = (int) (ctx->duration / AV_TIME_BASE);
   hours = (int) (duration / 3600);
@@ -630,6 +631,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 {
   AVFormatContext *ctx = NULL;
   dlna_item_t *item;
+  struct stat st;
 
   if (!dlna || !filename)
     return NULL;
@@ -643,7 +645,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     item->profile    = dlna_guess_media_profile (dlna, filename, &ctx);
   else
     item->profile    = upnp_guess_media_profile (dlna, filename);
-  if (!item->profile) /* not DLNA compliant */
+  if (!item->profile && !stat (filename, &st)) /* not DLNA compliant */
   {
     free (item);
     if (ctx)
@@ -651,6 +653,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     return NULL;
   }
   item->filename   = strdup (filename);
+  item->filesize   = st.st_size;
   if (ctx)
   {
     item->properties = dlna_item_get_properties (ctx);
