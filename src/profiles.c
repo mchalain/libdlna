@@ -453,7 +453,7 @@ dlna_guess_media_profile (dlna_t *dlna,
 {
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
-  AVFormatContext *ctx;
+  AVFormatContext *ctx = NULL;
   av_codecs_t *codecs;
 
   if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
