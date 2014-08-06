@@ -154,6 +154,32 @@ struct dlna_s {
   char *presentation_url;
 };
 
+/**
+ * Create a new DLNA media object item.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] filename The input file to be added.
+ * @return A new DLNA object item if compatible, NULL otherwise.
+ */
+dlna_item_t *dlna_item_new (dlna_t *dlna, const char *filename);
+
+/**
+ * Free an existing DLNA media object item.
+ *
+ * @param[in] item     The DLNA object item to be freed.
+ */
+void dlna_item_free (dlna_item_t *item);
+
+/**
+ * Return the DLNA media object item.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] item     The VFS item corresponding to the file.
+ * @return The DLNA object item if existing, NULL otherwise.
+ */
+dlna_item_t *
+dlna_item_get(dlna_t *dlna, vfs_item_t *item);
+
 void dlna_log (dlna_t *dlna,
                dlna_verbosity_level_t level,
                const char *format, ...);

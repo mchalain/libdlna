@@ -286,7 +286,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
   didl_add_param (out, DIDL_ITEM_RESTRICTED, restricted);
   buffer_append (out, ">");
 
-  dlna_item = dlna_item_get(item);
+  dlna_item = dlna_item_get(dlna, item);
   if (dlna_item)
   {
 	class = dlna_profile_upnp_object_item (dlna_item->profile);
@@ -625,7 +625,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
   else
     strcpy (keyword, SEARCH_OBJECT_KEYWORD);
 
-  dlna_item = dlna_item_get(item);
+  dlna_item = dlna_item_get(dlna, item);
   protocol_info =
     dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
                               DLNA_ORG_PLAY_SPEED_NORMAL,

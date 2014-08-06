@@ -148,7 +148,7 @@ upnp_http_get_info (void *cookie,
     info->is_readable = 0;
   }
 
-  dlna_item = dlna_item_get(item);
+  dlna_item = dlna_item_get(dlna, item);
   /* file exist and can be read */
   info->file_length = st.st_size;
   info->last_modified = st.st_mtime;
