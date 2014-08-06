@@ -28,89 +28,89 @@
 
 typedef struct mime_type_s {
   const char *extension;
-  const char *mime;
+  dlna_profile_t profile;
 } mime_type_t;
 
 static const mime_type_t mime_type_list[] = {
   /* Video files */
-  { "asf",   "video/x-ms-asf"},
-  { "avc",   "video/avi"},
-  { "avi",   "video/avi"},
-  { "dv",    "video/x-dv"},
-  { "divx",  "video/avi"},
-  { "wmv",   "video/x-ms-wmv"},
-  { "mjpg",  "video/x-motion-jpeg"},
-  { "mjpeg", "video/x-motion-jpeg"},
-  { "mpeg",  "video/mpeg"},
-  { "mpg",   "video/mpeg"},
-  { "mpe",   "video/mpeg"},
-  { "mp2p",  "video/mp2p"},
-  { "vob",   "video/mp2p"},
-  { "mp2t",  "video/mp2t"},
-  { "m1v",   "video/mpeg"},
-  { "m2v",   "video/mpeg2"},
-  { "mpg2",  "video/mpeg2"},
-  { "mpeg2", "video/mpeg2"},
-  { "m4v",   "video/mp4"},
-  { "m4p",   "video/mp4"},
-  { "mp4",   "video/mp4"},
-  { "mp4ps", "video/x-nerodigital-ps"},
-  { "ts",    "video/mpeg2"},
-  { "ogm",   "video/mpeg"},
-  { "mkv",   "video/mpeg"},
-  { "rmvb",  "video/mpeg"},
-  { "mov",   "video/quicktime"},
-  { "hdmov", "video/quicktime"},
-  { "qt",    "video/quicktime"},
-  { "bin",   "video/mpeg2"},
-  { "iso",   "video/mpeg2"},
+  { "asf",   {.mime = "video/x-ms-asf", .media_class = DLNA_CLASS_AV,}},
+  { "avc",   {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "avi",   {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "dv",    {.mime = "video/x-dv", .media_class = DLNA_CLASS_AV,}},
+  { "divx",  {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "wmv",   {.mime = "video/x-ms-wmv", .media_class = DLNA_CLASS_AV,}},
+  { "mjpg",  {.mime = "video/x-motion-jpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mjpeg", {.mime = "video/x-motion-jpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpeg",  {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpg",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpe",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mp2p",  {.mime = "video/mp2p", .media_class = DLNA_CLASS_AV,}},
+  { "vob",   {.mime = "video/mp2p", .media_class = DLNA_CLASS_AV,}},
+  { "mp2t",  {.mime = "video/mp2t", .media_class = DLNA_CLASS_AV,}},
+  { "m1v",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "m2v",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "mpg2",  {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "mpeg2", {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "m4v",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "m4p",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "mp4",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "mp4ps", {.mime = "video/x-nerodigital-ps", .media_class = DLNA_CLASS_AV,}},
+  { "ts",    {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "ogm",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mkv",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "rmvb",  {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mov",   {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "hdmov", {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "qt",    {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "bin",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "iso",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
 
   /* Audio files */
-  { "3gp",  "audio/3gpp"},
-  { "aac",  "audio/x-aac"},
-  { "ac3",  "audio/x-ac3"},
-  { "aif",  "audio/aiff"},
-  { "aiff", "audio/aiff"},
-  { "at3p", "audio/x-atrac3"},
-  { "au",   "audio/basic"},
-  { "snd",  "audio/basic"},
-  { "dts",  "audio/x-dts"},
-  { "rmi",  "audio/midi"},
-  { "mid",  "audio/midi"},
-  { "mp1",  "audio/mp1"},
-  { "mp2",  "audio/mp2"},
-  { "mp3",  "audio/mpeg"},
-  { "m4a",  "audio/mp4"},
-  { "ogg",  "audio/x-ogg"},
-  { "wav",  "audio/wav"},
-  { "pcm",  "audio/l16"},
-  { "lpcm", "audio/l16"},
-  { "l16",  "audio/l16"},
-  { "wma",  "audio/x-ms-wma"},
-  { "mka",  "audio/mpeg"},
-  { "ra",   "audio/x-pn-realaudio"},
-  { "rm",   "audio/x-pn-realaudio"},
-  { "ram",  "audio/x-pn-realaudio"},
-  { "flac", "audio/x-flac"},
+  { "3gp",  {.mime = "audio/3gpp", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aac",  {.mime = "audio/x-aac", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ac3",  {.mime = "audio/x-ac3", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aif",  {.mime = "audio/aiff", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aiff", {.mime = "audio/aiff", .media_class = DLNA_CLASS_AUDIO,}},
+  { "at3p", {.mime = "audio/x-atrac3", .media_class = DLNA_CLASS_AUDIO,}},
+  { "au",   {.mime = "audio/basic", .media_class = DLNA_CLASS_AUDIO,}},
+  { "snd",  {.mime = "audio/basic", .media_class = DLNA_CLASS_AUDIO,}},
+  { "dts",  {.mime = "audio/x-dts", .media_class = DLNA_CLASS_AUDIO,}},
+  { "rmi",  {.mime = "audio/midi", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mid",  {.mime = "audio/midi", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp1",  {.mime = "audio/mp1", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp2",  {.mime = "audio/mp2", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp3",  {.mime = "audio/mpeg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "m4a",  {.mime = "audio/mp4", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ogg",  {.mime = "audio/x-ogg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "wav",  {.mime = "audio/wav", .media_class = DLNA_CLASS_AUDIO,}},
+  { "pcm",  {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "lpcm", {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "l16",  {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "wma",  {.mime = "audio/x-ms-wma", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mka",  {.mime = "audio/mpeg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ra",   {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "rm",   {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ram",  {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "flac", {.mime = "audio/x-flac", .media_class = DLNA_CLASS_AUDIO,}},
 
   /* Images files */
-  { "bmp",  "image/bmp"},
-  { "ico",  "image/x-icon"},
-  { "gif",  "image/gif"},
-  { "jpeg", "image/jpeg"},
-  { "jpg",  "image/jpeg"},
-  { "jpe",  "image/jpeg"},
-  { "pcd",  "image/x-ms-bmp"},
-  { "png",  "image/png"},
-  { "pnm",  "image/x-portable-anymap"},
-  { "ppm",  "image/x-portable-pixmap"},
-  { "qti",  "image/x-quicktime"},
-  { "qtf",  "image/x-quicktime"},
-  { "qtif", "image/x-quicktime"},
-  { "tif",  "image/tiff"},
-  { "tiff", "image/tiff"},
+  { "bmp",  {.mime = "image/bmp", .media_class = DLNA_CLASS_IMAGE,}},
+  { "ico",  {.mime = "image/x-icon", .media_class = DLNA_CLASS_IMAGE,}},
+  { "gif",  {.mime = "image/gif", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpeg", {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpg",  {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpe",  {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "pcd",  {.mime = "image/x-ms-bmp", .media_class = DLNA_CLASS_IMAGE,}},
+  { "png",  {.mime = "image/png", .media_class = DLNA_CLASS_IMAGE,}},
+  { "pnm",  {.mime = "image/x-portable-anymap", .media_class = DLNA_CLASS_IMAGE,}},
+  { "ppm",  {.mime = "image/x-portable-pixmap", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qti",  {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qtf",  {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qtif", {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "tif",  {.mime = "image/tiff", .media_class = DLNA_CLASS_IMAGE,}},
+  { "tiff", {.mime = "image/tiff", .media_class = DLNA_CLASS_IMAGE,}},
 
-  { NULL,   NULL}
+  { NULL,   {.mime = NULL}}
 };
 
 extern dlna_registered_profile_t dlna_profile_image_jpeg;
@@ -360,8 +360,8 @@ dlna_get_supported_mime_types (dlna_t *dlna)
 
   case DLNA_CAPABILITY_UPNP_AV:
   case DLNA_CAPABILITY_UPNP_AV_XBOX:
-    for (i = 0; mime_type_list[i].mime; i++)
-      mimes = dlna_list_add (mimes, (char *) mime_type_list[i].mime);
+    for (i = 0; mime_type_list[i].profile.mime; i++)
+      mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
     break;
 
   default:
@@ -502,22 +502,9 @@ upnp_guess_media_profile (dlna_t *dlna,
   if (!extension)
     return NULL;
   
-  profile = malloc (sizeof (dlna_profile_t));
-  profile->id = NULL; /* obviously not DLNA compliant */
-  profile->label = NULL;
-  
-  profile->mime = "";
   for (i = 0; mime_type_list[i].extension; i++)
     if (!strcmp (extension, mime_type_list[i].extension))
-      profile->mime = mime_type_list[i].mime;
-
-  profile->media_class = DLNA_CLASS_UNKNOWN;
-  if (stream_ctx_is_av (codecs))
-    profile->media_class = DLNA_CLASS_AV;
-  else if (stream_ctx_is_audio (codecs))
-    profile->media_class = DLNA_CLASS_AUDIO;
-  else if (codecs->nb_streams > 1 && codecs->vc && !codecs->ac)
-    profile->media_class = DLNA_CLASS_IMAGE;
+      profile = &mime_type_list[i].profile;
 
   return profile;
 }
