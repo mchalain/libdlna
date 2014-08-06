@@ -49,7 +49,6 @@ typedef struct http_file_handler_s {
   union {
     struct {
       int fd;
-      vfs_item_t *item;
     } local;
     struct {
       char *content;
@@ -134,21 +133,24 @@ upnp_http_get_info (void *cookie,
   if (item->type != DLNA_RESOURCE)
     return HTTP_ERROR;
 
-  if (!item->u.resource.fullpath)
+  dlna_item = dlna_item_get(dlna, item);
+  if (!dlna_item)
     return HTTP_ERROR;
 
-  if (stat (item->u.resource.fullpath, &st) < 0)
+  if (!dlna_item->filename)
+    return HTTP_ERROR;
+
+  if (stat (dlna_item->filename, &st) < 0)
     return HTTP_ERROR;
 
   info->is_readable = 1;
-  if (access (item->u.resource.fullpath, R_OK) < 0)
+  if (access (dlna_item->filename, R_OK) < 0)
   {
     if (errno != EACCES)
       return HTTP_ERROR;
     info->is_readable = 0;
   }
 
-  dlna_item = dlna_item_get(dlna, item);
   /* file exist and can be read */
   info->file_length = st.st_size;
   info->last_modified = st.st_mtime;
@@ -190,29 +192,28 @@ http_get_file_from_memory (const char *fullpath,
 }
 
 static dlnaWebFileHandle
-http_get_file_local (vfs_item_t *item)
+http_get_file_local (dlna_item_t *dlna_item)
 {
   dlna_http_file_handler_t *dhdl;
   http_file_handler_t *hdl;
   int fd;
   
-  if (!item)
+  if (!dlna_item)
     return NULL;
 
-  if (!item->u.resource.fullpath)
+  if (!dlna_item->filename)
     return NULL;
   
-  fd = open (item->u.resource.fullpath,
+  fd = open (dlna_item->filename,
              O_RDONLY | O_NONBLOCK | O_SYNC | O_NDELAY);
   if (fd < 0)
     return NULL;
   
   hdl                        = malloc (sizeof (http_file_handler_t));
-  hdl->fullpath              = strdup (item->u.resource.fullpath);
+  hdl->fullpath              = strdup (dlna_item->filename);
   hdl->pos                   = 0;
   hdl->type                  = HTTP_FILE_LOCAL;
   hdl->detail.local.fd       = fd;
-  hdl->detail.local.item     = item;
 
   dhdl                       = malloc (sizeof (dlna_http_file_handler_t));
   dhdl->external             = 0;
@@ -229,6 +230,7 @@ upnp_http_open (void *cookie,
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
+  dlna_item_t *dlna_item;
   
   if (!cookie || !filename)
     return NULL;
@@ -271,7 +273,10 @@ upnp_http_open (void *cookie,
   if (!item)
     return NULL;
 
-  return http_get_file_local (item);
+  dlna_item = dlna_item_get(dlna, item);
+  if (!dlna_item)
+    return NULL;
+  return http_get_file_local (dlna_item);
 }
 
 static int

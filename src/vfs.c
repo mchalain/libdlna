@@ -42,8 +42,6 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
   case DLNA_RESOURCE:
     if (item->u.resource.item)
       dlna_item_free (item->u.resource.item);
-    if (item->u.resource.fullpath)
-      free (item->u.resource.fullpath);
     if (item->u.resource.url)
       free (item->u.resource.url);
     break;
@@ -245,7 +243,6 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
 
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%d (%s)\n",
             item->id, item->title);
-  item->u.resource.fullpath = strdup (fullpath);
   item->u.resource.fd = -1;
   
   /* determine parent */

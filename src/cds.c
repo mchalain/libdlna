@@ -321,7 +321,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       if (filter_has_val (filter, "@"DIDL_RES_SIZE))
       {
         struct stat st;
-        if (!stat (item->u.resource.fullpath, &st))
+        if (!stat (dlna_item->filename, &st))
           size = st.st_size;
        else
        {
