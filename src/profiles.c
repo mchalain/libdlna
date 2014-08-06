@@ -679,6 +679,11 @@ dlna_item_free (dlna_item_t *item)
   free (item);
 }
 
+dlna_item_t *
+dlna_item_get(vfs_item_t *item)
+{
+	return item->u.resource.item;
+}
 /* UPnP ContentDirectory Object Item */
 #define UPNP_OBJECT_ITEM_PHOTO            "object.item.imageItem.photo"
 #define UPNP_OBJECT_ITEM_AUDIO            "object.item.audioItem.musicTrack"

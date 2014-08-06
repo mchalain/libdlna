@@ -78,6 +78,7 @@ upnp_http_get_info (void *cookie,
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
+  dlna_item_t *dlna_item;
   char *content_type;
   struct stat st;
   
@@ -147,14 +148,15 @@ upnp_http_get_info (void *cookie,
     info->is_readable = 0;
   }
 
+  dlna_item = dlna_item_get(item);
   /* file exist and can be read */
   info->file_length = st.st_size;
   info->last_modified = st.st_mtime;
   info->is_directory = S_ISDIR (st.st_mode);
 
-  if (item->u.resource.item->profile->mime)
+  if (dlna_item->profile->mime)
   {
-    info->content_type = ixmlCloneDOMString (item->u.resource.item->profile->mime);
+    info->content_type = ixmlCloneDOMString (dlna_item->profile->mime);
   }
   else
     info->content_type = ixmlCloneDOMString ("");
