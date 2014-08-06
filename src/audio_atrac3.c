@@ -59,10 +59,16 @@ probe_atrac3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_atrac3[] = {
+  &atrac3,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_atrac3 = {
   .id = DLNA_PROFILE_AUDIO_ATRAC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "at3p,acm,wav",
+  .profiles = &dlna_profiles_supported_audio_atrac3,
   .probe = probe_atrac3,
   .next = NULL
 };

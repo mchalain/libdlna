@@ -86,10 +86,19 @@ probe_png (AVFormatContext *ctx,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_image_png[] = {
+  &png_tn,
+  &png_sm_ico,
+  &png_lrg_ico,
+  &png_lrg,
+  NULL
+};
+
 dlna_registered_profile_t dlna_profile_image_png = {
   .id = DLNA_PROFILE_IMAGE_PNG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "png",
+  .profiles = &dlna_profiles_supported_image_png,
   .probe = probe_png,
   .next = NULL
 };

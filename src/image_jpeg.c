@@ -105,10 +105,21 @@ probe_jpeg (AVFormatContext *ctx,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_image_jpeg[] = {
+  &jpeg_sm,
+  &jpeg_med,
+  &jpeg_lrg,
+  &jpeg_tn,
+  &jpeg_sm_ico,
+  &jpeg_lrg_ico,
+  NULL
+};
+
 dlna_registered_profile_t dlna_profile_image_jpeg = {
   .id = DLNA_PROFILE_IMAGE_JPEG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "jpg,jpe,jpeg",
+  .profiles = &dlna_profiles_supported_image_jpeg,
   .probe = probe_jpeg,
   .next = NULL
 };

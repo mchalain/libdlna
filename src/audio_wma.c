@@ -109,10 +109,18 @@ probe_wma (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_wma[] = {
+  &wmabase,
+  &wmafull,
+  &wmapro,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_wma = {
   .id = DLNA_PROFILE_AUDIO_WMA,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "wma,asf",
+  .profiles = &dlna_profiles_supported_audio_wma,
   .probe = probe_wma,
   .next = NULL
 };

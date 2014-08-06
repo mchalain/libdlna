@@ -637,10 +637,41 @@ probe_mpeg2 (AVFormatContext *ctx,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_av_mpeg2[] = {
+  &mpeg_ps_ntsc,
+  &mpeg_ps_ntsc_xac3,
+  &mpeg_ps_pal,
+  &mpeg_ps_pal_xac3,
+  &mpeg_ts_mp_ll_aac,
+  &mpeg_ts_mp_ll_aac_t,
+  &mpeg_ts_mp_ll_aac_iso,
+  &mpeg_ts_sd_eu,
+  &mpeg_ts_sd_eu_t,
+  &mpeg_ts_sd_eu_iso,
+  &mpeg_ts_sd_na,
+  &mpeg_ts_sd_na_t,
+  &mpeg_ts_sd_na_iso,
+  &mpeg_ts_sd_na_xac3,
+  &mpeg_ts_sd_na_xac3_t,
+  &mpeg_ts_sd_na_xac3_iso,
+  &mpeg_ts_hd_na,
+  &mpeg_ts_hd_na_t,
+  &mpeg_ts_hd_na_iso,
+  &mpeg_ts_hd_na_xac3,
+  &mpeg_ts_hd_na_xac3_t,
+  &mpeg_ts_hd_na_xac3_iso,
+  &mpeg_es_pal,
+  &mpeg_es_ntsc,
+  &mpeg_es_pal_xac3,
+  &mpeg_es_ntsc_xac3,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_av_mpeg2 = {
   .id = DLNA_PROFILE_AV_MPEG2,
   .class = DLNA_CLASS_AV,
   .extensions = "mpg,mpeg,mpe,m2v,mp2p,mp2t,ts,ps,pes",
+  .profiles = &dlna_profiles_supported_av_mpeg2,
   .probe = probe_mpeg2,
   .next = NULL
 };

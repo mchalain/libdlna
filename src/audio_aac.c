@@ -559,10 +559,42 @@ probe_mpeg4 (AVFormatContext *ctx,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_mpeg4[] = {
+  &aac_adts,
+  &aac_adts_320,
+  &aac_iso,
+  &aac_iso_320,       
+  &aac_ltp_iso,       
+  &aac_ltp_mult5_iso, 
+  &aac_ltp_mult7_iso, 
+  &aac_mult5_adts,    
+  &aac_mult5_iso,     
+  &heaac_l2_adts,     
+  &heaac_l2_iso,      
+  &heaac_l3_adts,     
+  &heaac_l3_iso,      
+  &heaac_mult5_adts,  
+  &heaac_mult5_iso,   
+  &heaac_l2_adts_320, 
+  &heaac_l2_iso_320,  
+  &heaac_v2_l2,       
+  &heaac_v2_l2_adts,  
+  &heaac_v2_l2_320,   
+  &heaac_v2_l2_320_adts,
+  &heaac_v2_l3,         
+  &heaac_v2_l3_adts,    
+  &heaac_v2_mult5,      
+  &heaac_v2_mult5_adts, 
+  &bsac_iso,            
+  &bsac_mult5_iso,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_mpeg4 = {
   .id = DLNA_PROFILE_AUDIO_MPEG4,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "aac,adts,3gp,mp4,mov,qt,m4a",
+  .profiles = &dlna_profiles_supported_audio_mpeg4,
   .probe = probe_mpeg4,
   .next = NULL
 };

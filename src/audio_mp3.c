@@ -181,10 +181,17 @@ probe_mp3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_mp3[] = {
+  &mp3,
+  &mp3x,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_mp3 = {
   .id = DLNA_PROFILE_AUDIO_MP3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "mp3",
+  .profiles = &dlna_profiles_supported_audio_mp3,
   .probe = probe_mp3,
   .next = NULL
 };

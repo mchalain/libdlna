@@ -91,10 +91,16 @@ probe_ac3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_ac3[] = {
+  &ac3,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_ac3 = {
   .id = DLNA_PROFILE_AUDIO_AC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "ac3",
+  .profiles = &dlna_profiles_supported_audio_ac3,
   .probe = probe_ac3,
   .next = NULL
 };
