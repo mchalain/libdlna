@@ -39,6 +39,8 @@
 #include <sqlite3.h>
 #endif /* HAVE_SQLITE */
 
+typedef struct dlna_item_s dlna_item_t;
+
 typedef enum {
   DLNA_DEVICE_UNKNOWN,
   DLNA_DEVICE_DMS,      /* Digital Media Server */
@@ -152,6 +154,49 @@ struct dlna_s {
   char *serial_number;
   char *uuid;
   char *presentation_url;
+};
+
+/***************************************************************************/
+/*                                                                         */
+/* DLNA Item Handling                                                      */
+/*  Optional: Used to create a DLNA Media Item instance from a given file. */
+/*                                                                         */
+/***************************************************************************/
+
+/**
+ * DLNA Media Object item metadata
+ */
+typedef struct dlna_metadata_s {
+  char     *title;                /* <dc:title> */
+  char     *author;               /* <dc:artist> */
+  char     *comment;              /* <upnp:longDescription> */
+  char     *album;                /* <upnp:album> */
+  uint32_t track;                 /* <upnp:originalTrackNumber> */
+  char     *genre;                /* <upnp:genre> */
+} dlna_metadata_t;
+
+/**
+ * DLNA Media Object item properties
+ */
+typedef struct dlna_properties_s {
+  int64_t  size;                  /* res@size */
+  char     duration[64];          /* res@duration */
+  uint32_t bitrate;               /* res@bitrate */
+  uint32_t sample_frequency;      /* res@sampleFrequency */
+  uint32_t bps;                   /* res@bitsPerSample */
+  uint32_t channels;              /* res@nrAudioChannels */
+  char     resolution[64];        /* res@resolution */
+} dlna_properties_t;
+
+/**
+ * DLNA Media Object item
+ */
+struct dlna_item_s {
+  char *filename;
+  dlna_media_class_t media_class;
+  dlna_properties_t *properties;
+  dlna_metadata_t *metadata;
+  dlna_profile_t *profile;
 };
 
 /**
