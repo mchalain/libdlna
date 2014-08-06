@@ -489,13 +489,13 @@ dlna_guess_media_profile (dlna_t *dlna,
 
 static dlna_profile_t *
 upnp_guess_media_profile (dlna_t *dlna,
-                          const char *filename, av_codecs_t *codecs)
+                          const char *filename)
 {
   dlna_profile_t *profile = NULL;
   char *extension;
   int i;
   
-  if (!dlna || !codecs)
+  if (!dlna)
     return NULL;
 
   extension = get_file_extension (filename);
@@ -632,7 +632,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
     item->profile    = dlna_guess_media_profile (dlna, filename, ctx, codecs);
   else
-    item->profile    = upnp_guess_media_profile (dlna, filename, codecs);
+    item->profile    = upnp_guess_media_profile (dlna, filename);
   if (!item->profile) /* not DLNA compliant */
   {
     free (item);
@@ -643,7 +643,6 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->filename   = strdup (filename);
   item->properties = dlna_item_get_properties (ctx, codecs);
   item->metadata   = dlna_item_get_metadata (ctx);
-  item->media_class= item->profile->media_class;
 
   avformat_close_input (&ctx);
   free (codecs);

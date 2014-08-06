@@ -193,7 +193,6 @@ typedef struct dlna_properties_s {
  */
 struct dlna_item_s {
   char *filename;
-  dlna_media_class_t media_class;
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
   dlna_profile_t *profile;
