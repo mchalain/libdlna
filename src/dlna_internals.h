@@ -35,10 +35,6 @@
 
 #include "uthash.h"
 
-#ifdef HAVE_SQLITE
-#include <sqlite3.h>
-#endif /* HAVE_SQLITE */
-
 typedef struct dlna_item_s dlna_item_t;
 
 typedef enum {
@@ -136,9 +132,7 @@ struct dlna_s {
   dlna_dms_storage_type_t storage_type;
   vfs_item_t *vfs_root;
   uint32_t vfs_items;
-#ifdef HAVE_SQLITE
-  sqlite3 *db;
-#endif /* HAVE_SQLITE */
+  void *db;
   
   /* UPnP Properties */
   char *interface;
@@ -175,16 +169,18 @@ typedef struct dlna_metadata_s {
   char     *genre;                /* <upnp:genre> */
 } dlna_metadata_t;
 
+#define DLNA_PROPERTIES_DURATION_MAX_SIZE 64
+#define DLNA_PROPERTIES_RESOLUTION_MAX_SIZE 64
 /**
  * DLNA Media Object item properties
  */
 typedef struct dlna_properties_s {
-  char     duration[64];          /* res@duration */
+  char     duration[DLNA_PROPERTIES_DURATION_MAX_SIZE];          /* res@duration */
   uint32_t bitrate;               /* res@bitrate */
   uint32_t sample_frequency;      /* res@sampleFrequency */
   uint32_t bps;                   /* res@bitsPerSample */
   uint32_t channels;              /* res@nrAudioChannels */
-  char     resolution[64];        /* res@resolution */
+  char     resolution[DLNA_PROPERTIES_RESOLUTION_MAX_SIZE];        /* res@resolution */
 } dlna_properties_t;
 
 /**
@@ -193,6 +189,7 @@ typedef struct dlna_properties_s {
 struct dlna_item_s {
   char *filename;
   int64_t filesize;
+  char *profileid;
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
   dlna_profile_t *profile;
@@ -228,5 +225,7 @@ void dlna_log (dlna_t *dlna,
                dlna_verbosity_level_t level,
                const char *format, ...);
 char **dlna_get_supported_mime_types (dlna_t *dlna);
+
+dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
 
 #endif /* DLNA_INTERNALS_H */

@@ -210,6 +210,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
                        char *fullpath, uint32_t container_id)
 {
   vfs_item_t *item, *parent;
+  dlna_item_t *dlna_item;
   
   if (!dlna || !name || !fullpath)
     return 0;
@@ -227,7 +228,13 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->id = vfs_provide_next_id (dlna);
   item->title = strdup (name);
 
-  item->u.resource.item = dlna_item_new (dlna, fullpath);
+  dlna_item = dlna_item_get(dlna, item);
+  if (dlna_item == NULL)
+  {
+	  dlna_item = dlna_item_new (dlna, fullpath);
+	  dms_db_add(dlna, item->id, dlna_item);
+  }
+  item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
 
   HASH_ADD_INT (dlna->vfs_root, id, item);

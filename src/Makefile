@@ -61,6 +61,11 @@ SRCS =  \
 	http.c \
 	upnp_dms.c \
 
+ifeq ($(HAVE_SQLITE),yes)
+SRCS +=  \
+  db_sqlite.c
+endif
+
 EXTRADIST = \
 	dlna.h \
 	dlna_internals.h \

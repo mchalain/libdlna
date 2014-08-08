@@ -28,6 +28,8 @@
 #include "profiles.h"
 #include "containers.h"
 
+extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
+
 typedef struct mime_type_s {
   const char *extension;
   dlna_profile_t profile;
@@ -447,6 +449,34 @@ match_file_extension (const char *filename, const char *extensions)
   return 0;
 }
 
+dlna_profile_t *
+dlna_get_media_profile (dlna_t *dlna, char *profileid)
+{
+  int i = 0;
+  dlna_registered_profile_t *p;
+  p = dlna->first_profile;
+  while (p)
+  {
+    dlna_profile_t *prof;
+    i = 0;
+    while ((prof = p->profiles[i]) != NULL)
+    {
+      if (!strcmp(profileid, prof->id))
+      {
+        if (prof->media_class == DLNA_CLASS_UNKNOWN)
+          prof->media_class = p->class;
+        return prof;
+      }
+      i++;
+    }
+    p = p->next;
+  }
+  for (i = 0; mime_type_list[i].profile.mime; i++)
+    if (!strcmp(profileid, mime_type_list[i].extension))
+      return &mime_type_list[i].profile;
+  return NULL;
+}
+
 static dlna_profile_t *
 dlna_guess_media_profile (dlna_t *dlna,
                            const char *filename, AVFormatContext **pctx)
@@ -683,6 +713,8 @@ dlna_item_free (dlna_item_t *item)
 dlna_item_t *
 dlna_item_get(dlna_t *dlna, vfs_item_t *item)
 {
+	if (!item->u.resource.item)
+	  item->u.resource.item = dms_db_get(dlna, item->id);
 	return item->u.resource.item;
 }
 
