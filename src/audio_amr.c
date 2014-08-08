@@ -160,7 +160,7 @@ dlna_registered_profile_t dlna_profile_audio_amr = {
   .id = DLNA_PROFILE_AUDIO_AMR,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "amr,3gp,mp4",
-  .profiles = &dlna_profiles_supported_audio_amr,
+  .profiles = &dlna_profiles_supported_audio_amr[0],
   .probe = probe_amr,
   .next = NULL
 };

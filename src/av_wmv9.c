@@ -285,7 +285,7 @@ dlna_registered_profile_t dlna_profile_av_wmv9 = {
   .id = DLNA_PROFILE_AV_WMV9,
   .class = DLNA_CLASS_AV,
   .extensions = "asf,wmv",
-  .profiles = &dlna_profiles_supported_av_wmv9,
+  .profiles = &dlna_profiles_supported_av_wmv9[0],
   .probe = probe_wmv9,
   .next = NULL
 };

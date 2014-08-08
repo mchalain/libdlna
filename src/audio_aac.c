@@ -594,7 +594,7 @@ dlna_registered_profile_t dlna_profile_audio_mpeg4 = {
   .id = DLNA_PROFILE_AUDIO_MPEG4,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "aac,adts,3gp,mp4,mov,qt,m4a",
-  .profiles = &dlna_profiles_supported_audio_mpeg4,
+  .profiles = &dlna_profiles_supported_audio_mpeg4[0],
   .probe = probe_mpeg4,
   .next = NULL
 };

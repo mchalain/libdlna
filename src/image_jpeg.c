@@ -119,7 +119,7 @@ dlna_registered_profile_t dlna_profile_image_jpeg = {
   .id = DLNA_PROFILE_IMAGE_JPEG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "jpg,jpe,jpeg",
-  .profiles = &dlna_profiles_supported_image_jpeg,
+  .profiles = &dlna_profiles_supported_image_jpeg[0],
   .probe = probe_jpeg,
   .next = NULL
 };

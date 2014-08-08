@@ -1390,7 +1390,7 @@ dlna_registered_profile_t dlna_profile_av_mpeg4_part10 = {
   .id = DLNA_PROFILE_AV_MPEG4_PART10,
   .class = DLNA_CLASS_AV,
   .extensions = "mov,hdmov,mp4,3gp,3gpp,mpg,mpeg,mpe,mp2t,ts",
-  .profiles = &dlna_profiles_supported_av_mpeg4_part10,
+  .profiles = &dlna_profiles_supported_av_mpeg4_part10[0],
   .probe = probe_avc,
   .next = NULL
 };

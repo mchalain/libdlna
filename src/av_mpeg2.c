@@ -671,7 +671,7 @@ dlna_registered_profile_t dlna_profile_av_mpeg2 = {
   .id = DLNA_PROFILE_AV_MPEG2,
   .class = DLNA_CLASS_AV,
   .extensions = "mpg,mpeg,mpe,m2v,mp2p,mp2t,ts,ps,pes",
-  .profiles = &dlna_profiles_supported_av_mpeg2,
+  .profiles = &dlna_profiles_supported_av_mpeg2[0],
   .probe = probe_mpeg2,
   .next = NULL
 };

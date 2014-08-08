@@ -120,7 +120,7 @@ dlna_registered_profile_t dlna_profile_audio_wma = {
   .id = DLNA_PROFILE_AUDIO_WMA,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "wma,asf",
-  .profiles = &dlna_profiles_supported_audio_wma,
+  .profiles = &dlna_profiles_supported_audio_wma[0],
   .probe = probe_wma,
   .next = NULL
 };

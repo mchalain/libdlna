@@ -191,7 +191,7 @@ dlna_registered_profile_t dlna_profile_audio_mp3 = {
   .id = DLNA_PROFILE_AUDIO_MP3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "mp3",
-  .profiles = &dlna_profiles_supported_audio_mp3,
+  .profiles = &dlna_profiles_supported_audio_mp3[0],
   .probe = probe_mp3,
   .next = NULL
 };
