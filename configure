@@ -839,6 +839,7 @@ if enabled bigendian; then
 fi
 
 append_config "DEBUG=$debug"
+append_config "HAVE_SQLITE=$sqlite"
 
 #################################################
 #   make pkg-config files
