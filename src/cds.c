@@ -385,19 +385,23 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
                      buffer_t *out, vfs_item_t *item, char *filter)
 {
   int result_count = 0;
+  char *updateID;
 
   if (!item)
     return -1;
 
+  updateID = calloc (1, 256);
   didl_add_header (out);
   switch (item->type)
   {
   case DLNA_RESOURCE:
     didl_add_item (dlna, out, item, "false", filter);
+    snprintf (updateID, 255, "%u", dlna->vfs_root->u.container.updateID);
     break;
 
   case DLNA_CONTAINER:
     didl_add_container (out, item, "true", "true");
+    snprintf (updateID, 255, "%u", item->u.container.updateID);
     result_count = 1;
     break;
 
@@ -409,6 +413,9 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
   upnp_add_response (ev, SERVICE_CDS_DIDL_RESULT, out->buf);
   upnp_add_response (ev, SERVICE_CDS_DIDL_NUM_RETURNED, "1");
   upnp_add_response (ev, SERVICE_CDS_DIDL_TOTAL_MATCH, "1");
+  upnp_add_response (ev, SERVICE_CDS_DIDL_UPDATE_ID,
+                     updateID);
+  free (updateID);
 
   return result_count;
 }
@@ -421,6 +428,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   vfs_item_t **items;
   int s, result_count = 0;
   char tmp[32];
+  char *updateID;
 
   /* browsing direct children only has a sense on containers */
   if (item->type != DLNA_CONTAINER)
@@ -468,6 +476,12 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   upnp_add_response (ev, SERVICE_CDS_DIDL_NUM_RETURNED, tmp);
   sprintf (tmp, "%d", item->u.container.children_count);
   upnp_add_response (ev, SERVICE_CDS_DIDL_TOTAL_MATCH, tmp);
+
+  updateID = calloc (1, 256);
+  snprintf (updateID, 255, "%u", item->u.container.updateID);
+  upnp_add_response (ev, SERVICE_CDS_DIDL_UPDATE_ID,
+                     updateID);
+  free (updateID);
 
   return result_count;
 }
@@ -563,9 +577,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   buffer_free (out);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_UPDATE_ID,
-                     SERVICE_CDS_ROOT_OBJECT_ID);
-  
+
   return ev->status;
 
  browse_err:
