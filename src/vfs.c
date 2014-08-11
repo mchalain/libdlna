@@ -196,10 +196,14 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   item->parent = vfs_get_item_by_id (dlna, container_id);
   if (!item->parent)
     item->parent = dlna->vfs_root;
+  else
+    item->parent->u.container.updateID ++;
 
   /* add new child to parent */
   if (item->parent != item)
     vfs_item_add_child (dlna, item->parent, item);
+
+  item->u.container.updateID = 0;
 
   dlna_log (dlna, DLNA_MSG_INFO, "Container is parent of #%d (%s)\n",
             item->parent->id, item->parent->title);
@@ -249,9 +253,12 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->u.resource.size = size;
   item->u.resource.fd = -1;
   
-  /* determine parent */
-  parent = vfs_get_item_by_id (dlna, container_id);
-  item->parent = parent ? parent : dlna->vfs_root;
+  /* check for a valid parent id */
+  item->parent = vfs_get_item_by_id (dlna, container_id);
+  if (!item->parent)
+    item->parent = dlna->vfs_root;
+  else
+    item->parent->u.container.updateID ++;
 
   dlna_log (dlna, DLNA_MSG_INFO,
             "Resource is parent of #%d (%s)\n", parent->id, parent->title);
