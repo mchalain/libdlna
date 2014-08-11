@@ -184,15 +184,19 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *SystemUpdateID;
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     return 0;
   }
 
+  SystemUpdateID = calloc (1, 256);
+  snprintf (SystemUpdateID, 255, "%u", dlna->vfs_root->u.container.updateID);
   upnp_add_response (ev, SERVICE_CDS_ARG_UPDATE_ID,
-                     SERVICE_CDS_ROOT_OBJECT_ID);
-  
+                     SystemUpdateID);
+  free (SystemUpdateID);
+
   return ev->status;
 }
 

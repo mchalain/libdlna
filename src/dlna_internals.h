@@ -63,6 +63,7 @@ typedef struct vfs_item_s {
     struct {
       struct vfs_item_s **children;
       uint32_t children_count;
+      uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
     } container;
   } u;
 
