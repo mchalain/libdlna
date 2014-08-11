@@ -21,96 +21,100 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include "dlna_internals.h"
 #include "profiles.h"
 #include "containers.h"
 
+extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
+
 typedef struct mime_type_s {
   const char *extension;
-  const char *mime;
+  dlna_profile_t profile;
 } mime_type_t;
 
 static const mime_type_t mime_type_list[] = {
   /* Video files */
-  { "asf",   "video/x-ms-asf"},
-  { "avc",   "video/avi"},
-  { "avi",   "video/avi"},
-  { "dv",    "video/x-dv"},
-  { "divx",  "video/avi"},
-  { "wmv",   "video/x-ms-wmv"},
-  { "mjpg",  "video/x-motion-jpeg"},
-  { "mjpeg", "video/x-motion-jpeg"},
-  { "mpeg",  "video/mpeg"},
-  { "mpg",   "video/mpeg"},
-  { "mpe",   "video/mpeg"},
-  { "mp2p",  "video/mp2p"},
-  { "vob",   "video/mp2p"},
-  { "mp2t",  "video/mp2t"},
-  { "m1v",   "video/mpeg"},
-  { "m2v",   "video/mpeg2"},
-  { "mpg2",  "video/mpeg2"},
-  { "mpeg2", "video/mpeg2"},
-  { "m4v",   "video/mp4"},
-  { "m4p",   "video/mp4"},
-  { "mp4",   "video/mp4"},
-  { "mp4ps", "video/x-nerodigital-ps"},
-  { "ts",    "video/mpeg2"},
-  { "ogm",   "video/mpeg"},
-  { "mkv",   "video/mpeg"},
-  { "rmvb",  "video/mpeg"},
-  { "mov",   "video/quicktime"},
-  { "hdmov", "video/quicktime"},
-  { "qt",    "video/quicktime"},
-  { "bin",   "video/mpeg2"},
-  { "iso",   "video/mpeg2"},
+  { "asf",   {.mime = "video/x-ms-asf", .media_class = DLNA_CLASS_AV,}},
+  { "avc",   {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "avi",   {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "dv",    {.mime = "video/x-dv", .media_class = DLNA_CLASS_AV,}},
+  { "divx",  {.mime = "video/avi", .media_class = DLNA_CLASS_AV,}},
+  { "wmv",   {.mime = "video/x-ms-wmv", .media_class = DLNA_CLASS_AV,}},
+  { "mjpg",  {.mime = "video/x-motion-jpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mjpeg", {.mime = "video/x-motion-jpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpeg",  {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpg",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mpe",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mp2p",  {.mime = "video/mp2p", .media_class = DLNA_CLASS_AV,}},
+  { "vob",   {.mime = "video/mp2p", .media_class = DLNA_CLASS_AV,}},
+  { "mp2t",  {.mime = "video/mp2t", .media_class = DLNA_CLASS_AV,}},
+  { "m1v",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "m2v",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "mpg2",  {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "mpeg2", {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "m4v",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "m4p",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "mp4",   {.mime = "video/mp4", .media_class = DLNA_CLASS_AV,}},
+  { "mp4ps", {.mime = "video/x-nerodigital-ps", .media_class = DLNA_CLASS_AV,}},
+  { "ts",    {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "ogm",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mkv",   {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "rmvb",  {.mime = "video/mpeg", .media_class = DLNA_CLASS_AV,}},
+  { "mov",   {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "hdmov", {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "qt",    {.mime = "video/quicktime", .media_class = DLNA_CLASS_AV,}},
+  { "bin",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
+  { "iso",   {.mime = "video/mpeg2", .media_class = DLNA_CLASS_AV,}},
 
   /* Audio files */
-  { "3gp",  "audio/3gpp"},
-  { "aac",  "audio/x-aac"},
-  { "ac3",  "audio/x-ac3"},
-  { "aif",  "audio/aiff"},
-  { "aiff", "audio/aiff"},
-  { "at3p", "audio/x-atrac3"},
-  { "au",   "audio/basic"},
-  { "snd",  "audio/basic"},
-  { "dts",  "audio/x-dts"},
-  { "rmi",  "audio/midi"},
-  { "mid",  "audio/midi"},
-  { "mp1",  "audio/mp1"},
-  { "mp2",  "audio/mp2"},
-  { "mp3",  "audio/mpeg"},
-  { "m4a",  "audio/mp4"},
-  { "ogg",  "audio/x-ogg"},
-  { "wav",  "audio/wav"},
-  { "pcm",  "audio/l16"},
-  { "lpcm", "audio/l16"},
-  { "l16",  "audio/l16"},
-  { "wma",  "audio/x-ms-wma"},
-  { "mka",  "audio/mpeg"},
-  { "ra",   "audio/x-pn-realaudio"},
-  { "rm",   "audio/x-pn-realaudio"},
-  { "ram",  "audio/x-pn-realaudio"},
-  { "flac", "audio/x-flac"},
+  { "3gp",  {.mime = "audio/3gpp", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aac",  {.mime = "audio/x-aac", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ac3",  {.mime = "audio/x-ac3", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aif",  {.mime = "audio/aiff", .media_class = DLNA_CLASS_AUDIO,}},
+  { "aiff", {.mime = "audio/aiff", .media_class = DLNA_CLASS_AUDIO,}},
+  { "at3p", {.mime = "audio/x-atrac3", .media_class = DLNA_CLASS_AUDIO,}},
+  { "au",   {.mime = "audio/basic", .media_class = DLNA_CLASS_AUDIO,}},
+  { "snd",  {.mime = "audio/basic", .media_class = DLNA_CLASS_AUDIO,}},
+  { "dts",  {.mime = "audio/x-dts", .media_class = DLNA_CLASS_AUDIO,}},
+  { "rmi",  {.mime = "audio/midi", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mid",  {.mime = "audio/midi", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp1",  {.mime = "audio/mp1", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp2",  {.mime = "audio/mp2", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mp3",  {.mime = "audio/mpeg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "m4a",  {.mime = "audio/mp4", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ogg",  {.mime = "audio/x-ogg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "wav",  {.mime = "audio/wav", .media_class = DLNA_CLASS_AUDIO,}},
+  { "pcm",  {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "lpcm", {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "l16",  {.mime = "audio/l16", .media_class = DLNA_CLASS_AUDIO,}},
+  { "wma",  {.mime = "audio/x-ms-wma", .media_class = DLNA_CLASS_AUDIO,}},
+  { "mka",  {.mime = "audio/mpeg", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ra",   {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "rm",   {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "ram",  {.mime = "audio/x-pn-realaudio", .media_class = DLNA_CLASS_AUDIO,}},
+  { "flac", {.mime = "audio/x-flac", .media_class = DLNA_CLASS_AUDIO,}},
 
   /* Images files */
-  { "bmp",  "image/bmp"},
-  { "ico",  "image/x-icon"},
-  { "gif",  "image/gif"},
-  { "jpeg", "image/jpeg"},
-  { "jpg",  "image/jpeg"},
-  { "jpe",  "image/jpeg"},
-  { "pcd",  "image/x-ms-bmp"},
-  { "png",  "image/png"},
-  { "pnm",  "image/x-portable-anymap"},
-  { "ppm",  "image/x-portable-pixmap"},
-  { "qti",  "image/x-quicktime"},
-  { "qtf",  "image/x-quicktime"},
-  { "qtif", "image/x-quicktime"},
-  { "tif",  "image/tiff"},
-  { "tiff", "image/tiff"},
+  { "bmp",  {.mime = "image/bmp", .media_class = DLNA_CLASS_IMAGE,}},
+  { "ico",  {.mime = "image/x-icon", .media_class = DLNA_CLASS_IMAGE,}},
+  { "gif",  {.mime = "image/gif", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpeg", {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpg",  {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "jpe",  {.mime = "image/jpeg", .media_class = DLNA_CLASS_IMAGE,}},
+  { "pcd",  {.mime = "image/x-ms-bmp", .media_class = DLNA_CLASS_IMAGE,}},
+  { "png",  {.mime = "image/png", .media_class = DLNA_CLASS_IMAGE,}},
+  { "pnm",  {.mime = "image/x-portable-anymap", .media_class = DLNA_CLASS_IMAGE,}},
+  { "ppm",  {.mime = "image/x-portable-pixmap", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qti",  {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qtf",  {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "qtif", {.mime = "image/x-quicktime", .media_class = DLNA_CLASS_IMAGE,}},
+  { "tif",  {.mime = "image/tiff", .media_class = DLNA_CLASS_IMAGE,}},
+  { "tiff", {.mime = "image/tiff", .media_class = DLNA_CLASS_IMAGE,}},
 
-  { NULL,   NULL}
+  { NULL,   {.mime = NULL}}
 };
 
 extern dlna_registered_profile_t dlna_profile_image_jpeg;
@@ -360,8 +364,8 @@ dlna_get_supported_mime_types (dlna_t *dlna)
 
   case DLNA_CAPABILITY_UPNP_AV:
   case DLNA_CAPABILITY_UPNP_AV_XBOX:
-    for (i = 0; mime_type_list[i].mime; i++)
-      mimes = dlna_list_add (mimes, (char *) mime_type_list[i].mime);
+    for (i = 0; mime_type_list[i].profile.mime; i++)
+      mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
     break;
 
   default:
@@ -380,8 +384,9 @@ av_profile_get_codecs (AVFormatContext *ctx)
   int audio_stream = -1, video_stream = -1;
  
   codecs = malloc (sizeof (av_codecs_t));
+  codecs->nb_streams = ctx->nb_streams;
 
-  for (i = 0; i < ctx->nb_streams; i++)
+  for (i = 0; i < codecs->nb_streams; i++)
   {
     if (audio_stream == -1 &&
         ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -445,48 +450,65 @@ match_file_extension (const char *filename, const char *extensions)
 }
 
 dlna_profile_t *
-dlna_guess_media_profile (dlna_t *dlna, const char *filename)
+dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
-  AVFormatContext *ctx = NULL;
+  int i = 0;
+  dlna_registered_profile_t *p;
+  p = dlna->first_profile;
+  while (p)
+  {
+    dlna_profile_t *prof;
+    i = 0;
+    while ((prof = p->profiles[i]) != NULL)
+    {
+      if (!strcmp(profileid, prof->id))
+      {
+        if (prof->media_class == DLNA_CLASS_UNKNOWN)
+          prof->media_class = p->class;
+        return prof;
+      }
+      i++;
+    }
+    p = p->next;
+  }
+  for (i = 0; mime_type_list[i].profile.mime; i++)
+    if (!strcmp(profileid, mime_type_list[i].extension))
+      return &mime_type_list[i].profile;
+  return NULL;
+}
+
+static dlna_profile_t *
+dlna_guess_media_profile (dlna_t *dlna,
+                           const char *filename, AVFormatContext **pctx)
+{
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
-  dlna_container_type_t st;
+  AVFormatContext *ctx = NULL;
   av_codecs_t *codecs;
 
-  if (!dlna)
-    return NULL;
-  
-  if (!dlna->inited)
-    dlna = dlna_init ();
-  
   if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
   }
 
-  if (av_find_stream_info (ctx) < 0)
+  if (avformat_find_stream_info (ctx, NULL) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
     avformat_close_input (&ctx);
     return NULL;
   }
 
+  *pctx = ctx;
+  /* grab codecs info */
+  codecs = av_profile_get_codecs (ctx);
+  if (!codecs)
+    return NULL;
+
 #ifdef HAVE_DEBUG
   av_dump_format (ctx, 0, NULL, 0);
 #endif /* HAVE_DEBUG */
 
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-  {
-    avformat_close_input (&ctx);
-    return NULL;
-  }
-
-  /* check for container type */
-  st = stream_get_container (dlna, ctx);
-  
   p = dlna->first_profile;
   while (p)
   {
@@ -505,7 +527,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
       }
     }
     
-    prof = p->probe (ctx, st, codecs);
+    prof = p->probe (ctx, codecs);
     if (prof)
     {
       profile = prof;
@@ -515,51 +537,29 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
     p = p->next;
   }
 
-  avformat_close_input (&ctx);
   free (codecs);
   return profile;
 }
 
 static dlna_profile_t *
 upnp_guess_media_profile (dlna_t *dlna,
-                          const char *filename, AVFormatContext *ctx)
+                          const char *filename)
 {
   dlna_profile_t *profile = NULL;
-  av_codecs_t *codecs;
   char *extension;
   int i;
   
-  if (!dlna || !ctx)
+  if (!dlna)
     return NULL;
 
   extension = get_file_extension (filename);
   if (!extension)
     return NULL;
   
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-    return NULL;
-  
-  profile = malloc (sizeof (dlna_profile_t));
-  profile->id = NULL; /* obviously not DLNA compliant */
-  profile->label = NULL;
-  
-  profile->mime = "";
   for (i = 0; mime_type_list[i].extension; i++)
     if (!strcmp (extension, mime_type_list[i].extension))
-      profile->mime = mime_type_list[i].mime;
+      profile = &mime_type_list[i].profile;
 
-  profile->media_class = DLNA_CLASS_UNKNOWN;
-  if (stream_ctx_is_av (codecs))
-    profile->media_class = DLNA_CLASS_AV;
-  else if (stream_ctx_is_audio (codecs))
-    profile->media_class = DLNA_CLASS_AUDIO;
-  else if (ctx->nb_streams > 1 && codecs->vc && !codecs->ac)
-    profile->media_class = DLNA_CLASS_IMAGE;
-  
-  free (codecs);
-  
   return profile;
 }
 
@@ -567,19 +567,13 @@ static dlna_properties_t *
 dlna_item_get_properties (AVFormatContext *ctx)
 {
   dlna_properties_t *prop;
-  av_codecs_t *codecs;
   int duration, hours, min, sec;
-  
+  av_codecs_t *codecs;
+
   if (!ctx)
     return NULL;
 
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-    return NULL;
-  
   prop = malloc (sizeof (dlna_properties_t));
-  prop->size = 1000;
 
   duration = (int) (ctx->duration / AV_TIME_BASE);
   hours = (int) (duration / 3600);
@@ -591,6 +585,10 @@ dlna_item_get_properties (AVFormatContext *ctx)
   else
     sprintf (prop->duration, ":%.2d:%.2d.", min, sec);
 
+  /* grab codecs info */
+  codecs = av_profile_get_codecs (ctx);
+  if (!codecs)
+    return NULL;
   prop->bitrate = (uint32_t) (ctx->bit_rate / 8);
   prop->sample_frequency = codecs->ac ? codecs->ac->sample_rate : 0;
   prop->bps = codecs->ac ? codecs->ac->bits_per_raw_sample : 0;
@@ -663,6 +661,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 {
   AVFormatContext *ctx = NULL;
   dlna_item_t *item;
+  struct stat st;
 
   if (!dlna || !filename)
     return NULL;
@@ -670,36 +669,28 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
   
-  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
-  {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
-    return NULL;
-  }
-
-  if (av_find_stream_info (ctx) < 0)
-  {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    avformat_close_input (&ctx);
-    return NULL;
-  }
-
   item = malloc (sizeof (dlna_item_t));
+  memset(item, 0, sizeof (dlna_item_t));
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = dlna_guess_media_profile (dlna, filename);
+    item->profile    = dlna_guess_media_profile (dlna, filename, &ctx);
   else
-    item->profile    = upnp_guess_media_profile (dlna, filename, ctx);
-  if (!item->profile) /* not DLNA compliant */
+    item->profile    = upnp_guess_media_profile (dlna, filename);
+  if (!item->profile && !stat (filename, &st)) /* not DLNA compliant */
   {
     free (item);
-    avformat_close_input (&ctx);
+    if (ctx)
+      avformat_close_input (&ctx);
     return NULL;
   }
   item->filename   = strdup (filename);
-  item->properties = dlna_item_get_properties (ctx);
-  item->metadata   = dlna_item_get_metadata (ctx);
-  item->media_class= item->profile->media_class;
+  item->filesize   = st.st_size;
+  if (ctx)
+  {
+    item->properties = dlna_item_get_properties (ctx);
+    item->metadata   = dlna_item_get_metadata (ctx);
 
-  avformat_close_input (&ctx);
+    avformat_close_input (&ctx);
+  }
 
   return item;
 }
@@ -717,6 +708,14 @@ dlna_item_free (dlna_item_t *item)
   dlna_metadata_free (item->metadata);
   item->profile = NULL;
   free (item);
+}
+
+dlna_item_t *
+dlna_item_get(dlna_t *dlna, vfs_item_t *item)
+{
+	if (!item->u.resource.item)
+	  item->u.resource.item = dms_db_get(dlna, item->id);
+	return item->u.resource.item;
 }
 
 /* UPnP ContentDirectory Object Item */
@@ -747,14 +746,14 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
 
 int
 stream_ctx_is_image (AVFormatContext *ctx,
-                     av_codecs_t *codecs, dlna_container_type_t st)
+                     av_codecs_t *codecs)
 {
   /* should only have 1 stream */
   if (ctx->nb_streams > 1)
     return 0;
 
   /* should be inside image container */
-  if (st != CT_IMAGE)
+  if (stream_get_container (ctx) != CT_IMAGE)
     return 0;
 
   if (!codecs->vc)

@@ -156,12 +156,14 @@ audio_profile_guess_mp3 (AVCodecContext *ac)
 /* Audio encoding must be MPEG-1 Layer 3 */
 static dlna_profile_t *
 probe_mp3 (AVFormatContext *ctx dlna_unused,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
+  dlna_container_type_t st;
+
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
+  st = stream_get_container (ctx);
   /* check for supported container */
   if (st != CT_MP3)
     return NULL;
@@ -179,10 +181,17 @@ probe_mp3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_mp3[] = {
+  &mp3,
+  &mp3x,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_mp3 = {
   .id = DLNA_PROFILE_AUDIO_MP3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "mp3",
+  .profiles = &dlna_profiles_supported_audio_mp3[0],
   .probe = probe_mp3,
   .next = NULL
 };

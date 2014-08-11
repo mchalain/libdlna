@@ -67,12 +67,11 @@ static const struct {
 
 static dlna_profile_t *
 probe_png (AVFormatContext *ctx,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
   int i;
 
-  if (!stream_ctx_is_image (ctx, codecs, st))
+  if (!stream_ctx_is_image (ctx, codecs))
     return NULL;
   
   /* check for PNG compliant codec */
@@ -87,10 +86,19 @@ probe_png (AVFormatContext *ctx,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_image_png[] = {
+  &png_tn,
+  &png_sm_ico,
+  &png_lrg_ico,
+  &png_lrg,
+  NULL
+};
+
 dlna_registered_profile_t dlna_profile_image_png = {
   .id = DLNA_PROFILE_IMAGE_PNG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "png",
+  .profiles = &dlna_profiles_supported_image_png[0],
   .probe = probe_png,
   .next = NULL
 };

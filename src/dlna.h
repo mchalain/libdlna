@@ -291,16 +291,6 @@ typedef struct dlna_profile_s {
 } dlna_profile_t;
 
 /**
- * Guess which DLNA profile one input file/stream is compatible with.
- *
- * @warning This function returns a pointer, do _NOT_ free it.
- * @param[in] dlna     The DLNA library's controller.
- * @param[in] filename The file to be checked for compliance.
- * @return A pointer on file's DLNA profile if compatible, NULL otherwise.
- */
-dlna_profile_t *dlna_guess_media_profile (dlna_t *dlna, const char *filename);
-
-/**
  * Provides UPnP A/V ContentDirectory Object Item associated to profile.
  *
  * @warning This function returns a pointer, do _NOT_ free it.
@@ -327,65 +317,6 @@ char * dlna_write_protocol_info (dlna_protocol_info_type_t type,
                                  dlna_org_operation_t op,
                                  dlna_org_flags_t flags,
                                  dlna_profile_t *p);
-
-/***************************************************************************/
-/*                                                                         */
-/* DLNA Item Handling                                                      */
-/*  Optional: Used to create a DLNA Media Item instance from a given file. */
-/*                                                                         */
-/***************************************************************************/
-
-/**
- * DLNA Media Object item metadata
- */
-typedef struct dlna_metadata_s {
-  char     *title;                /* <dc:title> */
-  char     *author;               /* <dc:artist> */
-  char     *comment;              /* <upnp:longDescription> */
-  char     *album;                /* <upnp:album> */
-  uint32_t track;                 /* <upnp:originalTrackNumber> */
-  char     *genre;                /* <upnp:genre> */
-} dlna_metadata_t;
-
-/**
- * DLNA Media Object item properties
- */
-typedef struct dlna_properties_s {
-  int64_t  size;                  /* res@size */
-  char     duration[64];          /* res@duration */
-  uint32_t bitrate;               /* res@bitrate */
-  uint32_t sample_frequency;      /* res@sampleFrequency */
-  uint32_t bps;                   /* res@bitsPerSample */
-  uint32_t channels;              /* res@nrAudioChannels */
-  char     resolution[64];        /* res@resolution */
-} dlna_properties_t;
-
-/**
- * DLNA Media Object item
- */
-typedef struct dlna_item_s {
-  char *filename;
-  dlna_media_class_t media_class;
-  dlna_properties_t *properties;
-  dlna_metadata_t *metadata;
-  dlna_profile_t *profile;
-} dlna_item_t;
-
-/**
- * Create a new DLNA media object item.
- *
- * @param[in] dlna     The DLNA library's controller.
- * @param[in] filename The input file to be added.
- * @return A new DLNA object item if compatible, NULL otherwise.
- */
-dlna_item_t *dlna_item_new (dlna_t *dlna, const char *filename);
-
-/**
- * Free an existing DLNA media object item.
- *
- * @param[in] item     The DLNA object item to be freed.
- */
-void dlna_item_free (dlna_item_t *item);
 
 /***************************************************************************/
 /*                                                                         */
@@ -582,13 +513,11 @@ uint32_t dlna_vfs_add_container (dlna_t *dlna, char *name,
  * @param[in] dlna         The DLNA library's controller.
  * @param[in] name         Displayed name of the resource.
  * @param[in] fullname     Full path to the specified resource.
- * @param[in] size         Resource file size (in bytes).
  * @param[in] container_id UPnP object ID of its parent.
  * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
  */
 uint32_t dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                                char *fullpath, off_t size,
-                                uint32_t container_id);
+                                char *fullpath, uint32_t container_id);
 
 /**
  * Remove an existing item (and all its children) from VFS layer by ID.

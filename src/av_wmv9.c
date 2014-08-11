@@ -230,16 +230,17 @@ wmv_video_profile_get (AVStream *vs, AVCodecContext *vc)
 
 static dlna_profile_t *
 probe_wmv9 (AVFormatContext *ctx dlna_unused,
-            dlna_container_type_t st,
             av_codecs_t *codecs)
 {
   wmv_video_profile_t vp;
   audio_profile_t ap;
   int i;
+  dlna_container_type_t st;
 
   if (!stream_ctx_is_av (codecs))
     return NULL;
   
+  st = stream_get_container (ctx);
   /* need to be in ASF container only */
   if (st != CT_ASF)
     return NULL;
@@ -267,10 +268,24 @@ probe_wmv9 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_av_wmv9[] = {
+  &wmvmed_base,
+  &wmvmed_full,
+  &wmvmed_pro,
+  &wmvhigh_full,
+  &wmvhigh_pro,
+  &wmvhm_base,
+  &wmvspll_base,
+  &wmvspml_base,
+  &wmvspml_mp3,
+  NULL
+};
+
 dlna_registered_profile_t dlna_profile_av_wmv9 = {
   .id = DLNA_PROFILE_AV_WMV9,
   .class = DLNA_CLASS_AV,
   .extensions = "asf,wmv",
+  .profiles = &dlna_profiles_supported_av_wmv9[0],
   .probe = probe_wmv9,
   .next = NULL
 };

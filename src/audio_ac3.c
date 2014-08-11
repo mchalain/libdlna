@@ -67,12 +67,14 @@ audio_profile_guess_ac3 (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_ac3 (AVFormatContext *ctx dlna_unused,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
+  dlna_container_type_t st;
+
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
+  st = stream_get_container (ctx);
   /* check for supported container */
   if (st != CT_AC3)
     return NULL;
@@ -89,10 +91,16 @@ probe_ac3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_ac3[] = {
+  &ac3,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_ac3 = {
   .id = DLNA_PROFILE_AUDIO_AC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "ac3",
+  .profiles = &dlna_profiles_supported_audio_ac3[0],
   .probe = probe_ac3,
   .next = NULL
 };

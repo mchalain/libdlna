@@ -35,7 +35,6 @@ static dlna_profile_t mpeg1 = {
 
 static dlna_profile_t *
 probe_mpeg1 (AVFormatContext *ctx dlna_unused,
-             dlna_container_type_t st dlna_unused,
              av_codecs_t *codecs)
 {
   if (!stream_ctx_is_av (codecs))
@@ -90,10 +89,16 @@ probe_mpeg1 (AVFormatContext *ctx dlna_unused,
   return &mpeg1;
 }
 
+dlna_profile_t *dlna_profiles_supported_av_mpeg1[] = {
+  &mpeg1,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_av_mpeg1 = {
   .id = DLNA_PROFILE_AV_MPEG1,
   .class = DLNA_CLASS_AV,
   .extensions = "mpg,mpeg,mpe,m1v",
+  .profiles = &dlna_profiles_supported_av_mpeg1,
   .probe = probe_mpeg1,
   .next = NULL
 };

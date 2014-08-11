@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include "dlna.h"
+#include "dlna_internals.h"
 
 int
 main (int argc, char **argv)

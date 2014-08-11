@@ -64,6 +64,7 @@
 #define LABEL_VIDEO_HD                    "HD"
 
 typedef struct av_codecs_s {
+  unsigned int nb_streams;
   /* audio stream and codec */
   AVStream *as;
   AVCodecContext *ac;
@@ -76,8 +77,8 @@ typedef struct dlna_registered_profile_s {
   dlna_media_profile_t id;
   dlna_media_class_t class;
   char *extensions;
+  dlna_profile_t **profiles;
   dlna_profile_t * (*probe) (AVFormatContext *ctx,
-                             dlna_container_type_t st,
                              av_codecs_t *codecs);
   struct dlna_registered_profile_s *next;
 } dlna_registered_profile_t;
@@ -144,7 +145,7 @@ audio_profile_t audio_profile_guess_wma (AVCodecContext *ac);
 
 /* stream context check routines */
 int stream_ctx_is_image (AVFormatContext *ctx,
-                         av_codecs_t *codecs, dlna_container_type_t st);
+                         av_codecs_t *codecs);
 int stream_ctx_is_audio (av_codecs_t *codecs);
 int stream_ctx_is_av (av_codecs_t *codecs);
 

@@ -127,12 +127,14 @@ audio_profile_guess_amr (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_amr (AVFormatContext *ctx dlna_unused,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
+  dlna_container_type_t st;
+
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
+  st = stream_get_container (ctx);
   /* check for supported container */
   if (st != CT_AMR && st != CT_3GP && st != CT_MP4)
     return NULL;
@@ -147,10 +149,18 @@ probe_amr (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_amr[] = {
+  &amr,
+  &three_gpp,
+  &amr_wbplus,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_amr = {
   .id = DLNA_PROFILE_AUDIO_AMR,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "amr,3gp,mp4",
+  .profiles = &dlna_profiles_supported_audio_amr[0],
   .probe = probe_amr,
   .next = NULL
 };

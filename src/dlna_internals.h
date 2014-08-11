@@ -35,9 +35,7 @@
 
 #include "uthash.h"
 
-#ifdef HAVE_SQLITE
-#include <sqlite3.h>
-#endif /* HAVE_SQLITE */
+typedef struct dlna_item_s dlna_item_t;
 
 typedef enum {
   DLNA_DEVICE_UNKNOWN,
@@ -60,7 +58,6 @@ typedef struct vfs_item_s {
       dlna_org_conversion_t cnv;
       char *fullpath;
       char *url;
-      off_t size;
       int fd;
     } resource;
     struct {
@@ -135,9 +132,7 @@ struct dlna_s {
   dlna_dms_storage_type_t storage_type;
   vfs_item_t *vfs_root;
   uint32_t vfs_items;
-#ifdef HAVE_SQLITE
-  sqlite3 *db;
-#endif /* HAVE_SQLITE */
+  void *db;
   
   /* UPnP Properties */
   char *interface;
@@ -155,9 +150,82 @@ struct dlna_s {
   char *presentation_url;
 };
 
+/***************************************************************************/
+/*                                                                         */
+/* DLNA Item Handling                                                      */
+/*  Optional: Used to create a DLNA Media Item instance from a given file. */
+/*                                                                         */
+/***************************************************************************/
+
+/**
+ * DLNA Media Object item metadata
+ */
+typedef struct dlna_metadata_s {
+  char     *title;                /* <dc:title> */
+  char     *author;               /* <dc:artist> */
+  char     *comment;              /* <upnp:longDescription> */
+  char     *album;                /* <upnp:album> */
+  uint32_t track;                 /* <upnp:originalTrackNumber> */
+  char     *genre;                /* <upnp:genre> */
+} dlna_metadata_t;
+
+#define DLNA_PROPERTIES_DURATION_MAX_SIZE 64
+#define DLNA_PROPERTIES_RESOLUTION_MAX_SIZE 64
+/**
+ * DLNA Media Object item properties
+ */
+typedef struct dlna_properties_s {
+  char     duration[DLNA_PROPERTIES_DURATION_MAX_SIZE];          /* res@duration */
+  uint32_t bitrate;               /* res@bitrate */
+  uint32_t sample_frequency;      /* res@sampleFrequency */
+  uint32_t bps;                   /* res@bitsPerSample */
+  uint32_t channels;              /* res@nrAudioChannels */
+  char     resolution[DLNA_PROPERTIES_RESOLUTION_MAX_SIZE];        /* res@resolution */
+} dlna_properties_t;
+
+/**
+ * DLNA Media Object item
+ */
+struct dlna_item_s {
+  char *filename;
+  int64_t filesize;
+  char *profileid;
+  dlna_properties_t *properties;
+  dlna_metadata_t *metadata;
+  dlna_profile_t *profile;
+};
+
+/**
+ * Create a new DLNA media object item.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] filename The input file to be added.
+ * @return A new DLNA object item if compatible, NULL otherwise.
+ */
+dlna_item_t *dlna_item_new (dlna_t *dlna, const char *filename);
+
+/**
+ * Free an existing DLNA media object item.
+ *
+ * @param[in] item     The DLNA object item to be freed.
+ */
+void dlna_item_free (dlna_item_t *item);
+
+/**
+ * Return the DLNA media object item.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] item     The VFS item corresponding to the file.
+ * @return The DLNA object item if existing, NULL otherwise.
+ */
+dlna_item_t *
+dlna_item_get(dlna_t *dlna, vfs_item_t *item);
+
 void dlna_log (dlna_t *dlna,
                dlna_verbosity_level_t level,
                const char *format, ...);
 char **dlna_get_supported_mime_types (dlna_t *dlna);
+
+dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
 
 #endif /* DLNA_INTERNALS_H */

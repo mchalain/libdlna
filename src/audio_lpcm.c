@@ -62,7 +62,6 @@ audio_profile_guess_lpcm (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_lpcm (AVFormatContext *ctx dlna_unused,
-            dlna_container_type_t st dlna_unused,
             av_codecs_t *codecs)
 {
   static dlna_profile_t p;
@@ -85,10 +84,17 @@ probe_lpcm (AVFormatContext *ctx dlna_unused,
   return &p;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_lpcm[] = {
+  &lpcm,
+  &lpcm_low,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_lpcm = {
   .id = DLNA_PROFILE_AUDIO_LPCM,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "pcm,lpcm,wav,aiff",
+  .profiles = &dlna_profiles_supported_audio_lpcm[0],
   .probe = probe_lpcm,
   .next = NULL
 };

@@ -48,7 +48,6 @@ audio_profile_guess_atrac (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_atrac3 (AVFormatContext *ctx dlna_unused,
-              dlna_container_type_t st dlna_unused,
               av_codecs_t *codecs)
 {
   if (!stream_ctx_is_audio (codecs))
@@ -60,10 +59,16 @@ probe_atrac3 (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_atrac3[] = {
+  &atrac3,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_atrac3 = {
   .id = DLNA_PROFILE_AUDIO_ATRAC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "at3p,acm,wav",
+  .profiles = &dlna_profiles_supported_audio_atrac3[0],
   .probe = probe_atrac3,
   .next = NULL
 };

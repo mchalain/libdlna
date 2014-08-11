@@ -83,12 +83,11 @@ static const struct {
 
 static dlna_profile_t *
 probe_jpeg (AVFormatContext *ctx,
-            dlna_container_type_t st,
             av_codecs_t *codecs)
 {
   int i;
 
-  if (!stream_ctx_is_image (ctx, codecs, st))
+  if (!stream_ctx_is_image (ctx, codecs))
     return NULL;
 
   /* check for JPEG compliant codec */
@@ -106,10 +105,21 @@ probe_jpeg (AVFormatContext *ctx,
   return NULL;
 }
 
+static dlna_profile_t *dlna_profiles_supported_image_jpeg[] = {
+  &jpeg_sm,
+  &jpeg_med,
+  &jpeg_lrg,
+  &jpeg_tn,
+  &jpeg_sm_ico,
+  &jpeg_lrg_ico,
+  NULL
+};
+
 dlna_registered_profile_t dlna_profile_image_jpeg = {
   .id = DLNA_PROFILE_IMAGE_JPEG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "jpg,jpe,jpeg",
+  .profiles = &dlna_profiles_supported_image_jpeg[0],
   .probe = probe_jpeg,
   .next = NULL
 };

@@ -42,8 +42,6 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
   case DLNA_RESOURCE:
     if (item->u.resource.item)
       dlna_item_free (item->u.resource.item);
-    if (item->u.resource.fullpath)
-      free (item->u.resource.fullpath);
     if (item->u.resource.url)
       free (item->u.resource.url);
     break;
@@ -209,9 +207,10 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
 
 uint32_t
 dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                       char *fullpath, off_t size, uint32_t container_id)
+                       char *fullpath, uint32_t container_id)
 {
   vfs_item_t *item, *parent;
+  dlna_item_t *dlna_item;
   
   if (!dlna || !name || !fullpath)
     return 0;
@@ -229,7 +228,13 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->id = vfs_provide_next_id (dlna);
   item->title = strdup (name);
 
-  item->u.resource.item = dlna_item_new (dlna, fullpath);
+  dlna_item = dlna_item_get(dlna, item);
+  if (dlna_item == NULL)
+  {
+	  dlna_item = dlna_item_new (dlna, fullpath);
+	  dms_db_add(dlna, item->id, dlna_item);
+  }
+  item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
 
   HASH_ADD_INT (dlna->vfs_root, id, item);
@@ -245,8 +250,6 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
 
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%d (%s)\n",
             item->id, item->title);
-  item->u.resource.fullpath = strdup (fullpath);
-  item->u.resource.size = size;
   item->u.resource.fd = -1;
   
   /* determine parent */

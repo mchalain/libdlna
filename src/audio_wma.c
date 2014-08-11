@@ -85,14 +85,13 @@ audio_profile_guess_wma (AVCodecContext *ac)
 
 static dlna_profile_t *
 probe_wma (AVFormatContext *ctx dlna_unused,
-           dlna_container_type_t st,
            av_codecs_t *codecs)
 {
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
   /* check for supported container */
-  if (st != CT_ASF)
+  if (stream_get_container (ctx) != CT_ASF)
     return NULL;
   
   switch (audio_profile_guess_wma (codecs->ac))
@@ -110,10 +109,18 @@ probe_wma (AVFormatContext *ctx dlna_unused,
   return NULL;
 }
 
+dlna_profile_t *dlna_profiles_supported_audio_wma[] = {
+  &wmabase,
+  &wmafull,
+  &wmapro,
+  NULL,
+};
+
 dlna_registered_profile_t dlna_profile_audio_wma = {
   .id = DLNA_PROFILE_AUDIO_WMA,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "wma,asf",
+  .profiles = &dlna_profiles_supported_audio_wma[0],
   .probe = probe_wma,
   .next = NULL
 };
