@@ -454,6 +454,9 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
   int i = 0;
   dlna_registered_profile_t *p;
+
+  if (!profileid)
+	return NULL;
   p = dlna->first_profile;
   while (p)
   {
