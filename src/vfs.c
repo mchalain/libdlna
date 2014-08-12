@@ -215,7 +215,7 @@ uint32_t
 dlna_vfs_add_resource (dlna_t *dlna, char *name,
                        char *fullpath, off_t size, uint32_t container_id)
 {
-  vfs_item_t *item, *parent;
+  vfs_item_t *item;
   
   if (!dlna || !name || !fullpath)
     return 0;
@@ -261,7 +261,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
     item->parent->u.container.updateID ++;
 
   dlna_log (dlna, DLNA_MSG_INFO,
-            "Resource is parent of #%d (%s)\n", parent->id, parent->title);
+            "Resource is parent of #%d (%s)\n", item->parent->id, item->parent->title);
 
   /* add new child to parent */
   vfs_item_add_child (dlna, item->parent, item);
