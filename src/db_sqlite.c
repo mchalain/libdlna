@@ -206,7 +206,7 @@ dms_db_get (dlna_t *dlna, uint32_t id)
 
   sql = sqlite3_mprintf("SELECT * FROM "ITEMS_TABLE" WHERE uid=%d ;",id);
   rc = sqlite3_exec(db, sql, dms_db_items_callback, (void*)item, &errMsg);
-  if ( rc != SQLITE_OK )
+  if ( rc != SQLITE_OK || !item->filename )
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "SQL error: %s\n", errMsg);
     sqlite3_free(errMsg);
