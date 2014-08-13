@@ -53,6 +53,7 @@ SRCS =  \
 	upnp.c \
 	buffer.c \
 	vfs.c \
+	crc32.c \
 	services.c \
 	cms.c \
 	cds.c \
