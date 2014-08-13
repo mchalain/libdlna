@@ -753,7 +753,10 @@ if [ "$libupnp" = auto -o "$libupnp" = yes ]; then
   echolog "Checking for Portable UPnP ..."
   add_pkgconfig_deps libupnp
   libupnp=yes
-  check_lib upnp.h dlnaRegisterRootDevice2 -lupnp || libupnp=internal
+  check_lib upnp.h UpnpRegisterRootDevice2 -lupnp || set_all internal libupnp
+fi
+if [ "$libupnp" = yes ]; then
+  add_cflags -DHAVE_EXTERNAL_LIBUPNP
 fi
 
 #################################################
