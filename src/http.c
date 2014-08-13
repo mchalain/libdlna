@@ -70,7 +70,7 @@ set_service_http_info (struct File_Info *info,
 }
 
 static int
-upnp_http_get_info (void *cookie,
+dlna_http_get_info (void *cookie,
                     const char *filename,
                     struct File_Info *info)
 {
@@ -223,7 +223,7 @@ http_get_file_local (dlna_item_t *dlna_item)
 }
 
 static dlnaWebFileHandle
-upnp_http_open (void *cookie,
+dlna_http_open (void *cookie,
                 const char *filename,
                 enum dlnaOpenFileMode mode)
 {
@@ -280,7 +280,7 @@ upnp_http_open (void *cookie,
 }
 
 static int
-upnp_http_read (void *cookie,
+dlna_http_read (void *cookie,
                 dlnaWebFileHandle fh,
                 char *buf,
                 size_t buflen)
@@ -334,7 +334,7 @@ upnp_http_read (void *cookie,
 }
 
 static int
-upnp_http_write (void *cookie,
+dlna_http_write (void *cookie,
                  dlnaWebFileHandle fh,
                  char *buf,
                  size_t buflen)
@@ -358,7 +358,7 @@ upnp_http_write (void *cookie,
 }
 
 static int
-upnp_http_seek (void *cookie,
+dlna_http_seek (void *cookie,
                 dlnaWebFileHandle fh,
                 off_t offset,
                 int origin)
@@ -458,7 +458,7 @@ upnp_http_seek (void *cookie,
 }
 
 static int
-upnp_http_close (void *cookie,
+dlna_http_close (void *cookie,
                  dlnaWebFileHandle fh)
 {
   dlna_t *dlna;
@@ -510,12 +510,82 @@ upnp_http_close (void *cookie,
   return HTTP_OK;
 }
 
+#ifdef HAVE_INTERNAL_LIBUPNP
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks = {
-  NULL,
-  upnp_http_get_info,
-  upnp_http_open,
-  upnp_http_read,
-  upnp_http_write,
-  upnp_http_seek,
-  upnp_http_close
+  .cookie = NULL,
+  .get_info = dlna_http_get_info,
+  .open = dlna_http_open,
+  .read = dlna_http_read,
+  .write = dlna_http_write,
+  .seek = dlna_http_seek,
+  .close = dlna_http_close
 };
+#else
+static void *http_cookie;
+
+int dlnaSetVirtualDirCallbacks(
+    struct dlnaVirtualDirCallbacks *callbacks,
+    void *cookie)
+{
+  http_cookie = cookie;
+  return UpnpSetVirtualDirCallbacks(callbacks);
+}
+
+static int
+upnp_http_get_info (
+                    const char *filename,
+                    struct File_Info *info)
+{
+  return dlna_http_get_info(http_cookie, filename, info);
+}
+
+static dlnaWebFileHandle
+upnp_http_open (
+                const char *filename,
+                enum dlnaOpenFileMode mode)
+{
+  return dlna_http_open(http_cookie, filename, mode);
+}
+
+static int
+upnp_http_read (
+                 dlnaWebFileHandle fh,
+                 char *buf,
+                 size_t buflen)
+{
+  return dlna_http_read(http_cookie, fh, buf, buflen);
+}
+
+static int
+upnp_http_write (
+                 dlnaWebFileHandle fh,
+                 char *buf,
+                 size_t buflen)
+{
+  return dlna_http_write(http_cookie, fh, buf, buflen);
+}
+
+static int
+upnp_http_seek (
+                dlnaWebFileHandle fh,
+                off_t offset,
+                int origin)
+{
+  return dlna_http_seek(http_cookie, fh, offset, origin);
+}
+
+static int
+upnp_http_close (dlnaWebFileHandle fh)
+{
+  return dlna_http_close(http_cookie, fh);
+}
+
+struct UpnpVirtualDirCallbacks virtual_dir_callbacks = {
+  .get_info = upnp_http_get_info,
+  .open = upnp_http_open,
+  .read = upnp_http_read,
+  .write = upnp_http_write,
+  .seek = upnp_http_seek,
+  .close = upnp_http_close
+};
+#endif

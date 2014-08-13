@@ -30,8 +30,14 @@
 
 #include "dlna.h"
 
+#ifndef HAVE_EXTERNAL_LIBUPNP
 #include "upnp/upnp.h"
 #include "upnp/upnptools.h"
+#else
+#include <upnp.h>
+#include <upnptools.h>
+#include "upnp_dlna_wrapper.h"
+#endif
 
 #include "uthash.h"
 

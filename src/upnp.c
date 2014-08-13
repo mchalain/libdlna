@@ -100,7 +100,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
   if (strcmp (ar->DevUDN + 5, dlna->uuid))
     return;
   
-  ip = ar->CtrlPtIPAddr.s_addr;
+  ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
   ip = ntohl (ip);
   sprintf (val, "%d.%d.%d.%d",
            (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
