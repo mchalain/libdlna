@@ -3,9 +3,11 @@ $(error "../config.mak is not present, run configure !")
 endif
 include ../config.mak
 
-include ixml/ixml.mak
-include threadutil/threadutil.mak
-include upnp/upnp.mak
+ifeq ($(HAVE_EXTERNAL_LIBUPNP),internal)
+  include ixml/ixml.mak
+  include threadutil/threadutil.mak
+  include upnp/upnp.mak
+endif
 
 LIBNAME = libdlna
 LIBNAME_STATIC = ${LIBNAME}.a
