@@ -26,6 +26,9 @@
 
 #define STARTING_ENTRY_ID_XBOX360 100000
 
+extern uint32_t
+crc32(uint32_t crc, const void *buf, size_t size);
+
 void
 vfs_item_free (dlna_t *dlna, vfs_item_t *item)
 {
@@ -75,7 +78,7 @@ vfs_is_id_registered (dlna_t *dlna, uint32_t id)
 }
 
 static uint32_t
-vfs_provide_next_id (dlna_t *dlna)
+vfs_provide_next_id (dlna_t *dlna, char *fullpath)
 {
   uint32_t i;
   uint32_t start = 1;
@@ -87,8 +90,12 @@ vfs_provide_next_id (dlna_t *dlna)
     return (start - 1);
   
   for (i = start; i < UINT_MAX; i++)
+  {
+    if (fullpath)
+      i = crc32(i, fullpath, strlen(fullpath));
     if (vfs_is_id_registered (dlna, i) == DLNA_ST_ERROR)
       return i;
+  }
 
   return (start - 1);
 }
@@ -173,7 +180,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   
   /* is requested 'object_id' available ? */
   if (object_id == 0 || vfs_is_id_registered (dlna, object_id) == DLNA_ST_OK)
-    item->id = vfs_provide_next_id (dlna);
+    item->id = vfs_provide_next_id (dlna, NULL);
   else
     item->id = object_id;
 
@@ -226,7 +233,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
 
   item->type = DLNA_RESOURCE;
   
-  item->id = vfs_provide_next_id (dlna);
+  item->id = vfs_provide_next_id (dlna, fullpath);
   item->title = strdup (name);
 
   item->u.resource.item = dlna_item_new (dlna, fullpath);
