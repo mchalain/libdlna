@@ -71,7 +71,7 @@ set_service_http_info (struct File_Info *info,
 }
 
 static int
-upnp_http_get_info (void *cookie,
+dlna_http_get_info (void *cookie,
                     const char *filename,
                     struct File_Info *info)
 {
@@ -235,13 +235,14 @@ http_get_file_local (vfs_item_t *item)
 }
 
 static dlnaWebFileHandle
-upnp_http_open (void *cookie,
+dlna_http_open (void *cookie,
                 const char *filename,
                 enum dlnaOpenFileMode mode)
 {
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
+  dlna_item_t *dlna_item;
   
   if (!cookie || !filename)
     return NULL;
@@ -288,7 +289,7 @@ upnp_http_open (void *cookie,
 }
 
 static int
-upnp_http_read (void *cookie,
+dlna_http_read (void *cookie,
                 dlnaWebFileHandle fh,
                 char *buf,
                 size_t buflen)
@@ -342,7 +343,7 @@ upnp_http_read (void *cookie,
 }
 
 static int
-upnp_http_write (void *cookie,
+dlna_http_write (void *cookie,
                  dlnaWebFileHandle fh,
                  char *buf,
                  size_t buflen)
@@ -366,7 +367,7 @@ upnp_http_write (void *cookie,
 }
 
 static int
-upnp_http_seek (void *cookie,
+dlna_http_seek (void *cookie,
                 dlnaWebFileHandle fh,
                 off_t offset,
                 int origin)
@@ -466,7 +467,7 @@ upnp_http_seek (void *cookie,
 }
 
 static int
-upnp_http_close (void *cookie,
+dlna_http_close (void *cookie,
                  dlnaWebFileHandle fh)
 {
   dlna_t *dlna;
@@ -519,11 +520,11 @@ upnp_http_close (void *cookie,
 }
 
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks = {
-  NULL,
-  upnp_http_get_info,
-  upnp_http_open,
-  upnp_http_read,
-  upnp_http_write,
-  upnp_http_seek,
-  upnp_http_close
+  .cookie = NULL,
+  .get_info = dlna_http_get_info,
+  .open = dlna_http_open,
+  .read = dlna_http_read,
+  .write = dlna_http_write,
+  .seek = dlna_http_seek,
+  .close = dlna_http_close
 };
