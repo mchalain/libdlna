@@ -69,14 +69,11 @@ static dlna_profile_t *
 probe_ac3 (AVFormatContext *ctx dlna_unused,
            av_codecs_t *codecs)
 {
-  dlna_container_type_t st;
-
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
-  st = stream_get_container (ctx);
   /* check for supported container */
-  if (st != CT_AC3)
+  if (strcmp (ctx->iformat->name,"ac3"))
     return NULL;
   
   switch (audio_profile_guess_ac3 (codecs->ac))
