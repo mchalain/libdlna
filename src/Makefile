@@ -7,6 +7,10 @@ ifeq ($(HAVE_EXTERNAL_LIBUPNP),internal)
   include ixml/ixml.mak
   include threadutil/threadutil.mak
   include upnp/upnp.mak
+
+  CFLAGS += -Iixml
+  CFLAGS += -Ithreadutil
+  CFLAGS += -Iupnp
 endif
 
 LIBNAME = libdlna
@@ -82,10 +86,6 @@ else
 CFLAGS += -DNDEBUG # for ixml library
 CFLAGS += -DNO_DEBUG # for threadutil library
 endif
-
-CFLAGS += -Iixml
-CFLAGS += -Ithreadutil
-CFLAGS += -Iupnp
 
 OBJS = $(SRCS:.c=.o)
 LOBJS = $(SRCS:.c=.lo)
@@ -167,7 +167,7 @@ install: $(INSTALL_RULES)
 	$(INSTALL) -m 644 dlna.h $(includedir)
 
 depend:
-	$(CC) -MM $(CFLAGS) $(SRCS) \
+	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) \
 	  $(IXML_SRCS) $(THREADUTIL_SRCS) $(UPNP_SRCS) 1>.depend
 
 .PHONY: clean depend
