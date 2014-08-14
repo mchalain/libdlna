@@ -52,6 +52,9 @@ extern "C" {
 /*  Mandatory: Used to configure the whole instance of the library.        */
 /*                                                                         */
 /***************************************************************************/
+struct dlna_metadata_s;
+struct dlna_properties_s;
+struct dlna_item_s;
 
 /* Status code for DLNA related functions */
 typedef enum {
@@ -288,6 +291,9 @@ typedef struct dlna_profile_s {
   const char *label;
   /* Profile type: IMAGE / AUDIO / AV */
   dlna_media_class_t media_class;
+  /* properties extraction callback */
+  struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
+  struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);
 } dlna_profile_t;
 
 /**

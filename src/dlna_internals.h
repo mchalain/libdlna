@@ -200,6 +200,7 @@ struct dlna_item_s {
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
   dlna_profile_t *profile;
+  void *profile_cookie;
 };
 
 /**
