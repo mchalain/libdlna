@@ -28,8 +28,8 @@
 
 #include <libavcodec/avcodec.h>
 
-#include "dlna_internals.h"
-#include "profiles.h"
+#include "../dlna_internals.h"
+#include "../profiles.h"
 #include "containers.h"
 
 typedef enum {

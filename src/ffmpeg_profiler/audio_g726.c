@@ -22,28 +22,26 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dlna_internals.h"
-#include "profiles.h"
+#include "../dlna_internals.h"
+#include "../profiles.h"
 
 audio_profile_t
-audio_profile_guess_mp2 (AVCodecContext *ac)
+audio_profile_guess_g726 (AVCodecContext *ac)
 {
   if (!ac)
     return AUDIO_PROFILE_INVALID;
 
-  if (ac->codec_id != CODEC_ID_MP2)
+  if (ac->codec_id != CODEC_ID_ADPCM_G726)
     return AUDIO_PROFILE_INVALID;
   
-  if (ac->channels > 5)
+  if (ac->channels != 1)
     return AUDIO_PROFILE_INVALID;
 
-  if (ac->sample_rate != 32000 &&
-      ac->sample_rate != 44100 &&
-      ac->sample_rate != 48000)
+  if (ac->sample_rate != 8000)
     return AUDIO_PROFILE_INVALID;
-  
-  if (ac->bit_rate < 32000 || ac->bit_rate > 448000)
+
+  if (ac->bit_rate != 32000)
     return AUDIO_PROFILE_INVALID;
-  
-  return AUDIO_PROFILE_MP2;
+
+  return AUDIO_PROFILE_G726;
 }

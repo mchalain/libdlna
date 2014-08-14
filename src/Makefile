@@ -38,23 +38,6 @@ endif
 
 SRCS =  \
 	profiles.c \
-	containers.c \
-	image_jpeg.c \
-	image_png.c \
-	audio_aac.c \
-	audio_ac3.c \
-	audio_amr.c \
-	audio_atrac3.c \
-	audio_g726.c \
-	audio_lpcm.c \
-	audio_mp2.c \
-	audio_mp3.c \
-	audio_wma.c \
-	av_mpeg1.c \
-	av_mpeg2.c \
-	av_mpeg4_part2.c \
-	av_mpeg4_part10.c \
-	av_wmv9.c \
 	dlna.c \
 	upnp.c \
 	buffer.c \
@@ -67,6 +50,25 @@ SRCS =  \
 	msr.c \
 	http.c \
 	upnp_dms.c \
+
+SRCS += \
+	ffmpeg_profiler/containers.c \
+	ffmpeg_profiler/image_jpeg.c \
+	ffmpeg_profiler/image_png.c \
+	ffmpeg_profiler/audio_aac.c \
+	ffmpeg_profiler/audio_ac3.c \
+	ffmpeg_profiler/audio_amr.c \
+	ffmpeg_profiler/audio_atrac3.c \
+	ffmpeg_profiler/audio_g726.c \
+	ffmpeg_profiler/audio_lpcm.c \
+	ffmpeg_profiler/audio_mp2.c \
+	ffmpeg_profiler/audio_mp3.c \
+	ffmpeg_profiler/audio_wma.c \
+	ffmpeg_profiler/av_mpeg1.c \
+	ffmpeg_profiler/av_mpeg2.c \
+	ffmpeg_profiler/av_mpeg4_part2.c \
+	ffmpeg_profiler/av_mpeg4_part10.c \
+	ffmpeg_profiler/av_wmv9.c
 
 ifeq ($(HAVE_SQLITE),yes)
 SRCS +=  \

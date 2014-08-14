@@ -22,7 +22,7 @@
 #ifndef CONTAINERS_H
 #define CONTAINERS_H
 
-#include "dlna_internals.h"
+#include "../dlna_internals.h"
 
 typedef enum {
   CT_UNKNOWN,

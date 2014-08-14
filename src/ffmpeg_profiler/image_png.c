@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dlna_internals.h"
-#include "profiles.h"
+#include "../dlna_internals.h"
+#include "../profiles.h"
 
 /* Profile for image thumbnails */
 static dlna_profile_t png_tn = {

@@ -47,7 +47,7 @@
 #include "dlna_internals.h"
 #include "upnp_internals.h"
 #include "profiles.h"
-#include "containers.h"
+#include "ffmpeg_profiler/containers.h"
 
 dlna_t *
 dlna_init (void)

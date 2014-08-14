@@ -26,7 +26,7 @@
 #include <libavformat/avformat.h>
 
 #include "dlna_internals.h"
-#include "containers.h"
+#include "ffmpeg_profiler/containers.h"
 
 /* DLNA MIME types */
 #define MIME_IMAGE_JPEG                   "image/jpeg"

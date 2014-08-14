@@ -22,8 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dlna_internals.h"
-#include "profiles.h"
+#include "../dlna_internals.h"
+#include "../profiles.h"
 
 /* WMA content (bit rate less than 193 kbps) */
 static dlna_profile_t wmabase = {
