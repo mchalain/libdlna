@@ -229,20 +229,18 @@ wmv_video_profile_get (AVStream *vs, AVCodecContext *vc)
 }
 
 static dlna_profile_t *
-probe_wmv9 (AVFormatContext *ctx dlna_unused,
+probe_wmv9 (AVFormatContext *ctx,
             av_codecs_t *codecs)
 {
   wmv_video_profile_t vp;
   audio_profile_t ap;
   int i;
-  dlna_container_type_t st;
 
   if (!stream_ctx_is_av (codecs))
     return NULL;
   
-  st = stream_get_container (ctx);
   /* need to be in ASF container only */
-  if (st != CT_ASF)
+  if (strcmp (ctx->iformat->name, "asf"))
     return NULL;
 
   /* check for WMV3 (Simple and Main profiles) video codec */

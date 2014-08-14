@@ -530,14 +530,12 @@ probe_mpeg4 (AVFormatContext *ctx,
   audio_profile_t ap;
   aac_container_type_t ct = AAC_MUXED;
   int i;
-  dlna_container_type_t st;
 
   if (!stream_ctx_is_audio (codecs))
     return NULL;
 
-  st = stream_get_container (ctx);
   /* check for ADTS */
-  if (st == CT_AAC)
+  if (strcmp (ctx->iformat->name,"aac"))
   {
     aac_object_type_t ot;
     ct = aac_get_format (ctx);
