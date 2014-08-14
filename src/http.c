@@ -519,7 +519,7 @@ dlna_http_close (void *cookie,
   return HTTP_OK;
 }
 
-#ifdef HAVE_INTERNAL_LIBUPNP
+#ifndef HAVE_EXTERNAL_LIBUPNP
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks = {
   .cookie = NULL,
   .get_info = dlna_http_get_info,
