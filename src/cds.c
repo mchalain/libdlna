@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "upnp_internals.h"
 #include "minmax.h"
