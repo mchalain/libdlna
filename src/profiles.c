@@ -704,11 +704,14 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     item->profile    = upnp_guess_media_profile (dlna, item);
   if (!item->profile) /* not DLNA compliant */
   {
+    free (item->filename);
     free (item);
     return NULL;
   }
-  item->properties = item->profile->get_properties (item);
-  item->metadata   = item->profile->get_metadata (item);
+  if (item->profile->get_properties)
+    item->properties = item->profile->get_properties (item);
+  if (item->profile->get_metadata)
+    item->metadata   = item->profile->get_metadata (item);
   item->media_class= item->profile->media_class;
 
   return item;
