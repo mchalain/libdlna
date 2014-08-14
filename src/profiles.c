@@ -449,6 +449,13 @@ match_file_extension (const char *filename, const char *extensions)
   return 0;
 }
 
+static void
+dlna_media_profile_free(dlna_item_t *item)
+{
+  AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
+  avformat_close_input (&ctx);
+}
+
 dlna_profile_t *
 dlna_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
 {
@@ -522,6 +529,7 @@ dlna_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
 
   profile->get_properties = dlna_item_get_properties;
   profile->get_metadata = dlna_item_get_metadata;
+  profile->free = dlna_media_profile_free;
   item->profile_cookie = ctx;
   free (codecs);
   return profile;
@@ -720,7 +728,6 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 void
 dlna_item_free (dlna_item_t *item)
 {
-  AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
   if (!item)
     return;
 
@@ -729,7 +736,7 @@ dlna_item_free (dlna_item_t *item)
   if (item->properties)
     free (item->properties);
   dlna_metadata_free (item->metadata);
-  avformat_close_input (&ctx);
+  item->profile->free (item);
   item->profile = NULL;
   free (item);
 }

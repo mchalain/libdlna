@@ -294,6 +294,7 @@ typedef struct dlna_profile_s {
   /* properties extraction callback */
   struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
   struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);
+  void (*free)(struct dlna_item_s *item);
 } dlna_profile_t;
 
 /**
