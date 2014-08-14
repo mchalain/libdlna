@@ -623,6 +623,12 @@ dlna_item_get_metadata (AVFormatContext *ctx)
   entry = av_dict_get(dict, "author", NULL, 0);
   if (entry && entry->value)
     meta->author  = strdup (entry->value);
+  else
+  {
+    entry = av_dict_get(dict, "artist", NULL, 0);
+    if (entry && entry->value)
+      meta->author  = strdup (entry->value);
+  }
   entry = av_dict_get(dict, "comment", NULL, 0);
   if (entry && entry->value)
     meta->comment = strdup (entry->value);
