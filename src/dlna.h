@@ -52,6 +52,9 @@ extern "C" {
 /*  Mandatory: Used to configure the whole instance of the library.        */
 /*                                                                         */
 /***************************************************************************/
+struct dlna_metadata_s;
+struct dlna_properties_s;
+struct dlna_item_s;
 
 /* Status code for DLNA related functions */
 typedef enum {
@@ -288,6 +291,9 @@ typedef struct dlna_profile_s {
   const char *label;
   /* Profile type: IMAGE / AUDIO / AV */
   dlna_media_class_t media_class;
+  /* properties extraction callback */
+  struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
+  struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);
 } dlna_profile_t;
 
 /**
@@ -295,10 +301,10 @@ typedef struct dlna_profile_s {
  *
  * @warning This function returns a pointer, do _NOT_ free it.
  * @param[in] dlna     The DLNA library's controller.
- * @param[in] filename The file to be checked for compliance.
+ * @param[in] item     The item to be checked for compliance.
  * @return A pointer on file's DLNA profile if compatible, NULL otherwise.
  */
-dlna_profile_t *dlna_guess_media_profile (dlna_t *dlna, const char *filename);
+dlna_profile_t *dlna_guess_media_profile (dlna_t *dlna, struct dlna_item_s *item);
 
 /**
  * Provides UPnP A/V ContentDirectory Object Item associated to profile.
@@ -369,6 +375,7 @@ typedef struct dlna_item_s {
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
   dlna_profile_t *profile;
+  void *profile_cookie;
 } dlna_item_t;
 
 /**
