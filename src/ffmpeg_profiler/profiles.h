@@ -149,4 +149,12 @@ int stream_ctx_is_image (AVFormatContext *ctx,
 int stream_ctx_is_audio (av_codecs_t *codecs);
 int stream_ctx_is_av (av_codecs_t *codecs);
 
+typedef struct ffmpeg_profiler_data_s
+{
+  /* has the library's been inited */
+  int inited;
+  /* linked-list of registered DLNA profiles */
+  void *first_profile;
+} ffmpeg_profiler_data_t;
+
 #endif /* PROFILES_H */

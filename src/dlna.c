@@ -60,7 +60,6 @@ dlna_init (void)
   dlna->verbosity = DLNA_MSG_ERROR;
   dlna->mode = DLNA_CAPABILITY_DLNA;
   dlna->check_extensions = 1;
-  dlna->first_profile = NULL;
   dlna->flags = 0;
 
   /* Internal HTTP Server */
@@ -104,7 +103,6 @@ dlna_uninit (dlna_t *dlna)
 
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
-  dlna->first_profile = NULL;
   vfs_item_free (dlna, dlna->vfs_root);
   free (dlna->interface);
 

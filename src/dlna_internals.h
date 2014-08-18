@@ -124,8 +124,6 @@ struct dlna_s {
   dlna_capability_mode_t mode;
   /* defines flexibility on file extension's check */
   int check_extensions;
-  /* linked-list of registered DLNA profiles */
-  void *first_profile;
   /* DLNA flags*/
   int flags;
 
