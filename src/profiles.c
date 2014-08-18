@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 
 #include "dlna_internals.h"
-#include "ffmpeg_profiler/profiles.h"
+#include "ffmpeg_profiler/ffmpeg_profiler.h"
 #include "ffmpeg_profiler/containers.h"
 
 extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
@@ -117,6 +117,47 @@ static const mime_type_t mime_type_list[] = {
   { NULL,   {.mime = NULL}}
 };
 
+static char *
+get_file_extension (const char *filename)
+{
+  char *str = NULL;
+
+  str = strrchr (filename, '.');
+  if (str)
+    str++;
+
+  return str;
+}
+
+static int
+dlna_list_length (void *list)
+{
+  void **l = list;
+  int n = 0;
+  while (*l++)
+    n++;
+
+  return n;
+}
+
+static void *
+dlna_list_add (char **list, char *element)
+{
+  char **l = list;
+  int n = dlna_list_length (list) + 1;
+  int i;
+
+  for (i = 0; i < n; i++)
+    if (l[i] && element && !strcmp (l[i], element))
+      return l;
+  
+  l = realloc (l, (n + 1) * sizeof (char *));
+  l[n] = NULL;
+  l[n - 1] = element;
+  
+  return l;
+}
+
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
@@ -148,73 +189,16 @@ dlna_get_supported_mime_types (dlna_t *dlna)
   return mimes;
 }
 
-static av_codecs_t *
-av_profile_get_codecs (AVFormatContext *ctx)
-{
-  av_codecs_t *codecs = NULL;
-  unsigned int i;
-  int audio_stream = -1, video_stream = -1;
- 
-  codecs = malloc (sizeof (av_codecs_t));
-  codecs->nb_streams = ctx->nb_streams;
-
-  for (i = 0; i < codecs->nb_streams; i++)
-  {
-    if (audio_stream == -1 &&
-        ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
-    {
-      audio_stream = i;
-      continue;
-    }
-    else if (video_stream == -1 &&
-             ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-    {
-      video_stream = i;
-      continue;
-    }
-  }
-
-  codecs->as = audio_stream >= 0 ? ctx->streams[audio_stream] : NULL;
-  codecs->ac = audio_stream >= 0 ? ctx->streams[audio_stream]->codec : NULL;
-
-  codecs->vs = video_stream >= 0 ? ctx->streams[video_stream] : NULL;
-  codecs->vc = video_stream >= 0 ? ctx->streams[video_stream]->codec : NULL;
-
-  /* check for at least one video stream and one audio stream in container */
-  if (!codecs->ac && !codecs->vc)
-  {
-    free (codecs);
-    return NULL;
-  }
-  
-  return codecs;
-}
-
 dlna_profile_t *
 dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
+  dlna_profile_t *profile;
   int i = 0;
-  dlna_registered_profile_t *p;
 
   if (!profileid)
 	return NULL;
-  p = dlna->first_profile;
-  while (p)
-  {
-    dlna_profile_t *prof;
-    i = 0;
-    while ((prof = p->profiles[i]) != NULL)
-    {
-      if (!strcmp(profileid, prof->id))
-      {
-        if (prof->media_class == DLNA_CLASS_UNKNOWN)
-          prof->media_class = p->class;
-        return prof;
-      }
-      i++;
-    }
-    p = p->next;
-  }
+  if ((profile = ffmpeg_profiler_get_media_profile (dlna, profileid)) != NULL)
+    return profile;
   for (i = 0; mime_type_list[i].profile.mime; i++)
     if (!strcmp(profileid, mime_type_list[i].extension))
       return &mime_type_list[i].profile;

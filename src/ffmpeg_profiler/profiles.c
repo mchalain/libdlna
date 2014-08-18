@@ -342,6 +342,32 @@ match_file_extension (const char *filename, const char *extensions)
   return 0;
 }
 
+dlna_profile_t *
+ffmpeg_profiler_get_media_profile (dlna_t *dlna, char *profileid)
+{
+  dlna_registered_profile_t *p;
+  int i = 0;
+
+  p = dlna->first_profile;
+  while (p)
+  {
+    dlna_profile_t *prof;
+    i = 0;
+    while ((prof = p->profiles[i]) != NULL)
+    {
+      if (!strcmp(profileid, prof->id))
+      {
+        if (prof->media_class == DLNA_CLASS_UNKNOWN)
+          prof->media_class = p->class;
+        return prof;
+      }
+      i++;
+    }
+    p = p->next;
+  }
+  return NULL;
+}
+
 static void
 dlna_metadata_free (dlna_metadata_t *meta)
 {

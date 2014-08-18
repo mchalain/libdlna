@@ -22,6 +22,7 @@
 #ifndef CONTAINERS_H
 #define CONTAINERS_H
 
+#include <libavformat/avformat.h>
 #include "../dlna_internals.h"
 
 typedef enum {
