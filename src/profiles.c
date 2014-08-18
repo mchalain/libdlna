@@ -245,7 +245,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->filename   = strdup (filename);
   item->filesize   = st.st_size;
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = ffmpeg_profiler_guess_media_profile (dlna, item);
+    item->profile    = ffmpeg_profiler_guess_media_profile (dlna, (char *)filename, &item->profile_cookie);
   else
     item->profile    = upnp_guess_media_profile (dlna, item);
   if (!item->profile) /* not DLNA compliant */

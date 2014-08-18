@@ -402,7 +402,7 @@ media_profile_free(dlna_item_t *item)
 }
 
 dlna_profile_t *
-ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
+ffmpeg_profiler_guess_media_profile (dlna_t *dlna, char *filename, void **cookie)
 {
   registered_profile_t *p;
   dlna_profile_t *profile = NULL;
@@ -412,9 +412,9 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
   if (!g_ffmpeg_profiler || !g_ffmpeg_profiler->inited)
     g_ffmpeg_profiler = ffmpeg_profiler_init ();
   
-  if (avformat_open_input (&ctx, item->filename, NULL, NULL) != 0)
+  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", item->filename);
+    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
   }
 
@@ -444,7 +444,7 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
       if (p->extensions)
       {
         /* check for valid file extension */
-        if (!match_file_extension (item->filename, p->extensions))
+        if (!match_file_extension (filename, p->extensions))
         {
           p = p->next;
           continue;
@@ -465,7 +465,7 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;
-  item->profile_cookie = ctx;
+  *cookie = (void *)ctx;
   free (codecs);
   return profile;
 }
