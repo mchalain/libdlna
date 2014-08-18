@@ -24,6 +24,7 @@
 
 #include "dlna.h"
 #include "dlna_internals.h"
+#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
 int
 main (int argc, char **argv)
@@ -32,6 +33,7 @@ main (int argc, char **argv)
   dlna_profile_t *p;
   dlna_org_flags_t flags;
   dlna_item_t *item;
+  void *cookie;
   
   if (argc < 2)
   {
@@ -49,14 +51,14 @@ main (int argc, char **argv)
   dlna = dlna_init ();
   dlna_set_org_flags (dlna, flags);
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
-  dlna_register_all_media_profiles (dlna);
+  ffmpeg_profiler_register_all_media_profiles ();
 
   item = dlna_item_new (dlna, argv[1]);
   if (item)
   {
     if (item->properties)
     {
-      printf ("Size: %lld bytes\n", item->properties->size);
+      printf ("Size: %lld bytes\n", item->filesize);
       printf ("Duration: %s\n", item->properties->duration);
       printf ("Bitrate: %d bytes/sec\n", item->properties->bitrate);
       printf ("SampleFrequency: %d Hz\n", item->properties->sample_frequency);
@@ -77,7 +79,7 @@ main (int argc, char **argv)
     dlna_item_free (item);
   }
   
-  p = dlna_guess_media_profile (dlna, argv[1]);
+  p = ffmpeg_profiler_guess_media_profile (dlna, argv[1], &cookie);
   if (p)
   {
     char *protocol_info;
