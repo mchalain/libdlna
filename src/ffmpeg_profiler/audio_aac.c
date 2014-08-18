@@ -27,7 +27,7 @@
 #include <fcntl.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 #include "containers.h"
 
 /* Profile for audio media class content */

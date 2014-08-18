@@ -25,8 +25,8 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
-#include "dlna_internals.h"
-#include "ffmpeg_profiler/containers.h"
+#include "../dlna_internals.h"
+#include "containers.h"
 
 /* DLNA MIME types */
 #define MIME_IMAGE_JPEG                   "image/jpeg"
@@ -148,5 +148,12 @@ int stream_ctx_is_image (AVFormatContext *ctx,
                          av_codecs_t *codecs);
 int stream_ctx_is_audio (av_codecs_t *codecs);
 int stream_ctx_is_av (av_codecs_t *codecs);
+
+dlna_profile_t *
+dlna_guess_media_profile (dlna_t *dlna, dlna_item_t *item);
+void
+dlna_metadata_free (dlna_metadata_t *meta);
+char **
+ffmpeg_profiler_get_supported_mime_types (dlna_t *dlna, char **mimes);
 
 #endif /* PROFILES_H */

@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 
 audio_profile_t
 audio_profile_guess_mp2 (AVCodecContext *ac)

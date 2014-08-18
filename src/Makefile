@@ -53,6 +53,7 @@ SRCS =  \
 
 SRCS += \
 	ffmpeg_profiler/containers.c \
+	ffmpeg_profiler/profiles.c \
 	ffmpeg_profiler/image_jpeg.c \
 	ffmpeg_profiler/image_png.c \
 	ffmpeg_profiler/audio_aac.c \

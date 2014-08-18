@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 
 /* Profile for image media class content of small resolution */
 static dlna_profile_t jpeg_sm = {

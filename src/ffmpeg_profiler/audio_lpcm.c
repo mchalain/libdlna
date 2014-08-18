@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 
 /* Profile for audio media class content */
 static dlna_profile_t lpcm = {

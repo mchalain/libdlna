@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 
 /* MPEG-1 video with 2 channel MPEG-1 Layer2 audio
    encapsulated in MPEG-1 system */

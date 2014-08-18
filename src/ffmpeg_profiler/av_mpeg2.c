@@ -27,7 +27,7 @@
 #include <fcntl.h>
 
 #include "../dlna_internals.h"
-#include "../profiles.h"
+#include "profiles.h"
 #include "containers.h"
 
 typedef struct mpeg_ps_es_stream_s {

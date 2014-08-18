@@ -7,7 +7,7 @@
 #include <libavformat/avformat.h>
 
 #include "containers.h"
-#include "../profiles.h"
+#include "profiles.h"
 
 #define MPEG_PACK_HEADER 0xba
 #define MPEG_TS_SYNC_CODE 0x47
