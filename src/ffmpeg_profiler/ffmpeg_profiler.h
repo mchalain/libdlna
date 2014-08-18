@@ -27,7 +27,7 @@ typedef enum {
   DLNA_PROFILE_AV_MPEG4_PART2,
   DLNA_PROFILE_AV_MPEG4_PART10, /* a.k.a. MPEG-4 AVC */
   DLNA_PROFILE_AV_WMV9
-} dlna_media_profile_t;
+} ffmpeg_profiler_media_profile_t;
 
 /**
  * Register all known/supported DLNA profiles.
@@ -44,7 +44,7 @@ void ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna);
  */
 void
 ffmpeg_profiler_register_media_profile (dlna_t *dlna,
-                            dlna_media_profile_t profile);
+                            ffmpeg_profiler_media_profile_t profile);
 dlna_profile_t *
 ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item);
 char **

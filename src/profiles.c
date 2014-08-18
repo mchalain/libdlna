@@ -26,7 +26,6 @@
 
 #include "dlna_internals.h"
 #include "ffmpeg_profiler/ffmpeg_profiler.h"
-#include "ffmpeg_profiler/containers.h"
 
 extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
 
@@ -246,7 +245,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->filename   = strdup (filename);
   item->filesize   = st.st_size;
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = dlna_guess_media_profile (dlna, item);
+    item->profile    = ffmpeg_profiler_guess_media_profile (dlna, item);
   else
     item->profile    = upnp_guess_media_profile (dlna, item);
   if (!item->profile) /* not DLNA compliant */

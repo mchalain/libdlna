@@ -20,8 +20,10 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #if (defined(BSD) || defined(__FreeBSD__) || defined(__APPLE__))
 #include <sys/socket.h>
@@ -46,8 +48,7 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
-#include "ffmpeg_profiler/profiles.h"
-#include "ffmpeg_profiler/containers.h"
+#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
 dlna_t *
 dlna_init (void)
@@ -89,9 +90,6 @@ dlna_init (void)
   dlna->serial_number = strdup ("libdlna-001");
   dlna->uuid = strdup ("01:23:45:67:89");
   dlna->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
-  
-  /* register all FFMPEG demuxers */
-  av_register_all ();
 
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
   

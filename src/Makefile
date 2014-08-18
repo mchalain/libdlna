@@ -80,12 +80,15 @@ EXTRADIST = \
 	dlna.h \
 	dlna_internals.h \
 	upnp_internals.h \
-	containers.h \
-	profiles.h \
 	cms.h \
 	cds.h \
 	avts.h \
 	msr.h \
+
+EXTRADIST += \
+	ffmpeg_profiler/ffmpeg_profiler.h \
+	ffmpeg_profiler/containers.h \
+	ffmpeg_profiler/profiles.h
 
 ifeq ($(DEBUG),yes)
 CFLAGS += -DHAVE_DEBUG

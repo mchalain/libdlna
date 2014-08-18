@@ -73,15 +73,15 @@ typedef struct av_codecs_s {
   AVCodecContext *vc;
 } av_codecs_t;
 
-typedef struct dlna_registered_profile_s {
-  dlna_media_profile_t id;
+typedef struct registered_profile_s {
+  ffmpeg_profiler_media_profile_t id;
   dlna_media_class_t class;
   char *extensions;
   dlna_profile_t **profiles;
   dlna_profile_t * (*probe) (AVFormatContext *ctx,
                              av_codecs_t *codecs);
-  struct dlna_registered_profile_s *next;
-} dlna_registered_profile_t;
+  struct registered_profile_s *next;
+} registered_profile_t;
 
 char * get_file_extension (const char *filename);
 

@@ -32,23 +32,23 @@
 static dlna_properties_t *dlna_item_get_properties (dlna_item_t *item);
 static dlna_metadata_t *dlna_item_get_metadata (dlna_item_t *item);
 
-extern dlna_registered_profile_t dlna_profile_image_jpeg;
-extern dlna_registered_profile_t dlna_profile_image_png;
-extern dlna_registered_profile_t dlna_profile_audio_ac3;
-extern dlna_registered_profile_t dlna_profile_audio_amr;
-extern dlna_registered_profile_t dlna_profile_audio_atrac3;
-extern dlna_registered_profile_t dlna_profile_audio_lpcm;
-extern dlna_registered_profile_t dlna_profile_audio_mp3;
-extern dlna_registered_profile_t dlna_profile_audio_mpeg4;
-extern dlna_registered_profile_t dlna_profile_audio_wma;
-extern dlna_registered_profile_t dlna_profile_av_mpeg1;
-extern dlna_registered_profile_t dlna_profile_av_mpeg2;
-extern dlna_registered_profile_t dlna_profile_av_mpeg4_part2;
-extern dlna_registered_profile_t dlna_profile_av_mpeg4_part10;
-extern dlna_registered_profile_t dlna_profile_av_wmv9;
+extern registered_profile_t dlna_profile_image_jpeg;
+extern registered_profile_t dlna_profile_image_png;
+extern registered_profile_t dlna_profile_audio_ac3;
+extern registered_profile_t dlna_profile_audio_amr;
+extern registered_profile_t dlna_profile_audio_atrac3;
+extern registered_profile_t dlna_profile_audio_lpcm;
+extern registered_profile_t dlna_profile_audio_mp3;
+extern registered_profile_t dlna_profile_audio_mpeg4;
+extern registered_profile_t dlna_profile_audio_wma;
+extern registered_profile_t dlna_profile_av_mpeg1;
+extern registered_profile_t dlna_profile_av_mpeg2;
+extern registered_profile_t dlna_profile_av_mpeg4_part2;
+extern registered_profile_t dlna_profile_av_mpeg4_part10;
+extern registered_profile_t dlna_profile_av_wmv9;
 
 static void
-register_profile (dlna_t *dlna, dlna_registered_profile_t *profile)
+register_profile (dlna_t *dlna, registered_profile_t *profile)
 {
   void **p;
 
@@ -61,9 +61,9 @@ register_profile (dlna_t *dlna, dlna_registered_profile_t *profile)
   p = &dlna->first_profile;
   while (*p != NULL)
   {
-    if (((dlna_registered_profile_t *) *p)->id == profile->id)
+    if (((registered_profile_t *) *p)->id == profile->id)
       return; /* already registered */
-    p = (void *) &((dlna_registered_profile_t *) *p)->next;
+    p = (void *) &((registered_profile_t *) *p)->next;
   }
   *p = profile;
   profile->next = NULL;
@@ -78,6 +78,9 @@ ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna)
   if (!dlna->inited)
     dlna = dlna_init ();
   
+  /* register all FFMPEG demuxers */
+  av_register_all ();
+
   register_profile (dlna, &dlna_profile_image_jpeg);
   register_profile (dlna, &dlna_profile_image_png);
   register_profile (dlna, &dlna_profile_audio_ac3);
@@ -95,7 +98,7 @@ ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna)
 }
 
 void
-ffmpeg_profiler_register_media_profile (dlna_t *dlna, dlna_media_profile_t profile)
+ffmpeg_profiler_register_media_profile (dlna_t *dlna, ffmpeg_profiler_media_profile_t profile)
 {
   if (!dlna)
     return;
@@ -153,7 +156,7 @@ ffmpeg_profiler_register_media_profile (dlna_t *dlna, dlna_media_profile_t profi
 }
 
 static int
-is_profile_registered (dlna_t *dlna, dlna_media_profile_t profile)
+is_profile_registered (dlna_t *dlna, ffmpeg_profiler_media_profile_t profile)
 {
   void **p;
 
@@ -165,9 +168,9 @@ is_profile_registered (dlna_t *dlna, dlna_media_profile_t profile)
   p = &dlna->first_profile;
   while (*p)
   {
-    if (((dlna_registered_profile_t *) *p)->id == profile)
+    if (((registered_profile_t *) *p)->id == profile)
       return 1;
-    p = (void *) &((dlna_registered_profile_t *) *p)->next;
+    p = (void *) &((registered_profile_t *) *p)->next;
   }
 
   return 0;
@@ -346,7 +349,7 @@ match_file_extension (const char *filename, const char *extensions)
 dlna_profile_t *
 ffmpeg_profiler_get_media_profile (dlna_t *dlna, char *profileid)
 {
-  dlna_registered_profile_t *p;
+  registered_profile_t *p;
   int i = 0;
 
   p = dlna->first_profile;
@@ -401,7 +404,7 @@ dlna_media_profile_free(dlna_item_t *item)
 dlna_profile_t *
 ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
 {
-  dlna_registered_profile_t *p;
+  registered_profile_t *p;
   dlna_profile_t *profile = NULL;
   AVFormatContext *ctx = NULL;
   av_codecs_t *codecs;
