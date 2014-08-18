@@ -29,8 +29,8 @@
 #include "profiles.h"
 #include "containers.h"
 
-static dlna_properties_t *dlna_item_get_properties (dlna_item_t *item);
-static dlna_metadata_t *dlna_item_get_metadata (dlna_item_t *item);
+static dlna_properties_t *item_get_properties (dlna_item_t *item);
+static dlna_metadata_t *item_get_metadata (dlna_item_t *item);
 
 extern registered_profile_t dlna_profile_image_jpeg;
 extern registered_profile_t dlna_profile_image_png;
@@ -392,7 +392,7 @@ dlna_metadata_free (dlna_metadata_t *meta)
 }
 
 static void
-dlna_media_profile_free(dlna_item_t *item)
+media_profile_free(dlna_item_t *item)
 {
   AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
 
@@ -462,16 +462,16 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
     p = p->next;
   }
 
-  profile->get_properties = dlna_item_get_properties;
-  profile->get_metadata = dlna_item_get_metadata;
-  profile->free = dlna_media_profile_free;
+  profile->get_properties = item_get_properties;
+  profile->get_metadata = item_get_metadata;
+  profile->free = media_profile_free;
   item->profile_cookie = ctx;
   free (codecs);
   return profile;
 }
 
 static dlna_properties_t *
-dlna_item_get_properties (dlna_item_t *item)
+item_get_properties (dlna_item_t *item)
 {
   AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
   dlna_properties_t *prop;
@@ -512,7 +512,7 @@ dlna_item_get_properties (dlna_item_t *item)
 }
 
 static dlna_metadata_t *
-dlna_item_get_metadata (dlna_item_t *item)
+item_get_metadata (dlna_item_t *item)
 {
   AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
   dlna_metadata_t *meta;
