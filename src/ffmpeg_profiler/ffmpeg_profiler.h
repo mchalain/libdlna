@@ -1,8 +1,52 @@
 #ifndef FFMPEG_PROFILER_H
 #define FFMPEG_PROFILER_H
 
+/***************************************************************************/
+/*                                                                         */
+/* DLNA Media Profiles Handling                                            */
+/*  Mandatory: Used to register one or many DLNA profiles                  */
+/*             you want your device to support.                            */
+/*                                                                         */
+/***************************************************************************/
+
+typedef enum {
+  /* Image Class */
+  DLNA_PROFILE_IMAGE_JPEG,
+  DLNA_PROFILE_IMAGE_PNG,
+  /* Audio Class */
+  DLNA_PROFILE_AUDIO_AC3,
+  DLNA_PROFILE_AUDIO_AMR,
+  DLNA_PROFILE_AUDIO_ATRAC3,
+  DLNA_PROFILE_AUDIO_LPCM,
+  DLNA_PROFILE_AUDIO_MP3,
+  DLNA_PROFILE_AUDIO_MPEG4,
+  DLNA_PROFILE_AUDIO_WMA,
+  /* AV Class */
+  DLNA_PROFILE_AV_MPEG1,
+  DLNA_PROFILE_AV_MPEG2,
+  DLNA_PROFILE_AV_MPEG4_PART2,
+  DLNA_PROFILE_AV_MPEG4_PART10, /* a.k.a. MPEG-4 AVC */
+  DLNA_PROFILE_AV_WMV9
+} dlna_media_profile_t;
+
+/**
+ * Register all known/supported DLNA profiles.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ */
+void ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna);
+
+/**
+ * Register one specific known/supported DLNA profiles.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] profile  The profile ID to be registered.
+ */
+void
+ffmpeg_profiler_register_media_profile (dlna_t *dlna,
+                            dlna_media_profile_t profile);
 dlna_profile_t *
-dlna_guess_media_profile (dlna_t *dlna, dlna_item_t *item);
+ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item);
 char **
 ffmpeg_profiler_get_supported_mime_types (dlna_t *dlna, char **mimes);
 dlna_profile_t *
