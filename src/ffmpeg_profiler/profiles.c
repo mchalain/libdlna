@@ -414,13 +414,11 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, char *filename, void **cookie
   
   if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
   }
 
   if (avformat_find_stream_info (ctx, NULL) < 0)
   {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
     avformat_close_input (&ctx);
     return NULL;
   }
