@@ -172,7 +172,7 @@ dlna_get_supported_mime_types (dlna_t *dlna)
   switch (dlna->mode)
   {
   case DLNA_CAPABILITY_DLNA:
-    mimes = ffmpeg_profiler_get_supported_mime_types (dlna, mimes);
+    mimes = ffmpeg_profiler_get_supported_mime_types (mimes);
     break;
   case DLNA_CAPABILITY_UPNP_AV:
   case DLNA_CAPABILITY_UPNP_AV_XBOX:
@@ -196,7 +196,7 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 
   if (!profileid)
 	return NULL;
-  if ((profile = ffmpeg_profiler_get_media_profile (dlna, profileid)) != NULL)
+  if ((profile = ffmpeg_profiler_get_media_profile (profileid)) != NULL)
     return profile;
   for (i = 0; mime_type_list[i].profile.mime; i++)
     if (!strcmp(profileid, mime_type_list[i].extension))

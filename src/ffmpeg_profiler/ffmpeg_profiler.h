@@ -32,24 +32,21 @@ typedef enum {
 /**
  * Register all known/supported DLNA profiles.
  *
- * @param[in] dlna  The DLNA library's controller.
  */
-void ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna);
+void ffmpeg_profiler_register_all_media_profiles ();
 
 /**
  * Register one specific known/supported DLNA profiles.
  *
- * @param[in] dlna     The DLNA library's controller.
  * @param[in] profile  The profile ID to be registered.
  */
 void
-ffmpeg_profiler_register_media_profile (dlna_t *dlna,
-                            ffmpeg_profiler_media_profile_t profile);
+ffmpeg_profiler_register_media_profile (ffmpeg_profiler_media_profile_t profile);
 dlna_profile_t *
 ffmpeg_profiler_guess_media_profile (dlna_t *dlna, dlna_item_t *item);
 char **
-ffmpeg_profiler_get_supported_mime_types (dlna_t *dlna, char **mimes);
+ffmpeg_profiler_get_supported_mime_types ( char **mimes);
 dlna_profile_t *
-ffmpeg_profiler_get_media_profile (dlna_t *dlna, char *profileid);
+ffmpeg_profiler_get_media_profile (char *profileid);
 
 #endif

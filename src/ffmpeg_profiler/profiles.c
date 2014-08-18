@@ -81,7 +81,7 @@ register_profile (ffmpeg_profiler_data_t *data, registered_profile_t *profile)
 }
 
 void
-ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna)
+ffmpeg_profiler_register_all_media_profiles ()
 {
   if (!g_ffmpeg_profiler || !g_ffmpeg_profiler->inited)
     g_ffmpeg_profiler = ffmpeg_profiler_init ();
@@ -103,7 +103,7 @@ ffmpeg_profiler_register_all_media_profiles (dlna_t *dlna)
 }
 
 void
-ffmpeg_profiler_register_media_profile (dlna_t *dlna, ffmpeg_profiler_media_profile_t profile)
+ffmpeg_profiler_register_media_profile (ffmpeg_profiler_media_profile_t profile)
 {
   if (!g_ffmpeg_profiler || !g_ffmpeg_profiler->inited)
     g_ffmpeg_profiler = ffmpeg_profiler_init ();
@@ -203,7 +203,7 @@ dlna_list_add (char **list, char *element)
 }
 
 char **
-ffmpeg_profiler_get_supported_mime_types (dlna_t *dlna, char **mimes)
+ffmpeg_profiler_get_supported_mime_types (char **mimes)
 {
   if (!g_ffmpeg_profiler || !g_ffmpeg_profiler->inited)
     g_ffmpeg_profiler = ffmpeg_profiler_init ();
@@ -344,7 +344,7 @@ match_file_extension (const char *filename, const char *extensions)
 }
 
 dlna_profile_t *
-ffmpeg_profiler_get_media_profile (dlna_t *dlna, char *profileid)
+ffmpeg_profiler_get_media_profile (char *profileid)
 {
   registered_profile_t *p;
   int i = 0;
