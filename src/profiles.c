@@ -157,6 +157,14 @@ dlna_list_add (char **list, char *element)
   return l;
 }
 
+static char **
+upnp_get_supported_mime_types ( char **mimes)
+{
+  for (i = 0; mime_type_list[i].profile.mime; i++)
+    mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
+  return mimes;
+}
+
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
@@ -176,8 +184,7 @@ dlna_get_supported_mime_types (dlna_t *dlna)
     break;
   case DLNA_CAPABILITY_UPNP_AV:
   case DLNA_CAPABILITY_UPNP_AV_XBOX:
-    for (i = 0; mime_type_list[i].profile.mime; i++)
-      mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
+    mimes = upnp_get_supported_mime_types (mimes);
     break;
 
   default:
@@ -186,6 +193,15 @@ dlna_get_supported_mime_types (dlna_t *dlna)
 
   mimes = dlna_list_add (mimes, NULL);
   return mimes;
+}
+
+static dlna_profile_t *
+upnp_get_media_profile (char *profileid)
+{
+  for (i = 0; mime_type_list[i].profile.mime; i++)
+    if (!strcmp(profileid, mime_type_list[i].extension))
+      return &mime_type_list[i].profile;
+  return NULL;
 }
 
 dlna_profile_t *
@@ -198,9 +214,8 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 	return NULL;
   if ((profile = ffmpeg_profiler_get_media_profile (profileid)) != NULL)
     return profile;
-  for (i = 0; mime_type_list[i].profile.mime; i++)
-    if (!strcmp(profileid, mime_type_list[i].extension))
-      return &mime_type_list[i].profile;
+  if ((profile = upnp_get_media_profile (profileid)) != NULL)
+    return profile;
   return NULL;
 }
 
