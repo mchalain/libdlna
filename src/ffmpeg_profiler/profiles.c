@@ -402,12 +402,13 @@ media_profile_free(dlna_item_t *item)
 }
 
 dlna_profile_t *
-ffmpeg_profiler_guess_media_profile (dlna_t *dlna, char *filename, void **cookie)
+ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
 {
   registered_profile_t *p;
   dlna_profile_t *profile = NULL;
   AVFormatContext *ctx = NULL;
   av_codecs_t *codecs;
+  char check_extensions = 1;
 
   if (!g_ffmpeg_profiler || !g_ffmpeg_profiler->inited)
     g_ffmpeg_profiler = ffmpeg_profiler_init ();
@@ -437,7 +438,7 @@ ffmpeg_profiler_guess_media_profile (dlna_t *dlna, char *filename, void **cookie
   {
     dlna_profile_t *prof;
     
-    if (dlna->check_extensions)
+    if (check_extensions)
     {
       if (p->extensions)
       {

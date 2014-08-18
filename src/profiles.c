@@ -205,15 +205,12 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 }
 
 static dlna_profile_t *
-upnp_guess_media_profile (dlna_t *dlna, char *filename, void **cookie)
+upnp_guess_media_profile (char *filename, void **cookie)
 {
   dlna_profile_t *profile = NULL;
   char *extension;
   int i;
   
-  if (!dlna)
-    return NULL;
-
   extension = get_file_extension (filename);
   if (!extension)
     return NULL;
@@ -245,9 +242,9 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->filename   = strdup (filename);
   item->filesize   = st.st_size;
   if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = ffmpeg_profiler_guess_media_profile (dlna, (char *)item->filename, &item->profile_cookie);
+    item->profile    = ffmpeg_profiler_guess_media_profile ((char *)item->filename, &item->profile_cookie);
   else
-    item->profile    = upnp_guess_media_profile (dlna, (char *)item->filename, NULL);
+    item->profile    = upnp_guess_media_profile ((char *)item->filename, NULL);
   if (!item->profile) /* not DLNA compliant */
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
