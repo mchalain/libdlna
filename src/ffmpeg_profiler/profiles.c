@@ -343,9 +343,31 @@ match_file_extension (const char *filename, const char *extensions)
 }
 
 static void
+dlna_metadata_free (dlna_metadata_t *meta)
+{
+  if (!meta)
+    return;
+
+  if (meta->title)
+    free (meta->title);
+  if (meta->author)
+    free (meta->author);
+  if (meta->comment)
+    free (meta->comment);
+  if (meta->album)
+    free (meta->album);
+  if (meta->genre)
+    free (meta->genre);
+  free (meta);
+}
+
+static void
 dlna_media_profile_free(dlna_item_t *item)
 {
   AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
+
+  dlna_metadata_free (item->metadata);
+
   avformat_close_input (&ctx);
 }
 
@@ -501,25 +523,6 @@ dlna_item_get_metadata (dlna_item_t *item)
     meta->genre   = strdup (entry->value);
 
   return meta;
-}
-
-void
-dlna_metadata_free (dlna_metadata_t *meta)
-{
-  if (!meta)
-    return;
-
-  if (meta->title)
-    free (meta->title);
-  if (meta->author)
-    free (meta->author);
-  if (meta->comment)
-    free (meta->comment);
-  if (meta->album)
-    free (meta->album);
-  if (meta->genre)
-    free (meta->genre);
-  free (meta);
 }
 
 /* UPnP ContentDirectory Object Item */

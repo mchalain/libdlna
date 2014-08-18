@@ -288,7 +288,6 @@ dlna_item_free (dlna_item_t *item)
     free (item->filename);
   if (item->properties)
     free (item->properties);
-  dlna_metadata_free (item->metadata);
   item->profile->free (item);
   item->profile = NULL;
   free (item);
