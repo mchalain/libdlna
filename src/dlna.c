@@ -437,7 +437,7 @@ dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb)
 }
 
 char *
-dlna_write_protocol_info (dlna_protocol_info_type_t type,
+dlna_write_protocol_info (dlna_t *dlna, dlna_protocol_info_type_t type,
                           dlna_org_play_speed_t speed,
                           dlna_org_conversion_t ci,
                           dlna_org_operation_t op,
@@ -453,7 +453,7 @@ dlna_write_protocol_info (dlna_protocol_info_type_t type,
   strcat (protocol, p->mime);
   strcat (protocol, ":");
 
-  if (p->id)
+  if (dlna->mode != DLNA_CAPABILITY_DLNA && p->id)
   {
     sprintf (dlna_info, "%s=%d;%s=%d;%s=%.2x;%s=%s;%s=%.8x%.24x",
              "DLNA.ORG_PS", speed, "DLNA.ORG_CI", ci,

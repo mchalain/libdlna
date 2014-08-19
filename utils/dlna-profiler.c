@@ -90,7 +90,7 @@ main (int argc, char **argv)
     printf ("Class: %d\n", p->media_class);
     printf ("UPnP Object Item: %s\n", dlna_profile_upnp_object_item (p));
 
-    protocol_info = dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
+    protocol_info = dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                               DLNA_ORG_PLAY_SPEED_NORMAL,
                                               DLNA_ORG_CONVERSION_NONE,
                                               DLNA_ORG_OPERATION_RANGE,
