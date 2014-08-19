@@ -116,18 +116,6 @@ static const mime_type_t mime_type_list[] = {
   { NULL,   {.mime = NULL}}
 };
 
-static char *
-get_file_extension (const char *filename)
-{
-  char *str = NULL;
-
-  str = strrchr (filename, '.');
-  if (str)
-    str++;
-
-  return str;
-}
-
 static int
 dlna_list_length (void *list)
 {
@@ -157,20 +145,62 @@ dlna_list_add (char **list, char *element)
   return l;
 }
 
+static char *
+get_file_extension (const char *filename)
+{
+  char *str = NULL;
+
+  str = strrchr (filename, '.');
+  if (str)
+    str++;
+
+  return str;
+}
+
 static char **
 upnp_get_supported_mime_types ( char **mimes)
 {
+  int i;
+
   for (i = 0; mime_type_list[i].profile.mime; i++)
     mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
   return mimes;
+}
+
+static dlna_profile_t *
+upnp_get_media_profile (char *profileid)
+{
+  int i;
+
+  for (i = 0; mime_type_list[i].profile.mime; i++)
+    if (!strcmp(profileid, mime_type_list[i].extension))
+      return &mime_type_list[i].profile;
+  return NULL;
+}
+
+static dlna_profile_t *
+upnp_guess_media_profile (char *filename, void **cookie)
+{
+  dlna_profile_t *profile = NULL;
+  char *extension;
+  int i;
+  
+  extension = get_file_extension (filename);
+  if (!extension)
+    return NULL;
+  
+  for (i = 0; mime_type_list[i].extension; i++)
+    if (!strcmp (extension, mime_type_list[i].extension))
+      profile = &mime_type_list[i].profile;
+
+  return profile;
 }
 
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
   char **mimes;
-  int i = 0;
-  
+ 
   if (!dlna)
     return NULL;
 
@@ -195,20 +225,10 @@ dlna_get_supported_mime_types (dlna_t *dlna)
   return mimes;
 }
 
-static dlna_profile_t *
-upnp_get_media_profile (char *profileid)
-{
-  for (i = 0; mime_type_list[i].profile.mime; i++)
-    if (!strcmp(profileid, mime_type_list[i].extension))
-      return &mime_type_list[i].profile;
-  return NULL;
-}
-
 dlna_profile_t *
 dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
   dlna_profile_t *profile;
-  int i = 0;
 
   if (!profileid)
 	return NULL;
@@ -217,24 +237,6 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
   if ((profile = upnp_get_media_profile (profileid)) != NULL)
     return profile;
   return NULL;
-}
-
-static dlna_profile_t *
-upnp_guess_media_profile (char *filename, void **cookie)
-{
-  dlna_profile_t *profile = NULL;
-  char *extension;
-  int i;
-  
-  extension = get_file_extension (filename);
-  if (!extension)
-    return NULL;
-  
-  for (i = 0; mime_type_list[i].extension; i++)
-    if (!strcmp (extension, mime_type_list[i].extension))
-      profile = &mime_type_list[i].profile;
-
-  return profile;
 }
 
 dlna_item_t *
