@@ -1,6 +1,8 @@
 #ifndef FFMPEG_PROFILER_H
 #define FFMPEG_PROFILER_H
 
+#include "dlna.h"
+
 /***************************************************************************/
 /*                                                                         */
 /* DLNA Media Profiles Handling                                            */
