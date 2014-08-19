@@ -182,7 +182,9 @@ main (int argc, char **argv)
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   dlna_set_capability_mode (dlna, cap);
   dlna_set_extension_check (dlna, 1);
-  dlna_register_all_media_profiles (dlna);
+
+  /* init Media profiler */
+  ffmpeg_profiler_register_all_media_profiles ();
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
