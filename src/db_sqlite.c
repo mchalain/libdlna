@@ -121,7 +121,8 @@ void
 dms_db_close (dlna_t *dlna)
 {
   sqlite3 *db = (sqlite3 *)dlna->db;
-  sqlite3_close (db);
+  if (db)
+    sqlite3_close (db);
 }
 
 static int dms_db_items_callback(void *data, int argc, char **argv, char **colname)
