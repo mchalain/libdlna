@@ -490,7 +490,7 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
   return NULL;
 }
 
-static dlna_profile_t *
+dlna_profile_t *
 dlna_guess_media_profile (dlna_t *dlna, dlna_item_t *item)
 {
   dlna_registered_profile_t *p;

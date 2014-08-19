@@ -56,7 +56,7 @@ main (int argc, char **argv)
   {
     if (item->properties)
     {
-      printf ("Size: %lld bytes\n", item->properties->size);
+      printf ("Size: %lld bytes\n", item->filesize);
       printf ("Duration: %s\n", item->properties->duration);
       printf ("Bitrate: %d bytes/sec\n", item->properties->bitrate);
       printf ("SampleFrequency: %d Hz\n", item->properties->sample_frequency);
@@ -88,7 +88,7 @@ main (int argc, char **argv)
     printf ("Class: %d\n", p->media_class);
     printf ("UPnP Object Item: %s\n", dlna_profile_upnp_object_item (p));
 
-    protocol_info = dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
+    protocol_info = dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                               DLNA_ORG_PLAY_SPEED_NORMAL,
                                               DLNA_ORG_CONVERSION_NONE,
                                               DLNA_ORG_OPERATION_RANGE,

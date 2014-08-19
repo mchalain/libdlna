@@ -327,7 +327,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       int size = 0;
 
       protocol_info =
-        dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
+        dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
                                 item->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
@@ -639,7 +639,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
 
   dlna_item = dlna_item_get(dlna, item);
   protocol_info =
-    dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
+    dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                               DLNA_ORG_PLAY_SPEED_NORMAL,
                               item->u.resource.cnv,
                               DLNA_ORG_OPERATION_RANGE,
