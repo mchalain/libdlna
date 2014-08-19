@@ -30,6 +30,7 @@
 #include <getopt.h>
 
 #include "dlna.h"
+#include "ffmpeg_profiler.h"
 
 static void
 add_dir (dlna_t *dlna, char *dir, uint32_t id)

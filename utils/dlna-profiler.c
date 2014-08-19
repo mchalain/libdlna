@@ -79,7 +79,7 @@ main (int argc, char **argv)
     dlna_item_free (item);
   }
   
-  p = ffmpeg_profiler_guess_media_profile (dlna, argv[1], &cookie);
+  p = ffmpeg_profiler_guess_media_profile (argv[1], &cookie);
   if (p)
   {
     char *protocol_info;
