@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "ffmpeg_profiler.h"
 #include "profiles.h"
 #include "containers.h"
@@ -676,3 +676,10 @@ audio_profile_guess (AVCodecContext *ac)
 
   return AUDIO_PROFILE_INVALID;
 }
+
+static const dlna_profiler_t s_ffmpeg_profiler = {
+  .guess_media_profile = ffmpeg_profiler_guess_media_profile,
+  .get_media_profile = ffmpeg_profiler_get_media_profile,
+  .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,
+};
+const dlna_profiler_t *ffmpeg_profiler = &s_ffmpeg_profiler;

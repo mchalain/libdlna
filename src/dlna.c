@@ -24,6 +24,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <dlfcn.h>
 
 #if (defined(BSD) || defined(__FreeBSD__) || defined(__APPLE__))
 #include <sys/socket.h>
@@ -49,6 +50,15 @@
 #include "dlna_internals.h"
 #include "upnp_internals.h"
 #include "ffmpeg_profiler/ffmpeg_profiler.h"
+
+void dlna_profiler_init (dlna_t *dlna)
+{
+  dlna_profiler_t **profiler;
+  profiler = dlsym (RTLD_DEFAULT, "ffmpeg_profiler");
+  dlna->profiler = *profiler;
+  if (!dlna->profiler)
+    dlna->profiler = &upnpav_profiler;
+}
 
 dlna_t *
 dlna_init (void)
@@ -92,6 +102,7 @@ dlna_init (void)
 
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
   
+  dlna_profiler_init (dlna);
   return dlna;
 }
 

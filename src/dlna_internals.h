@@ -132,7 +132,10 @@ struct dlna_s {
 
   /* UPnP Services */
   upnp_service_t *services;
-  
+
+  /* Profilers entries */
+  dlna_profiler_t *profiler;
+
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
   vfs_item_t *vfs_root;
@@ -233,5 +236,7 @@ void dlna_log (dlna_t *dlna,
 char **dlna_get_supported_mime_types (dlna_t *dlna);
 
 dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
+
+extern dlna_profiler_t upnpav_profiler;
 
 #endif /* DLNA_INTERNALS_H */

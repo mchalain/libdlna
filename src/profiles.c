@@ -196,6 +196,13 @@ upnp_guess_media_profile (char *filename, void **cookie)
   return profile;
 }
 
+dlna_profiler_t upnpav_profiler =
+{
+	.guess_media_profile = upnp_guess_media_profile,
+	.get_media_profile = upnp_get_media_profile,
+	.get_supported_mime_types = upnp_get_supported_mime_types,
+};
+
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
@@ -207,20 +214,7 @@ dlna_get_supported_mime_types (dlna_t *dlna)
   mimes = malloc (sizeof (char *));
   *mimes = NULL;
 
-  switch (dlna->mode)
-  {
-  case DLNA_CAPABILITY_DLNA:
-    mimes = ffmpeg_profiler_get_supported_mime_types (mimes);
-    break;
-  case DLNA_CAPABILITY_UPNP_AV:
-  case DLNA_CAPABILITY_UPNP_AV_XBOX:
-    mimes = upnp_get_supported_mime_types (mimes);
-    break;
-
-  default:
-    break;
-  }
-
+  mimes    = dlna->profiler->get_supported_mime_types (mimes);
   mimes = dlna_list_add (mimes, NULL);
   return mimes;
 }
@@ -232,11 +226,8 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 
   if (!profileid)
 	return NULL;
-  if ((profile = ffmpeg_profiler_get_media_profile (profileid)) != NULL)
-    return profile;
-  if ((profile = upnp_get_media_profile (profileid)) != NULL)
-    return profile;
-  return NULL;
+  profile    = dlna->profiler->get_media_profile (profileid);
+  return profile;
 }
 
 dlna_item_t *
@@ -258,10 +249,8 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 
   item->filename   = strdup (filename);
   item->filesize   = st.st_size;
-  if (dlna->mode == DLNA_CAPABILITY_DLNA)
-    item->profile    = ffmpeg_profiler_guess_media_profile ((char *)item->filename, &item->profile_cookie);
-  else
-    item->profile    = upnp_guess_media_profile ((char *)item->filename, NULL);
+
+  item->profile    = dlna->profiler->guess_media_profile ((char *)item->filename, &item->profile_cookie);
   if (!item->profile) /* not DLNA compliant */
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);

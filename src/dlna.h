@@ -282,6 +282,12 @@ char * dlna_write_protocol_info (dlna_protocol_info_type_t type,
                                  dlna_org_flags_t flags,
                                  dlna_profile_t *p);
 
+typedef struct dlna_profiler_s {
+  char **(*get_supported_mime_types) ( char **mimes);
+  dlna_profile_t *(*get_media_profile) (char *profileid);
+  dlna_profile_t *(*guess_media_profile) (char *filename, void **cookie);
+} dlna_profiler_t;
+
 /***************************************************************************/
 /*                                                                         */
 /* DLNA UPnP Digital Media Server (DMS) Management                         */
