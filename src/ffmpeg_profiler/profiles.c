@@ -551,32 +551,6 @@ item_get_metadata (dlna_item_t *item)
   return meta;
 }
 
-/* UPnP ContentDirectory Object Item */
-#define UPNP_OBJECT_ITEM_PHOTO            "object.item.imageItem.photo"
-#define UPNP_OBJECT_ITEM_AUDIO            "object.item.audioItem.musicTrack"
-#define UPNP_OBJECT_ITEM_VIDEO            "object.item.videoItem.movie"
-
-char *
-dlna_profile_upnp_object_item (dlna_profile_t *profile)
-{
-  if (!profile)
-    return NULL;
-
-  switch (profile->media_class)
-  {
-  case DLNA_CLASS_IMAGE:
-    return UPNP_OBJECT_ITEM_PHOTO;
-  case DLNA_CLASS_AUDIO:
-    return UPNP_OBJECT_ITEM_AUDIO;
-  case DLNA_CLASS_AV:
-    return UPNP_OBJECT_ITEM_VIDEO;
-  default:
-    break;
-  }
-
-  return NULL;
-}
-
 int
 stream_ctx_is_image (AVFormatContext *ctx,
                      av_codecs_t *codecs)

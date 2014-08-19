@@ -203,6 +203,32 @@ dlna_profiler_t upnpav_profiler =
 	.get_supported_mime_types = upnp_get_supported_mime_types,
 };
 
+/* UPnP ContentDirectory Object Item */
+#define UPNP_OBJECT_ITEM_PHOTO            "object.item.imageItem.photo"
+#define UPNP_OBJECT_ITEM_AUDIO            "object.item.audioItem.musicTrack"
+#define UPNP_OBJECT_ITEM_VIDEO            "object.item.videoItem.movie"
+
+char *
+dlna_profile_upnp_object_item (dlna_profile_t *profile)
+{
+  if (!profile)
+    return NULL;
+
+  switch (profile->media_class)
+  {
+  case DLNA_CLASS_IMAGE:
+    return UPNP_OBJECT_ITEM_PHOTO;
+  case DLNA_CLASS_AUDIO:
+    return UPNP_OBJECT_ITEM_AUDIO;
+  case DLNA_CLASS_AV:
+    return UPNP_OBJECT_ITEM_VIDEO;
+  default:
+    break;
+  }
+
+  return NULL;
+}
+
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
