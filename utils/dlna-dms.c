@@ -73,7 +73,7 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id)
     }
     else
       dlna_vfs_add_resource (dlna, basename (fullpath),
-                             fullpath, st.st_size, id);
+                             fullpath, id);
     
     free (namelist[i]);
     free (fullpath);
@@ -210,7 +210,7 @@ main (int argc, char **argv)
     add_dir (dlna, content_dir, 0);
   else
     dlna_vfs_add_resource (dlna, basename (content_dir),
-                           content_dir, st.st_size, 0);
+                           content_dir, 0);
   
   printf ("Hit 'q' or 'Q' + Enter to shutdown\n");
   while (1)
