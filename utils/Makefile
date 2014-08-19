@@ -17,8 +17,8 @@ BINS = \
 	$(PROFILER_BIN) \
 	$(DMS_BIN) \
 
-CFLAGS  += -I../src
-LDFLAGS += -L../src -ldlna
+CFLAGS  += -I../src -I../src/ffmpeg_profiler
+LDFLAGS += -L../src -ldlna  -L../src/ffmpeg_profiler -lffmpeg_profiler
 
 ifeq ($(BUILD_STATIC),yes)
   LDFLAGS += $(EXTRALIBS)

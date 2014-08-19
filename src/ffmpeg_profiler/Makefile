@@ -1,20 +1,9 @@
-ifeq (,$(wildcard ../config.mak))
-$(error "../config.mak is not present, run configure !")
+ifeq (,$(wildcard ../../config.mak))
+$(error "../../config.mak is not present, run configure !")
 endif
-include ../config.mak
-PROFILERS=ffmpeg_profiler/libffmpeg_profiler.so
+include ../../config.mak
 
-ifeq ($(HAVE_EXTERNAL_LIBUPNP),internal)
-  include ixml/ixml.mak
-  include threadutil/threadutil.mak
-  include upnp/upnp.mak
-
-  CFLAGS += -Iixml
-  CFLAGS += -Ithreadutil
-  CFLAGS += -Iupnp
-endif
-
-LIBNAME = libdlna
+LIBNAME = libffmpeg_profiler
 LIBNAME_STATIC = ${LIBNAME}.a
 
 ifeq ($(BUILD_STATIC),yes)
@@ -38,33 +27,29 @@ ifeq ($(BUILD_SHARED),yes)
 endif
 
 SRCS :=  \
+	containers.c \
 	profiles.c \
-	dlna.c \
-	upnp.c \
-	buffer.c \
-	vfs.c \
-	crc32.c \
-	services.c \
-	cms.c \
-	cds.c \
-	avts.c \
-	msr.c \
-	http.c \
-	upnp_dms.c \
-
-ifeq ($(HAVE_SQLITE),yes)
-SRCS +=  \
-  db_sqlite.c
-endif
+	image_jpeg.c \
+	image_png.c \
+	audio_aac.c \
+	audio_ac3.c \
+	audio_amr.c \
+	audio_atrac3.c \
+	audio_g726.c \
+	audio_lpcm.c \
+	audio_mp2.c \
+	audio_mp3.c \
+	audio_wma.c \
+	av_mpeg1.c \
+	av_mpeg2.c \
+	av_mpeg4_part2.c \
+	av_mpeg4_part10.c \
+	av_wmv9.c
 
 EXTRADIST = \
-	dlna.h \
-	dlna_internals.h \
-	upnp_internals.h \
-	cms.h \
-	cds.h \
-	avts.h \
-	msr.h \
+	ffmpeg_profiler.h \
+	containers.h \
+	profiles.h
 
 ifeq ($(DEBUG),yes)
 CFLAGS += -DHAVE_DEBUG
@@ -75,7 +60,8 @@ CFLAGS += -DNDEBUG # for ixml library
 CFLAGS += -DNO_DEBUG # for threadutil library
 endif
 
-CFLAGS += -I.
+# add headers from libdlna
+CFLAGS+=-I..
 
 OBJS = $(SRCS:.c=.o)
 LOBJS = $(SRCS:.c=.lo)
@@ -83,7 +69,7 @@ LOBJS = $(SRCS:.c=.lo)
 .SUFFIXES: .c .o .lo
 
 #DEVELOPER_MODE:=TAGS tags
-all: depend $(PROFILERS) $(BUILD_RULES) $(DEVELOPER_MODE)
+all: depend $(BUILD_RULES) $(DEVELOPER_MODE)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
@@ -136,11 +122,7 @@ tags:
 	 ( find -name '*.[chS]' -print ) | xargs ctags -a;
 
 clean:
-	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(dir $(profiler)) clean;)
 	-$(RM) -f *.o *.lo *.a *.so*
-	-$(RM) -f ixml/*.o ixml/*.lo
-	-$(RM) -f threadutil/*.o threadutil/*.lo
-	-$(RM) -f upnp/*.o upnp/*.lo
 	-$(RM) -f .depend
 	-$(RM) -f tags TAGS
 
@@ -168,9 +150,6 @@ dist-all: ixml-dist-all threadutil-dist-all upnp-dist-all
 	cp $(EXTRADIST) $(SRCS) Makefile $(DIST)
 
 .PHONY: dist-all
-
-$(PROFILERS):
-	make -C $(dir $@)
 
 #
 # include dependency files if they exist
