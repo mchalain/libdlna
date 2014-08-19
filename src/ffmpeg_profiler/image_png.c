@@ -94,7 +94,7 @@ static dlna_profile_t *dlna_profiles_supported_image_png[] = {
   NULL
 };
 
-dlna_registered_profile_t dlna_profile_image_png = {
+registered_profile_t dlna_profile_image_png = {
   .id = DLNA_PROFILE_IMAGE_PNG,
   .class = DLNA_CLASS_IMAGE,
   .extensions = "png",

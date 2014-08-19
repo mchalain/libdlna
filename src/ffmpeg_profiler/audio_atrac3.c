@@ -64,7 +64,7 @@ dlna_profile_t *dlna_profiles_supported_audio_atrac3[] = {
   NULL,
 };
 
-dlna_registered_profile_t dlna_profile_audio_atrac3 = {
+registered_profile_t dlna_profile_audio_atrac3 = {
   .id = DLNA_PROFILE_AUDIO_ATRAC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "at3p,acm,wav",

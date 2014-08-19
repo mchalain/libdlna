@@ -94,7 +94,7 @@ dlna_profile_t *dlna_profiles_supported_av_mpeg1[] = {
   NULL,
 };
 
-dlna_registered_profile_t dlna_profile_av_mpeg1 = {
+registered_profile_t dlna_profile_av_mpeg1 = {
   .id = DLNA_PROFILE_AV_MPEG1,
   .class = DLNA_CLASS_AV,
   .extensions = "mpg,mpeg,mpe,m1v",

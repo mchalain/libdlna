@@ -26,6 +26,7 @@
 #include <libavformat/avformat.h>
 
 #include "../dlna_internals.h"
+#include "ffmpeg_profiler.h"
 #include "containers.h"
 
 /* DLNA MIME types */

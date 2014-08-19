@@ -93,7 +93,7 @@ dlna_profile_t *dlna_profiles_supported_audio_ac3[] = {
   NULL,
 };
 
-dlna_registered_profile_t dlna_profile_audio_ac3 = {
+registered_profile_t dlna_profile_audio_ac3 = {
   .id = DLNA_PROFILE_AUDIO_AC3,
   .class = DLNA_CLASS_AUDIO,
   .extensions = "ac3",

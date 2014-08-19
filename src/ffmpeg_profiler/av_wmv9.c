@@ -279,7 +279,7 @@ static dlna_profile_t *dlna_profiles_supported_av_wmv9[] = {
   NULL
 };
 
-dlna_registered_profile_t dlna_profile_av_wmv9 = {
+registered_profile_t dlna_profile_av_wmv9 = {
   .id = DLNA_PROFILE_AV_WMV9,
   .class = DLNA_CLASS_AV,
   .extensions = "asf,wmv",
