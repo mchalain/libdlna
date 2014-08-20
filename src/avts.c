@@ -59,12 +59,36 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+static dlna_dmp_item_t *
+playlist_empty (dlna_dmp_item_t *playlist)
+{
+  dlna_dmp_item_t *item;
+
+  for (item = playlist; item; item = item->hh.next)
+    HASH_DEL (playlist, item);
+  return playlist;
+}
+
+static dlna_dmp_item_t *
+playlist_add_item (dlna_dmp_item_t *playlist, char *uri, char *uri_metadata)
+{
+  dlna_dmp_item_t *item;
+
+  item = calloc (1, sizeof(dlna_dmp_item_t));
+  item->item = dlna_item_new (dlna, uri);
+  /* set id with the id of the last item + 1 */
+  item->id = crc32(0, uri, strlen(uri));
+  HASH_ADD_INT (playlist, id, item);
+
+  return playlist;
+}
+
 static int
 avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *URI, *URIMetadata;
-  dlna_dmp_item_t *item;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -82,12 +106,11 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI);
   URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI_METADATA);
 
-  item = malloc (sizeof(dlna_dmp_item_t));
-  memset (item, 0, sizeof(dlna_dmp_item_t));
-  item->item = dlna_item_new (dlna, URI);
-  /* set id with the id of the last item + 1 */
-  item->id = crc32(0, URI, strlen(URI));
-  HASH_ADD_INT (dlna->dmp.playlist, id, item);
+  if (dlna->dmp.state == E_STOPPED)
+  {
+    dlna->dmp.playlist = playlist_empty (dlna->dmp.playlist);
+  }
+  dlna->dmp.playlist = playlist_add_item (dlna->dmp.playlist, URI, URIMetadata);
 
   out = buffer_new ();
   buffer_free (out);
@@ -102,7 +125,7 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *URI, *URIMetadata;
   buffer_t *out = NULL;
-  dlna_dmp_item_t *item;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -120,12 +143,7 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
   URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI);
   URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI_METADATA);
 
-  item = malloc (sizeof(dlna_dmp_item_t));
-  memset (item, 0, sizeof(dlna_dmp_item_t));
-  item->item = dlna_item_new (dlna, URI);
-  /* set id with the id of the last item + 1 */
-  item->id = (uint32_t)(dlna->dmp.playlist->hh.tbl->tail->key) + 1;
-  HASH_ADD_INT (dlna->dmp.playlist, id, item);
+  playlist_add_item (dlna, URI, URIMetadata);
 
   out = buffer_new ();
   buffer_free (out);
@@ -156,6 +174,8 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   /* Retrieve input arguments */
   speed = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_SPEED);
 
+  dlna->dmp.state = E_PLAYING;
+
   out = buffer_new ();
   buffer_free (out);
 
@@ -179,8 +199,8 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  //dmr_set_uri(dlna, URI, URIMetadata);
-  
+  dlna->dmp.state = E_STOPPED;
+
   out = buffer_new ();
   buffer_free (out);
 
@@ -204,8 +224,11 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  //dmr_set_uri(dlna, URI, URIMetadata);
-  
+  if (dlna->dmp.state == E_PLAYING)
+  {
+    dlna->dmp.state = E_PAUSING;
+  }
+
   out = buffer_new ();
   buffer_free (out);
 
@@ -229,8 +252,6 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  //dmr_set_uri(dlna, URI, URIMetadata);
-  
   out = buffer_new ();
   buffer_free (out);
 
@@ -254,8 +275,6 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  //dmr_set_uri(dlna, URI, URIMetadata);
-  
   out = buffer_new ();
   buffer_free (out);
 
