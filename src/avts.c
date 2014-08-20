@@ -48,6 +48,7 @@
 #define SERVICE_AVTS_ACTION_SET_RECORD_MODE    "SetRecordQualityMode"
 #define SERVICE_AVTS_ACTION_GET_ACTIONS        "GetCurrentTransportActions"
 
+#define SERVICE_AVTS_ARG_INSTANCEID            "InstanceID"
 #define SERVICE_AVTS_ARG_CURRENT_URI           "CurrentURI"
 #define SERVICE_AVTS_ARG_NEXT_URI              "NextURI"
 #define SERVICE_AVTS_ARG_CURRENT_URI_METADATA  "CurrentURIMetaData"
@@ -171,6 +172,7 @@ static int
 avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *URI, *URIMetadata;
+  char *InstanceID;
   buffer_t *out = NULL;
 
   if (!dlna || !ev)
@@ -187,6 +189,7 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
   URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI);
   URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI_METADATA);
 
@@ -209,6 +212,7 @@ static int
 avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *URI, *URIMetadata;
+  char *InstanceID;
   buffer_t *out = NULL;
 
   if (!dlna || !ev)
@@ -225,6 +229,7 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
   URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI);
   URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI_METADATA);
 
@@ -242,7 +247,9 @@ static int
 avts_play (dlna_t *dlna, upnp_action_event_t *ev)
 {
   int speed;
+  char *InstanceID;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -257,6 +264,7 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
   speed = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_SPEED);
 
   ithread_mutex_lock (&dlna->dmp.state_mutex);
@@ -273,7 +281,9 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *InstanceID;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -286,6 +296,9 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
     return 0;
   }
+
+  /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
   ithread_mutex_lock (&dlna->dmp.state_mutex);
   dlna->dmp.state = E_STOPPED;
@@ -301,7 +314,9 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *InstanceID;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -314,6 +329,9 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
     return 0;
   }
+
+  /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
   ithread_mutex_lock (&dlna->dmp.state_mutex);
   if (dlna->dmp.state == E_PLAYING)
@@ -332,7 +350,9 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *InstanceID;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -345,6 +365,9 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
     return 0;
   }
+
+  /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
   out = buffer_new ();
   buffer_free (out);
@@ -355,7 +378,9 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *InstanceID;
   buffer_t *out = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
@@ -368,6 +393,9 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
     return 0;
   }
+
+  /* Retrieve input arguments */
+  InstanceID   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
   out = buffer_new ();
   buffer_free (out);
