@@ -187,7 +187,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   HASH_ADD_INT (dlna->vfs_root, id, item);
   
   dlna_log (dlna, DLNA_MSG_INFO,
-            "New container id (asked for #%d, granted #%d)\n",
+            "New container id (asked for #%u, granted #%u)\n",
             object_id, item->id);
 
   item->title = strdup (name);
@@ -208,7 +208,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   if (item->parent != item)
     vfs_item_add_child (dlna, item->parent, item);
 
-  dlna_log (dlna, DLNA_MSG_INFO, "Container is parent of #%d (%s)\n",
+  dlna_log (dlna, DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
             item->parent->id, item->parent->title);
   
   return item->id;
@@ -250,7 +250,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
     return 0;
   }
 
-  dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%d (%s)\n",
+  dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%u (%s)\n",
             item->id, item->title);
   item->u.resource.fullpath = strdup (fullpath);
   item->u.resource.size = size;
@@ -261,7 +261,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->parent = parent ? parent : dlna->vfs_root;
 
   dlna_log (dlna, DLNA_MSG_INFO,
-            "Resource is parent of #%d (%s)\n", parent->id, parent->title);
+            "Resource is parent of #%u (%s)\n", parent->id, parent->title);
 
   /* add new child to parent */
   vfs_item_add_child (dlna, item->parent, item);
@@ -279,7 +279,7 @@ dlna_vfs_remove_item_by_id (dlna_t *dlna, uint32_t id)
   
   item = vfs_get_item_by_id (dlna, id);
   dlna_log (dlna, DLNA_MSG_INFO,
-            "Removing item #%d (%s)\n", item->id, item->title);
+            "Removing item #%u (%s)\n", item->id, item->title);
   vfs_item_free (dlna, item);
 }
 
@@ -293,6 +293,6 @@ dlna_vfs_remove_item_by_title (dlna_t *dlna, char *name)
 
   item = vfs_get_item_by_name (dlna, name);
   dlna_log (dlna, DLNA_MSG_INFO,
-            "Removing item #%d (%s)\n", item->id, item->title);
+            "Removing item #%u (%s)\n", item->id, item->title);
   vfs_item_free (dlna, item);
 }
