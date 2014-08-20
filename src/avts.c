@@ -56,6 +56,9 @@
 
 #define AVTS_ERR_ACTION_FAILED                 501
 
+extern uint32_t
+crc32(uint32_t crc, const void *buf, size_t size);
+
 static int
 avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
@@ -83,7 +86,7 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   memset (item, 0, sizeof(dlna_dmp_item_t));
   item->item = dlna_item_new (dlna, URI);
   /* set id with the id of the last item + 1 */
-  item->id = (uint32_t)(dlna->dmp.playlist->hh.tbl->tail->key) + 1;
+  item->id = crc32(0, URI, strlen(URI));
   HASH_ADD_INT (dlna->dmp.playlist, id, item);
 
   out = buffer_new ();
