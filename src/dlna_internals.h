@@ -32,6 +32,7 @@
 
 #include "upnp/upnp.h"
 #include "upnp/upnptools.h"
+#include "threadutil/ithread.h"
 
 #include "uthash.h"
 
@@ -96,6 +97,10 @@ struct dlna_dmp_s
 	 E_PLAYING,
 	 E_PAUSING,
 	} state;
+	uint32_t thread_id;
+	ithread_mutex_t state_mutex;
+	ithread_cond_t state_change;
+	ithread_t playthread;
 };
 
 /* UPnP Service properties */
