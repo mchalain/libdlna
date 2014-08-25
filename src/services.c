@@ -25,6 +25,10 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
+#include "cms.h"
+#include "cds.h"
+#include "avts.h"
+#include "msr.h"
 
 extern upnp_service_action_t cms_service_actions[];
 extern upnp_service_action_t cds_service_actions[];
@@ -47,6 +51,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     service->control_url = strdup (CMS_CONTROL_URL);
     service->event_url   = strdup (CMS_EVENT_URL);
     service->actions     = cms_service_actions;
+    service->get_description     = cms_get_description;
     break;
   case DLNA_SERVICE_CONTENT_DIRECTORY:
     service->id          = strdup (CDS_SERVICE_ID);
@@ -55,7 +60,8 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     service->control_url = strdup (CDS_CONTROL_URL);
     service->event_url   = strdup (CDS_EVENT_URL);
     service->actions     = cds_service_actions;
-    break;
+    service->get_description     = cds_get_description;
+   break;
   case DLNA_SERVICE_AV_TRANSPORT:
     service->id          = strdup (AVTS_SERVICE_ID);
     service->type        = strdup (AVTS_SERVICE_TYPE);
@@ -63,6 +69,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     service->control_url = strdup (AVTS_CONTROL_URL);
     service->event_url   = strdup (AVTS_EVENT_URL);
     service->actions     = avts_service_actions;
+    service->get_description     = avts_get_description;
     break;
   case DLNA_SERVICE_MS_REGISTAR:
     service->id          = strdup (MSR_SERVICE_ID);
@@ -71,6 +78,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     service->control_url = strdup (MSR_CONTROL_URL);
     service->event_url   = strdup (MSR_EVENT_URL);
     service->actions     = msr_service_actions;
+    service->get_description     = msr_get_description;
     break;
   }
 

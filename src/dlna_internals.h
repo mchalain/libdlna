@@ -100,6 +100,7 @@ struct upnp_service_s {
   char *control_url;
   char *event_url;
   upnp_service_action_t *actions;
+  char *(*get_description) (dlna_t *dlna);
   UT_hash_handle hh;
 };
 
