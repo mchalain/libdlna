@@ -78,7 +78,6 @@ dlna_http_get_info (void *cookie,
   uint32_t id;
   vfs_item_t *item;
   dlna_item_t *dlna_item;
-  char *content_type;
   struct stat st;
   
   if (!cookie || !filename || !info)
@@ -106,21 +105,27 @@ dlna_http_get_info (void *cookie,
   /* ask for Content Directory Service (CDS) */
   if (!strcmp (filename, CDS_LOCATION))
   {
-    set_service_http_info (info, CDS_DESCRIPTION_LEN, SERVICE_CONTENT_TYPE);
+    char *description;
+    description = cds_get_desciption (dlna);
+    set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
 
   /* ask for Connection Manager Service (CMS) */
   if (!strcmp (filename, CMS_LOCATION))
   {
-    set_service_http_info (info, CMS_DESCRIPTION_LEN, SERVICE_CONTENT_TYPE);
+    char *description;
+    description = cms_get_desciption (dlna);
+    set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
 
   /* ask for AVTransport Service (AVTS) */
   if (!strcmp (filename, AVTS_LOCATION))
   {
-    set_service_http_info (info, AVTS_DESCRIPTION_LEN, SERVICE_CONTENT_TYPE);
+    char *description;
+    description = avts_get_desciption (dlna);
+    set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
 
@@ -231,6 +236,8 @@ dlna_http_open (void *cookie,
   uint32_t id;
   vfs_item_t *item;
   dlna_item_t *dlna_item;
+  char *path;
+  char *description;
   
   if (!cookie || !filename)
     return NULL;
@@ -254,18 +261,32 @@ dlna_http_open (void *cookie,
   
   /* ask for Content Directory Service (CDS) */
   if (!strcmp (filename, CDS_LOCATION))
-    return http_get_file_from_memory (CDS_LOCATION,
-                                      CDS_DESCRIPTION, CDS_DESCRIPTION_LEN);
-  
+  {
+    path = CDS_LOCATION;
+    description = cds_get_desciption (dlna);
+  }
+
   /* ask for Connection Manager Service (CMS) */
   if (!strcmp (filename, CMS_LOCATION))
-    return http_get_file_from_memory (CMS_LOCATION,
-                                      CMS_DESCRIPTION, CMS_DESCRIPTION_LEN);
-  
+  {
+    path = CMS_LOCATION;
+    description = cms_get_desciption (dlna);
+  }
+
   /* ask for AVTransport Service (AVTS) */
   if (!strcmp (filename, AVTS_LOCATION))
-    return http_get_file_from_memory (AVTS_LOCATION,
-                                      AVTS_DESCRIPTION, AVTS_DESCRIPTION_LEN);
+  {
+    path = AVTS_LOCATION;
+    description = avts_get_desciption (dlna);
+  }
+
+  if (description)
+  {
+    dlnaWebFileHandle ret;
+    ret = http_get_file_from_memory (path, description, strlen(description));
+    free (description);
+    return ret;
+  }
   
   /* ask for anything else ... */
   id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
