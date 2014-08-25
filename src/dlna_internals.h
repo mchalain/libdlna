@@ -84,23 +84,24 @@ typedef struct dlna_dmp_item_s dlna_dmp_item_t;
 typedef struct dlna_dmp_s dlna_dmp_t;
 struct dlna_dmp_item_s
 {
-	uint32_t id;
-	dlna_item_t *item;
-	UT_hash_handle hh;
+  uint32_t id;
+  dlna_item_t *item;
+  UT_hash_handle hh;
 };
 
 struct dlna_dmp_s
 {
-	dlna_dmp_item_t *playlist;
-	enum {
-	 E_STOPPED,
-	 E_PLAYING,
-	 E_PAUSING,
-	} state;
-	uint32_t thread_id;
-	ithread_mutex_t state_mutex;
-	ithread_cond_t state_change;
-	ithread_t playthread;
+  uint32_t id;
+  dlna_dmp_item_t *playlist;
+  enum {
+    E_STOPPED,
+    E_PLAYING,
+    E_PAUSING,
+  } state;
+  ithread_mutex_t state_mutex;
+  ithread_cond_t state_change;
+  ithread_t playthread;
+  UT_hash_handle hh;
 };
 
 /* UPnP Service properties */
@@ -166,7 +167,7 @@ struct dlna_s {
 #endif /* HAVE_SQLITE */
   
   /* DMP data */
-  struct dlna_dmp_s dmp;
+  struct dlna_dmp_s *dmp;
  
   /* UPnP Properties */
   char *interface;
