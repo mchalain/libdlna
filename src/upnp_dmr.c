@@ -25,10 +25,9 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
-#include "dlna_db.h"
 
-#define MEDIASERVER_VERSION 1
-#define MEDIASERVER "MediaServer"
+#define MEDIARENDERER_VERSION 1
+#define MEDIARENDERER "MediaRenderer"
 
 #define DLNA_DEVICE_DESCRIPTION_HEADER \
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
@@ -51,7 +50,7 @@
 "    <presentationURL>%s</presentationURL>"
 
 #define DLNA_DLNADOC_DESCRIPTION \
-"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">DMS-1.00</dlna:X_DLNADOC>"
+"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">DMR-1.00</dlna:X_DLNADOC>"
 
 #define DLNA_DEVICE_DESCRIPTION_FOOTER \
 "  </device>" \
@@ -79,7 +78,7 @@
 "      </service>" \
 
 char *
-dlna_dms_description_get (dlna_t *dlna)
+dlna_dmr_description_get (dlna_t *dlna)
 {
   buffer_t *b = NULL;
   char *model_name, *desc = NULL;
@@ -99,7 +98,7 @@ dlna_dms_description_get (dlna_t *dlna)
 
   b = buffer_new ();
   
-  buffer_appendf (b, DLNA_DEVICE_DESCRIPTION_HEADER, MEDIASERVER, MEDIASERVER_VERSION,
+  buffer_appendf (b, DLNA_DEVICE_DESCRIPTION_HEADER, MEDIARENDERER, MEDIARENDERER_VERSION,
                   dlna->friendly_name,
                   dlna->manufacturer, dlna->manufacturer_url,
                   dlna->model_description, model_name,
@@ -132,7 +131,7 @@ dlna_dms_description_get (dlna_t *dlna)
 }
 
 int
-dlna_dms_init (dlna_t *dlna)
+dlna_dmr_init (dlna_t *dlna)
 {
   if (!dlna)
     return DLNA_ST_ERROR;
@@ -141,16 +140,13 @@ dlna_dms_init (dlna_t *dlna)
     return DLNA_ST_ERROR;
 
   dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
-  dlna_service_register (dlna, DLNA_SERVICE_CONTENT_DIRECTORY);
   dlna_service_register (dlna, DLNA_SERVICE_AV_TRANSPORT);
-  if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
   
-  return upnp_init (dlna, DLNA_DEVICE_DMS);
+  return upnp_init (dlna, DLNA_DEVICE_DMR);
 }
 
 int
-dlna_dms_uninit (dlna_t *dlna)
+dlna_dmr_uninit (dlna_t *dlna)
 {
   if (!dlna)
     return DLNA_ST_ERROR;
@@ -158,51 +154,5 @@ dlna_dms_uninit (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
-  dms_db_close (dlna);
-  
   return upnp_uninit (dlna);
-}
-
-static void
-dms_set_memory (dlna_t *dlna)
-{
-  if (!dlna)
-    return;
-
-  dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
-  dlna_log (dlna, DLNA_MSG_INFO, "Use memory for VFS metadata storage.\n");
-}
-
-void
-dlna_dms_set_vfs_storage_type (dlna_t *dlna,
-                               dlna_dms_storage_type_t type, char *data)
-{
-  if (!dlna)
-    return;
-
-  if (type == DLNA_DMS_STORAGE_MEMORY)
-    dms_set_memory (dlna);
-  else if (type == DLNA_DMS_STORAGE_SQL_DB)
-  {
-    if (dms_db_open (dlna, data))
-    {
-      data = NULL;
-      dms_set_memory (dlna);
-      dlna_log (dlna, DLNA_MSG_WARNING,
-              "SQLite support is disabled. " \
-              "Failing back to Memory based VFS storage.\n");
-      return;
-    }
-    else if (dms_db_check (dlna))
-    {
-      if (dms_db_create(dlna))
-      {
-        dms_set_memory (dlna);
-        dlna_log (dlna, DLNA_MSG_WARNING,
-              "SQLite support is disabled. " \
-              "Failing back to Memory based VFS storage.\n");
-        return;
-      }
-	}
-  }
 }

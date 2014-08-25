@@ -25,6 +25,8 @@
  * http://upnp.org/specs/av/UPnP-av-ConnectionManager-v2-Service-20060531.pdf
  */
 
+#include <stdio.h>
+
 #include "upnp_internals.h"
 
 /* CMS Action Names */

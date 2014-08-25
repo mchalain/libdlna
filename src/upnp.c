@@ -236,7 +236,11 @@ upnp_init (dlna_t *dlna, dlna_device_type_t type)
     break;
   }
   
-  case DLNA_DEVICE_DMP:
+  case DLNA_DEVICE_DMR:
+  {
+    description = dlna_dmr_description_get (dlna);
+    break;
+  }
   default:
     break;
   }

@@ -51,6 +51,7 @@ SRCS :=  \
 	msr.c \
 	http.c \
 	upnp_dms.c \
+	upnp_dmr.c \
 
 ifeq ($(HAVE_SQLITE),yes)
 SRCS +=  \
