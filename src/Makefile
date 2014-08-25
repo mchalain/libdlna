@@ -90,7 +90,8 @@ LOBJS = $(SRCS:.c=.lo)
 
 .SUFFIXES: .c .o .lo
 
-all: depend $(BUILD_RULES) TAGS tags
+#DEVELOPER_MODE:=TAGS tags
+all: depend $(BUILD_RULES) $(DEVELOPER_MODE)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
