@@ -25,11 +25,10 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
-
-extern upnp_service_action_t cms_service_actions[];
-extern upnp_service_action_t cds_service_actions[];
-extern upnp_service_action_t avts_service_actions[];
-extern upnp_service_action_t msr_service_actions[];
+#include "cms.h"
+#include "cds.h"
+#include "avts.h"
+#include "msr.h"
 
 void
 dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
@@ -41,36 +40,16 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
   switch (srv)
   {
   case DLNA_SERVICE_CONNECTION_MANAGER:
-    service->id          = strdup (CMS_SERVICE_ID);
-    service->type        = strdup (CMS_SERVICE_TYPE);
-    service->scpd_url    = strdup (CMS_URL);
-    service->control_url = strdup (CMS_CONTROL_URL);
-    service->event_url   = strdup (CMS_EVENT_URL);
-    service->actions     = cms_service_actions;
+    service = &cms_service;
     break;
   case DLNA_SERVICE_CONTENT_DIRECTORY:
-    service->id          = strdup (CDS_SERVICE_ID);
-    service->type        = strdup (CDS_SERVICE_TYPE);
-    service->scpd_url    = strdup (CDS_URL);
-    service->control_url = strdup (CDS_CONTROL_URL);
-    service->event_url   = strdup (CDS_EVENT_URL);
-    service->actions     = cds_service_actions;
-    break;
+    service = &cds_service;
+   break;
   case DLNA_SERVICE_AV_TRANSPORT:
-    service->id          = strdup (AVTS_SERVICE_ID);
-    service->type        = strdup (AVTS_SERVICE_TYPE);
-    service->scpd_url    = strdup (AVTS_URL);
-    service->control_url = strdup (AVTS_CONTROL_URL);
-    service->event_url   = strdup (AVTS_EVENT_URL);
-    service->actions     = avts_service_actions;
+    service = &avts_service;
     break;
   case DLNA_SERVICE_MS_REGISTAR:
-    service->id          = strdup (MSR_SERVICE_ID);
-    service->type        = strdup (MSR_SERVICE_TYPE);
-    service->scpd_url    = strdup (MSR_URL);
-    service->control_url = strdup (MSR_CONTROL_URL);
-    service->event_url   = strdup (MSR_EVENT_URL);
-    service->actions     = msr_service_actions;
+    service = &msr_service;
     break;
   }
 
@@ -84,13 +63,6 @@ dlna_service_free (dlna_t *dlna, upnp_service_t *service)
     return;
 
   HASH_DEL (dlna->services, service);
-  free (service->id);
-  free (service->type);
-  free (service->scpd_url);
-  free (service->control_url);
-  free (service->event_url);
-  service->actions = NULL;
-  free (service);
 }
 
 upnp_service_t *

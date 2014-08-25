@@ -23,6 +23,96 @@
 
 #include "upnp_internals.h"
 
+#define MSR_DESCRIPTION \
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
+"<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">" \
+"<specVersion>" \
+"  <major>1</major>" \
+"  <minor>0</minor>" \
+"</specVersion>" \
+"<actionList>" \
+"  <action>" \
+"    <name>IsAuthorized</name>" \
+"    <argumentList>" \
+"      <argument>" \
+"        <name>DeviceID</name>" \
+"        <direction>in</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_DeviceID</relatedStateVariable>" \
+"      </argument>" \
+"      <argument>" \
+"        <name>Result</name>" \
+"        <direction>out</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_Result</relatedStateVariable>" \
+"      </argument>" \
+"    </argumentList>" \
+"  </action>" \
+"  <action>" \
+"    <name>RegisterDevice</name>" \
+"    <argumentList>" \
+"      <argument>" \
+"        <name>RegistrationReqMsg</name>" \
+"        <direction>in</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_RegistrationReqMsg</relatedStateVariable>" \
+"      </argument>" \
+"      <argument>" \
+"        <name>RegistrationRespMsg</name>" \
+"        <direction>out</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_RegistrationRespMsg</relatedStateVariable>" \
+"      </argument>" \
+"    </argumentList>" \
+"  </action>" \
+"  <action>" \
+"    <name>IsValidated</name>" \
+"    <argumentList>" \
+"      <argument>" \
+"        <name>DeviceID</name>" \
+"        <direction>in</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_DeviceID</relatedStateVariable>" \
+"      </argument>" \
+"      <argument>" \
+"        <name>Result</name>" \
+"        <direction>out</direction>" \
+"        <relatedStateVariable>A_ARG_TYPE_Result</relatedStateVariable>" \
+"      </argument>" \
+"    </argumentList>" \
+"  </action>" \
+"</actionList>" \
+"<serviceStateTable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>A_ARG_TYPE_DeviceID</name>" \
+"    <dataType>string</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>A_ARG_TYPE_Result</name>" \
+"    <dataType>int</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>A_ARG_TYPE_RegistrationReqMsg</name>" \
+"    <dataType>bin.base64</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>A_ARG_TYPE_RegistrationRespMsg</name>" \
+"    <dataType>bin.base64</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>AuthorizationGrantedUpdateID</name>" \
+"    <dataType>ui4</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>AuthorizationDeniedUpdateID</name>" \
+"    <dataType>ui4</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>ValidationSucceededUpdateID</name>" \
+"    <dataType>ui4</dataType>" \
+"  </stateVariable>" \
+"  <stateVariable sendEvents=\"no\">" \
+"    <name>ValidationRevokedUpdateID</name>" \
+"    <dataType>ui4</dataType>" \
+"  </stateVariable>" \
+"</serviceStateTable>" \
+"</scpd>"
+
 /* MSR Action Names */
 #define SERVICE_MSR_ACTION_IS_AUTHORIZED            "IsAuthorized"
 #define SERVICE_MSR_ACTION_REGISTER_DEVICE          "RegisterDevice"
@@ -36,6 +126,12 @@
 
 /* MSR Argument Values */
 #define SERVICE_MSR_STATUS_OK                       "1"
+
+char *
+msr_get_description (dlna_t *dlna)
+{
+  return strdup (MSR_DESCRIPTION);
+}
 
 static int
 msr_is_authorized (dlna_t *dlna, upnp_action_event_t *ev)
@@ -73,9 +169,20 @@ msr_is_validated (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 /* List of UPnP Microsoft Registrar Service actions */
-upnp_service_action_t msr_service_actions[] = {
+static upnp_service_action_t msr_service_actions[] = {
   { SERVICE_MSR_ACTION_IS_AUTHORIZED,   msr_is_authorized },
   { SERVICE_MSR_ACTION_REGISTER_DEVICE, msr_register_device },
   { SERVICE_MSR_ACTION_IS_VALIDATED,    msr_is_validated },
   { NULL,                               NULL }
+};
+
+upnp_service_t msr_service = {
+  .id           = MSR_SERVICE_ID,
+  .location     = MSR_LOCATION,
+  .type         = MSR_SERVICE_TYPE,
+  .scpd_url     = MSR_URL,
+  .control_url  = MSR_CONTROL_URL,
+  .event_url    = MSR_EVENT_URL,
+  .actions      = msr_service_actions,
+  .get_description     = msr_get_description,
 };
