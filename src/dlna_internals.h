@@ -95,6 +95,7 @@ struct upnp_service_action_s {
 
 struct upnp_service_s {
   char *id;
+  char *location;
   char *type;
   char *scpd_url;
   char *control_url;

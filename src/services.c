@@ -46,6 +46,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
   {
   case DLNA_SERVICE_CONNECTION_MANAGER:
     service->id          = strdup (CMS_SERVICE_ID);
+    service->location    = strdup (CMS_LOCATION);
     service->type        = strdup (CMS_SERVICE_TYPE);
     service->scpd_url    = strdup (CMS_URL);
     service->control_url = strdup (CMS_CONTROL_URL);
@@ -55,6 +56,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     break;
   case DLNA_SERVICE_CONTENT_DIRECTORY:
     service->id          = strdup (CDS_SERVICE_ID);
+    service->location    = strdup (CDS_LOCATION);
     service->type        = strdup (CDS_SERVICE_TYPE);
     service->scpd_url    = strdup (CDS_URL);
     service->control_url = strdup (CDS_CONTROL_URL);
@@ -64,6 +66,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
    break;
   case DLNA_SERVICE_AV_TRANSPORT:
     service->id          = strdup (AVTS_SERVICE_ID);
+    service->location    = strdup (AVTS_LOCATION);
     service->type        = strdup (AVTS_SERVICE_TYPE);
     service->scpd_url    = strdup (AVTS_URL);
     service->control_url = strdup (AVTS_CONTROL_URL);
@@ -73,6 +76,7 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     break;
   case DLNA_SERVICE_MS_REGISTAR:
     service->id          = strdup (MSR_SERVICE_ID);
+    service->location    = strdup (MSR_LOCATION);
     service->type        = strdup (MSR_SERVICE_TYPE);
     service->scpd_url    = strdup (MSR_URL);
     service->control_url = strdup (MSR_CONTROL_URL);
@@ -93,6 +97,7 @@ dlna_service_free (dlna_t *dlna, upnp_service_t *service)
 
   HASH_DEL (dlna->services, service);
   free (service->id);
+  free (service->location);
   free (service->type);
   free (service->scpd_url);
   free (service->control_url);
