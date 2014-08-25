@@ -28,6 +28,140 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
+#include "avts.h"
+
+#define AVTS_DESCRIPTION \
+"<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
+"<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">" \
+"  <specVersion>" \
+"     <major>1</major>" \
+"     <minor>0</minor>" \
+"  </specVersion>" \
+"  <actionList>" \
+"  </actionList>" \
+"  <serviceStateTable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>TransportState</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>TransportStatus</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>PlaybackStorageMedium</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>RecordStorageMedium</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>PossiblePlaybackStorageMedia</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">"\
+"     <name>PossibleRecordStorageMedia</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentPlayMode</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>TransportPlaySpeed</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>RecordMediumWriteStatus</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentRecordQualityMode</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>PossibleRecordQualityModes</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>NumberOfTracks</name>" \
+"      <dataType>ui4</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentTrack</name>" \
+"      <dataType>ui4</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentTrackDuration</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentMediaDuration</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentTrackMetaData</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentTrackURI</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>AVTransportURI</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>AVTransportURIMetaData</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>NextAVTransportURI</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>NextAVTransportURIMetaData</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>RelativeTimePosition</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>AbsoluteTimePosition</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>RelativeCounterPosition</name>" \
+"      <dataType>i4</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>AbsoluteCounterPosition</name>" \
+"      <dataType>i4</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>CurrentTransportActions</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"yes\">" \
+"      <name>LastChange</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>A_ARG_TYPE_SeekMode</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>A_ARG_TYPE_SeekTarget</name>" \
+"      <dataType>string</dataType>" \
+"    </stateVariable>" \
+"    <stateVariable sendEvents=\"no\">" \
+"      <name>A_ARG_TYPE_InstanceID</name>" \
+"      <dataType>ui4</dataType>" \
+"    </stateVariable>" \
+"  </serviceStateTable>" \
+"</scpd>"
 
 /* AVTS Action Names */
 #define SERVICE_AVTS_ACTION_SET_URI            "SetAVTransportURI"
@@ -450,3 +584,10 @@ upnp_service_action_t avts_service_actions[] = {
   { SERVICE_AVTS_ACTION_GET_ACTIONS,       NULL },
   { NULL,                                  NULL }
 };
+
+char *
+avts_get_desciption (dlna_t *dlna)
+{
+  return strdup(AVTS_DESCRIPTION);
+}
+
