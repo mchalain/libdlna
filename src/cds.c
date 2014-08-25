@@ -503,7 +503,7 @@ didl_add_footer (buffer_t *out)
 static void
 didl_add_tag (buffer_t *out, char *tag, char *value)
 {
-  if (value)
+  if (value && *value != '\0')
     buffer_appendf (out, "<%s>%s</%s>", tag, value, tag);
 }
 
@@ -536,8 +536,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
 
   class = dlna_profile_upnp_object_item (item->u.resource.item->profile);
 
-  if (item->u.resource.item->metadata &&
-      strlen (item->u.resource.item->metadata->title) > 1)
+  if (item->u.resource.item->metadata)
     didl_add_tag (out, DIDL_ITEM_TITLE,
                   item->u.resource.item->metadata->title);
   else
@@ -547,20 +546,15 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
 
   if (item->u.resource.item->metadata)
   {
-    if (strlen (item->u.resource.item->metadata->author) > 1)
-      didl_add_tag (out, DIDL_ITEM_ARTIST,
+    didl_add_tag (out, DIDL_ITEM_ARTIST,
                     item->u.resource.item->metadata->author);
-    if (strlen (item->u.resource.item->metadata->comment) > 1)
-      didl_add_tag (out, DIDL_ITEM_DESCRIPTION,
+    didl_add_tag (out, DIDL_ITEM_DESCRIPTION,
                     item->u.resource.item->metadata->comment);
-    if (strlen (item->u.resource.item->metadata->album) > 1)
-      didl_add_tag (out, DIDL_ITEM_ALBUM,
+    didl_add_tag (out, DIDL_ITEM_ALBUM,
                     item->u.resource.item->metadata->album);
-    if (item->u.resource.item->metadata->track)
-      didl_add_value (out, DIDL_ITEM_TRACK,
+    didl_add_value (out, DIDL_ITEM_TRACK,
                       item->u.resource.item->metadata->track);
-    if (strlen (item->u.resource.item->metadata->genre) > 1)
-      didl_add_tag (out, DIDL_ITEM_GENRE,
+    didl_add_tag (out, DIDL_ITEM_GENRE,
                     item->u.resource.item->metadata->genre);
   }
   
