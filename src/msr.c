@@ -169,9 +169,20 @@ msr_is_validated (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 /* List of UPnP Microsoft Registrar Service actions */
-upnp_service_action_t msr_service_actions[] = {
+static upnp_service_action_t msr_service_actions[] = {
   { SERVICE_MSR_ACTION_IS_AUTHORIZED,   msr_is_authorized },
   { SERVICE_MSR_ACTION_REGISTER_DEVICE, msr_register_device },
   { SERVICE_MSR_ACTION_IS_VALIDATED,    msr_is_validated },
   { NULL,                               NULL }
+};
+
+upnp_service_t msr_service = {
+  .id           = MSR_SERVICE_ID,
+  .location     = MSR_LOCATION,
+  .type         = MSR_SERVICE_TYPE,
+  .scpd_url     = MSR_URL,
+  .control_url  = MSR_CONTROL_URL,
+  .event_url    = MSR_EVENT_URL,
+  .actions      = msr_service_actions,
+  .get_description     = msr_get_description,
 };

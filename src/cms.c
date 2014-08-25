@@ -280,7 +280,7 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 /* List of UPnP ConnectionManager Service actions */
-upnp_service_action_t cms_service_actions[] = {
+static upnp_service_action_t cms_service_actions[] = {
   { SERVICE_CMS_ACTION_PROT_INFO,     cms_get_protocol_info },
   { SERVICE_CMS_ACTION_PREPARE,       NULL },
   { SERVICE_CMS_ACTION_CON_COMPLETE,  NULL },
@@ -289,3 +289,13 @@ upnp_service_action_t cms_service_actions[] = {
   { NULL,                             NULL }
 };
 
+upnp_service_t cms_service = {
+  .id           = CMS_SERVICE_ID,
+  .location     = CMS_LOCATION,
+  .type         = CMS_SERVICE_TYPE,
+  .scpd_url     = CMS_URL,
+  .control_url  = CMS_CONTROL_URL,
+  .event_url    = CMS_EVENT_URL,
+  .actions      = cms_service_actions,
+  .get_description     = cms_get_description,
+};

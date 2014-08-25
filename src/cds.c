@@ -1079,3 +1079,14 @@ upnp_service_action_t cds_service_actions[] = {
   /* CDS Vendor-specific Actions */ 
   { NULL,                              NULL }
 };
+
+upnp_service_t cds_service = {
+  .id           = CDS_SERVICE_ID,
+  .location     = CDS_LOCATION,
+  .type         = CDS_SERVICE_TYPE,
+  .scpd_url     = CDS_URL,
+  .control_url  = CDS_CONTROL_URL,
+  .event_url    = CDS_EVENT_URL,
+  .actions      = cds_service_actions,
+  .get_description     = cds_get_description,
+};

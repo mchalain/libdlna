@@ -31,7 +31,6 @@
 #define MSR_CONTROL_URL      "msr_control"
 #define MSR_EVENT_URL        "msr_event"
 
-char *
-msr_get_description (dlna_t *dlna);
+extern upnp_service_t msr_service;
 
 #endif /* MSR_H */

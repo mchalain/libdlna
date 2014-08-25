@@ -31,7 +31,6 @@
 #define CMS_CONTROL_URL      "cms_control"
 #define CMS_EVENT_URL        "cms_event"
 
-char *
-cms_get_description (dlna_t *dlna);
+extern upnp_service_t cms_service;
 
 #endif /* CMS_H */

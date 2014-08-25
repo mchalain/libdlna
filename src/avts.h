@@ -32,7 +32,6 @@
 #define AVTS_CONTROL_URL      "avts_control"
 #define AVTS_EVENT_URL        "avts_event"
 
-char *
-avts_get_description (dlna_t *dlna);
+extern upnp_service_t avts_service;
 
 #endif /* AVTS_H */

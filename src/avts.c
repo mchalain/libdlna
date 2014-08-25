@@ -202,9 +202,19 @@ upnp_service_action_t avts_service_actions[] = {
   { NULL,                                  NULL }
 };
 
-char *
+static char *
 avts_get_description (dlna_t *dlna)
 {
   return strdup(AVTS_DESCRIPTION);
 }
 
+upnp_service_t avts_service = {
+  .id           = AVTS_SERVICE_ID,
+  .location     = AVTS_LOCATION,
+  .type         = AVTS_SERVICE_TYPE,
+  .scpd_url     = AVTS_URL,
+  .control_url  = AVTS_CONTROL_URL,
+  .event_url    = AVTS_EVENT_URL,
+  .actions      = avts_service_actions,
+  .get_description     = avts_get_description,
+};
