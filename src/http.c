@@ -248,8 +248,7 @@ upnp_http_open (void *cookie,
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
-  char *path;
-  char *description;
+  upnp_service_t *service;
   
   if (!cookie || !filename)
     return NULL;
@@ -271,31 +270,18 @@ upnp_http_open (void *cookie,
       return dhdl;
   }
   
-  /* ask for Content Directory Service (CDS) */
-  if (!strcmp (filename, CDS_LOCATION))
-  {
-    path = CDS_LOCATION;
-    description = cds_get_description (dlna);
-  }
+  /* look for the good service location */
+  for (service = dlna->services; service; service = service->hh.next)
+    if (service->location && filename && !strcmp (service->location, filename))
+      break;
 
-  /* ask for Connection Manager Service (CMS) */
-  if (!strcmp (filename, CMS_LOCATION))
-  {
-    path = CMS_LOCATION;
-    description = cms_get_description (dlna);
-  }
-
-  /* ask for AVTransport Service (AVTS) */
-  if (!strcmp (filename, AVTS_LOCATION))
-  {
-    path = AVTS_LOCATION;
-    description = avts_get_description (dlna);
-  }
-
-  if (description)
+  /* return the service description if available */
+  if (service)
   {
     dlnaWebFileHandle ret;
-    ret = http_get_file_from_memory (path, description, strlen(description));
+    char *description = service->get_description (dlna);
+
+    ret = http_get_file_from_memory (service->location, description, strlen(description));
     free (description);
     return ret;
   }
