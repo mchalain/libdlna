@@ -127,11 +127,13 @@ struct upnp_service_action_s {
 
 struct upnp_service_s {
   char *id;
+  char *location;
   char *type;
   char *scpd_url;
   char *control_url;
   char *event_url;
   upnp_service_action_t *actions;
+  char *(*get_description) (dlna_t *dlna);
   UT_hash_handle hh;
 };
 
