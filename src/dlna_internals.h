@@ -33,9 +33,11 @@
 #ifndef HAVE_EXTERNAL_LIBUPNP
 #include "upnp/upnp.h"
 #include "upnp/upnptools.h"
+#include "threadutil/ithread.h"
 #else
 #include <upnp.h>
 #include <upnptools.h>
+#include <ithread.h>
 #include "upnp_dlna_wrapper.h"
 #endif
 
@@ -82,6 +84,32 @@ vfs_item_t *vfs_get_item_by_id (dlna_t *dlna, uint32_t id);
 vfs_item_t *vfs_get_item_by_name (dlna_t *dlna, char *name);
 void vfs_item_free (dlna_t *dlna, vfs_item_t *item);
 
+/* DLNA Media Player Properties */
+typedef struct dlna_dmp_item_s dlna_dmp_item_t;
+typedef struct dlna_dmp_s dlna_dmp_t;
+struct dlna_dmp_item_s
+{
+  uint32_t id;
+  dlna_item_t *item;
+  UT_hash_handle hh;
+};
+
+struct dlna_dmp_s
+{
+  uint32_t id;
+  dlna_dmp_item_t *playlist;
+  enum {
+    E_STOPPED,
+    E_PLAYING,
+    E_PAUSING,
+  } state;
+  ithread_mutex_t state_mutex;
+  ithread_cond_t state_change;
+  ithread_t playthread;
+  UT_hash_handle hh;
+};
+
+/* UPnP Service properties */
 typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -142,6 +170,9 @@ struct dlna_s {
   uint32_t vfs_items;
   void *db;
   
+  /* DMP data */
+  struct dlna_dmp_s *dmp;
+ 
   /* UPnP Properties */
   char *interface;
   unsigned short port; /* server port */
