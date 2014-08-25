@@ -441,6 +441,40 @@ void dlna_dms_set_vfs_storage_type (dlna_t *dlna,
 
 /***************************************************************************/
 /*                                                                         */
+/* DLNA UPnP Digital Media Renderer (DMR) Management                       */
+/*  Mandatory: Configure the device to act as a Media Renderer.            */
+/*                                                                         */
+/***************************************************************************/
+
+/**
+ * Initialize a DLNA Digital Media Renderer compliant device.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_dmr_init (dlna_t *dlna);
+
+/**
+ * Uninitialize a DLNA Digital Media Renderer compliant device.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_dmr_uninit (dlna_t *dlna);
+
+/**
+ * Create a valid UPnP device description for Digital Media Renderer (DMR).
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ * 
+ * @return                       The DMR device description string.
+ */
+char *dlna_dmr_description_get (dlna_t *dlna);
+
+/***************************************************************************/
+/*                                                                         */
 /* DLNA UPnP Digital Media Player (DMP) Management                         */
 /*  Mandatory: Configure the device to act as a Media Player.              */
 /*                                                                         */
