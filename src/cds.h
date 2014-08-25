@@ -32,6 +32,6 @@
 #define CDS_EVENT_URL        "cds_event"
 
 char *
-cds_get_desciption (dlna_t *dlna);
+cds_get_description (dlna_t *dlna);
 
 #endif /* CDS_H */

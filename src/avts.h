@@ -33,6 +33,6 @@
 #define AVTS_EVENT_URL        "avts_event"
 
 char *
-avts_get_desciption (dlna_t *dlna);
+avts_get_description (dlna_t *dlna);
 
 #endif /* AVTS_H */

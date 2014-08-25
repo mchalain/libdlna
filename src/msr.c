@@ -128,7 +128,7 @@
 #define SERVICE_MSR_STATUS_OK                       "1"
 
 char *
-msr_getdescription (dlna_t *dlna)
+msr_get_description (dlna_t *dlna)
 {
   return strdup (MSR_DESCRIPTION);
 }

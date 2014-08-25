@@ -32,6 +32,6 @@
 #define MSR_EVENT_URL        "msr_event"
 
 char *
-msr_getdescription (dlna_t *dlna);
+msr_get_description (dlna_t *dlna);
 
 #endif /* MSR_H */

@@ -193,7 +193,7 @@
 #define SERVICE_CMS_ERR_PARAMETER_MISMATCH    706
 
 char *
-cms_get_desciption (dlna_t *dlna)
+cms_get_description (dlna_t *dlna)
 {
   return strdup(CMS_DESCRIPTION);
 }

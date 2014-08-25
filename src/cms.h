@@ -32,6 +32,6 @@
 #define CMS_EVENT_URL        "cms_event"
 
 char *
-cms_get_desciption (dlna_t *dlna);
+cms_get_description (dlna_t *dlna);
 
 #endif /* CMS_H */

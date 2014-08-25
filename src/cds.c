@@ -383,7 +383,7 @@
 #define CDS_ERR_PROCESS_REQUEST               720
 
 char *
-cds_get_desciption (dlna_t *dlna)
+cds_get_description (dlna_t *dlna)
 {
   return strdup(CDS_DESCRIPTION);
 }

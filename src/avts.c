@@ -203,7 +203,7 @@ upnp_service_action_t avts_service_actions[] = {
 };
 
 char *
-avts_get_desciption (dlna_t *dlna)
+avts_get_description (dlna_t *dlna)
 {
   return strdup(AVTS_DESCRIPTION);
 }

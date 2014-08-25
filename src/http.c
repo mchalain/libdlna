@@ -108,7 +108,7 @@ upnp_http_get_info (void *cookie,
   if (!strcmp (filename, CDS_LOCATION))
   {
     char *description;
-    description = cds_get_desciption (dlna);
+    description = cds_get_description (dlna);
     set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
@@ -117,7 +117,7 @@ upnp_http_get_info (void *cookie,
   if (!strcmp (filename, CMS_LOCATION))
   {
     char *description;
-    description = cms_get_desciption (dlna);
+    description = cms_get_description (dlna);
     set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
@@ -126,7 +126,7 @@ upnp_http_get_info (void *cookie,
   if (!strcmp (filename, AVTS_LOCATION))
   {
     char *description;
-    description = avts_get_desciption (dlna);
+    description = avts_get_description (dlna);
     set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
     return HTTP_OK;
   }
@@ -275,21 +275,21 @@ upnp_http_open (void *cookie,
   if (!strcmp (filename, CDS_LOCATION))
   {
     path = CDS_LOCATION;
-    description = cds_get_desciption (dlna);
+    description = cds_get_description (dlna);
   }
 
   /* ask for Connection Manager Service (CMS) */
   if (!strcmp (filename, CMS_LOCATION))
   {
     path = CMS_LOCATION;
-    description = cms_get_desciption (dlna);
+    description = cms_get_description (dlna);
   }
 
   /* ask for AVTransport Service (AVTS) */
   if (!strcmp (filename, AVTS_LOCATION))
   {
     path = AVTS_LOCATION;
-    description = avts_get_desciption (dlna);
+    description = avts_get_description (dlna);
   }
 
   if (description)
