@@ -60,6 +60,7 @@ SRCS =  \
 	msr.c \
 	http.c \
 	upnp_dms.c \
+	upnp_dmr.c \
 
 EXTRADIST = \
 	dlna.h \
