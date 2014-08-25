@@ -248,6 +248,8 @@ upnp_http_open (void *cookie,
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
+  char *path;
+  char *description;
   
   if (!cookie || !filename)
     return NULL;
