@@ -58,6 +58,7 @@ SRCS =  \
 	cds.c \
 	avts.c \
 	msr.c \
+	rcs.c \
 	http.c \
 	upnp_dms.c \
 

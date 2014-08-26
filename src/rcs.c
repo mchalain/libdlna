@@ -52,3 +52,9 @@ upnp_service_action_t RCS_service_actions[] = {
   { RCS_ACTION_SET_B_V_BLEVEL,       NULL },
   { NULL,                                  NULL }
 };
+
+char *
+rcs_get_description()
+{
+  return strdup(RCS_DESCRIPTION);
+}
