@@ -384,13 +384,13 @@ av_profile_get_codecs (AVFormatContext *ctx)
   for (i = 0; i < ctx->nb_streams; i++)
   {
     if (audio_stream == -1 &&
-        ctx->streams[i]->codec->codec_type == CODEC_TYPE_AUDIO)
+        ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_AUDIO)
     {
       audio_stream = i;
       continue;
     }
     else if (video_stream == -1 &&
-             ctx->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO)
+             ctx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
     {
       video_stream = i;
       continue;
@@ -447,7 +447,7 @@ match_file_extension (const char *filename, const char *extensions)
 dlna_profile_t *
 dlna_guess_media_profile (dlna_t *dlna, const char *filename)
 {
-  AVFormatContext *ctx;
+  AVFormatContext *ctx = NULL;
   dlna_registered_profile_t *p;
   dlna_profile_t *profile = NULL;
   dlna_container_type_t st;
@@ -459,7 +459,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
   
-  if (av_open_input_file (&ctx, filename, NULL, 0, NULL) != 0)
+  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
@@ -468,19 +468,19 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
   if (av_find_stream_info (ctx) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
 #ifdef HAVE_DEBUG
-  dump_format (ctx, 0, NULL, 0);
+  av_dump_format (ctx, 0, NULL, 0);
 #endif /* HAVE_DEBUG */
 
   /* grab codecs info */
   codecs = av_profile_get_codecs (ctx);
   if (!codecs)
   {
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
@@ -515,7 +515,7 @@ dlna_guess_media_profile (dlna_t *dlna, const char *filename)
     p = p->next;
   }
 
-  av_close_input_file (ctx);
+  avformat_close_input (&ctx);
   free (codecs);
   return profile;
 }
@@ -579,7 +579,7 @@ dlna_item_get_properties (AVFormatContext *ctx)
     return NULL;
   
   prop = malloc (sizeof (dlna_properties_t));
-  prop->size = ctx->file_size;
+  prop->size = 1000;
 
   duration = (int) (ctx->duration / AV_TIME_BASE);
   hours = (int) (duration / 3600);
@@ -609,17 +609,32 @@ static dlna_metadata_t *
 dlna_item_get_metadata (AVFormatContext *ctx)
 {
   dlna_metadata_t *meta;
+  AVDictionary *dict = ctx->metadata;
+  AVDictionaryEntry *entry;
   
   if (!ctx)
     return NULL;
 
   meta = malloc (sizeof (dlna_metadata_t));
-  meta->title   = strdup (ctx->title);
-  meta->author  = strdup (ctx->author);
-  meta->comment = strdup (ctx->comment);
-  meta->album   = strdup (ctx->album);
-  meta->track   = ctx->track;
-  meta->genre   = strdup (ctx->genre);
+  memset(meta, 0, sizeof (dlna_metadata_t));
+  entry = av_dict_get(dict, "title", NULL, 0);
+  if (entry && entry->value)
+    meta->title   = strdup (entry->value);
+  entry = av_dict_get(dict, "author", NULL, 0);
+  if (entry && entry->value)
+    meta->author  = strdup (entry->value);
+  entry = av_dict_get(dict, "comment", NULL, 0);
+  if (entry && entry->value)
+    meta->comment = strdup (entry->value);
+  entry = av_dict_get(dict, "album", NULL, 0);
+  if (entry && entry->value)
+    meta->album   = strdup (entry->value);
+  entry = av_dict_get(dict, "track", NULL, 0);
+  if (entry && entry->value)
+    meta->track   = atoi(entry->value);
+  entry = av_dict_get(dict, "genre", NULL, 0);
+  if (entry && entry->value)
+    meta->genre   = strdup (entry->value);
 
   return meta;
 }
@@ -646,7 +661,7 @@ dlna_metadata_free (dlna_metadata_t *meta)
 dlna_item_t *
 dlna_item_new (dlna_t *dlna, const char *filename)
 {
-  AVFormatContext *ctx;
+  AVFormatContext *ctx = NULL;
   dlna_item_t *item;
 
   if (!dlna || !filename)
@@ -655,7 +670,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
   
-  if (av_open_input_file (&ctx, filename, NULL, 0, NULL) != 0)
+  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     return NULL;
@@ -664,7 +679,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (av_find_stream_info (ctx) < 0)
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't find stream info\n");
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
 
@@ -676,7 +691,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!item->profile) /* not DLNA compliant */
   {
     free (item);
-    av_close_input_file (ctx);
+    avformat_close_input (&ctx);
     return NULL;
   }
   item->filename   = strdup (filename);
@@ -684,7 +699,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item->metadata   = dlna_item_get_metadata (ctx);
   item->media_class= item->profile->media_class;
 
-  av_close_input_file (ctx);
+  avformat_close_input (&ctx);
 
   return item;
 }
