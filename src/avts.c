@@ -30,6 +30,137 @@
 #include "upnp_internals.h"
 #include "avts.h"
 
+#define AVTS_DESCRIPTION_ACTION_SET_URI_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>" \
+"        <argument>" \
+"          <name>CurrentURI</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>AVTransportURI</relatedStateVariable>" \
+"        </argument>" \
+"        <argument>" \
+"          <name>CurrentURIMetaData</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>AVTransportURIMetaData</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_SET_URI \
+"    <action>" \
+"      <name>SetAVTransportURI</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_SET_URI_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_SET_NEXT_URI_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>" \
+"        <argument>" \
+"          <name>NextURI</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>NextAVTransportURI</relatedStateVariable>" \
+"        </argument>" \
+"        <argument>" \
+"          <name>NextURIMetaData</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>NextAVTransportURIMetaData</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_SET_NEXT_URI \
+"    <action>" \
+"      <name>SetNextAVTransportURI</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_SET_NEXT_URI_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_STOP_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_STOP \
+"    <action>" \
+"      <name>Stop</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_STOP_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_PLAY_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>" \
+"        <argument>" \
+"          <name>Speed</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>TansportPlaySpeed</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_PLAY \
+"    <action>" \
+"      <name>Play</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_PLAY_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_PAUSE_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_PAUSE \
+"    <action>" \
+"      <name>Pause</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_PAUSE_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_NEXT_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_NEXT \
+"    <action>" \
+"      <name>Next</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_NEXT_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+#define AVTS_DESCRIPTION_ACTION_PREVIOUS_ARGS \
+"        <argument>" \
+"          <name>InstanceID</name>" \
+"          <direction>in</direction>" \
+"          <relatedStateVariable>A_ARG_TYPE_InstanceID</relatedStateVariable>" \
+"        </argument>"
+
+#define AVTS_DESCRIPTION_ACTION_PREVIOUS \
+"    <action>" \
+"      <name>Previous</name>" \
+"      <argumentList>" \
+AVTS_DESCRIPTION_ACTION_PREVIOUS_ARGS \
+"      </argumentList>" \
+"    </action>"
+
+
 #define AVTS_DESCRIPTION \
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
 "<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">" \
@@ -38,6 +169,13 @@
 "     <minor>0</minor>" \
 "  </specVersion>" \
 "  <actionList>" \
+AVTS_DESCRIPTION_ACTION_SET_URI \
+AVTS_DESCRIPTION_ACTION_SET_NEXT_URI \
+AVTS_DESCRIPTION_ACTION_STOP \
+AVTS_DESCRIPTION_ACTION_PLAY \
+AVTS_DESCRIPTION_ACTION_PAUSE \
+AVTS_DESCRIPTION_ACTION_NEXT \
+AVTS_DESCRIPTION_ACTION_PREVIOUS \
 "  </actionList>" \
 "  <serviceStateTable>" \
 "    <stateVariable sendEvents=\"no\">" \
