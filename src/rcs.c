@@ -26,42 +26,8 @@
  */
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "rcs.h"
-    
-#define STRING "string"
-#define BOOLEAN "boolean"
-#define I2 "i2"
-#define UI2 "ui2"
-#define I4 "i4"
-#define UI4 "ui4"
-#define URI "uri"
-
-#define STATEVARIABLE(name,type,eventing) \
-"    <stateVariable sendEvents=\""eventing"\">" \
-"      <name>"name"</name>" \
-"      <dataType>"type"</dataType>" \
-"    </stateVariable>"
-
-#define ACTION(name,args) \
-"    <action>" \
-"      <name>"name"</name>" \
-"      <argumentList>" \
-args \
-"      </argumentList>" \
-"    </action>"
-#define ACTION_ARG_IN(name,variable) \
-"        <argument>" \
-"          <name>"name"</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>"variable"</relatedStateVariable>" \
-"        </argument>"
-
-#define ACTION_ARG_OUT(name,variable) \
-"        <argument>" \
-"          <name>"name"</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>"variable"</relatedStateVariable>" \
-"        </argument>"
 
 #define RCS_VAR_LAST_CHANGE "LastChange"
 #define RCS_VAR_PRESET_NAME_LIST "PresetNameList"
