@@ -28,32 +28,7 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
-
-/* AVTS Action Names */
-#define SERVICE_AVTS_ACTION_SET_URI            "SetAVTransportURI"
-#define SERVICE_AVTS_ACTION_SET_NEXT_URI       "SetNextAVTransportURI"
-#define SERVICE_AVTS_ACTION_GET_MEDIA_INFO     "GetMediaInfo"
-#define SERVICE_AVTS_ACTION_GET_INFO           "GetTransportInfo"
-#define SERVICE_AVTS_ACTION_GET_POS_INFO       "GetPositionInfo"
-#define SERVICE_AVTS_ACTION_GET_CAPS           "GetDeviceCapabilities"
-#define SERVICE_AVTS_ACTION_GET_SETTINGS       "GetTransportSettings"
-#define SERVICE_AVTS_ACTION_STOP               "Stop"
-#define SERVICE_AVTS_ACTION_PLAY               "Play"
-#define SERVICE_AVTS_ACTION_PAUSE              "Pause"
-#define SERVICE_AVTS_ACTION_RECORD             "Record"
-#define SERVICE_AVTS_ACTION_SEEK               "Seek"
-#define SERVICE_AVTS_ACTION_NEXT               "Next"
-#define SERVICE_AVTS_ACTION_PREVIOUS           "Previous"
-#define SERVICE_AVTS_ACTION_SET_PLAY_MODE      "SetPlayMode"
-#define SERVICE_AVTS_ACTION_SET_RECORD_MODE    "SetRecordQualityMode"
-#define SERVICE_AVTS_ACTION_GET_ACTIONS        "GetCurrentTransportActions"
-
-#define SERVICE_AVTS_ARG_INSTANCEID            "InstanceID"
-#define SERVICE_AVTS_ARG_CURRENT_URI           "CurrentURI"
-#define SERVICE_AVTS_ARG_NEXT_URI              "NextURI"
-#define SERVICE_AVTS_ARG_CURRENT_URI_METADATA  "CurrentURIMetaData"
-#define SERVICE_AVTS_ARG_NEXT_URI_METADATA     "NextURIMetaData"
-#define SERVICE_AVTS_ARG_SPEED                 "TransportPlaySpeed"
+#include "avts.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
 
@@ -177,7 +152,7 @@ avts_set_thread (dlna_t *dlna, uint32_t id)
 static int
 avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char *URI, *URIMetadata;
+  char *uri, *uri_metadata;
   uint32_t InstanceID;
   buffer_t *out = NULL;
   dlna_dmp_t *instance = NULL;
@@ -196,9 +171,9 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
-  URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI);
-  URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI_METADATA);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  uri   = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI);
+  uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI_METADATA);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
   if (!instance)
@@ -209,12 +184,12 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   {
     instance->playlist = playlist_empty (instance->playlist);
   }
-  instance->playlist = playlist_add_item (instance->playlist, dlna, URI, URIMetadata);
+  instance->playlist = playlist_add_item (instance->playlist, dlna, uri, uri_metadata);
 
   out = buffer_new ();
   buffer_free (out);
-  free (URI);
-  free (URIMetadata);
+  free (uri);
+  free (uri_metadata);
 
   return 0;
 }
@@ -222,8 +197,8 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char *URI, *URIMetadata;
-  uint32_t InstanceID;
+  char *uri, *uri_metadata;
+  uint32_t instanceID;
   buffer_t *out = NULL;
   dlna_dmp_t *instance = NULL;
 
@@ -241,17 +216,17 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
-  URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI);
-  URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI_METADATA);
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  uri   = upnp_get_string (ev->ar, AVTS_ARG_NEXT_URI);
+  uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_NEXT_URI_METADATA);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
-  playlist_add_item (instance->playlist, dlna, URI, URIMetadata);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  playlist_add_item (instance->playlist, dlna, uri, uri_metadata);
 
   out = buffer_new ();
   buffer_free (out);
-  free (URI);
-  free (URIMetadata);
+  free (uri);
+  free (uri_metadata);
 
   return 0;
 }
@@ -278,8 +253,8 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
-  speed = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_SPEED);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  speed = upnp_get_ui4 (ev->ar, AVTS_ARG_SPEED);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
   ithread_mutex_lock (&instance->state_mutex);
@@ -314,7 +289,7 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
   ithread_mutex_lock (&instance->state_mutex);
@@ -350,7 +325,7 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
   ithread_mutex_lock (&instance->state_mutex);
@@ -388,7 +363,7 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
 
@@ -419,7 +394,7 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  InstanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
 
   HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
 
@@ -431,22 +406,22 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 
 /* List of UPnP AVTransport Service actions */
 upnp_service_action_t avts_service_actions[] = {
-  { SERVICE_AVTS_ACTION_SET_URI,           avts_set_uri },
-  { SERVICE_AVTS_ACTION_SET_NEXT_URI,      avts_set_next_uri },
-  { SERVICE_AVTS_ACTION_GET_MEDIA_INFO,    NULL },
-  { SERVICE_AVTS_ACTION_GET_INFO,          NULL },
-  { SERVICE_AVTS_ACTION_GET_POS_INFO,      NULL },
-  { SERVICE_AVTS_ACTION_GET_CAPS,          NULL },
-  { SERVICE_AVTS_ACTION_GET_SETTINGS,      NULL },
-  { SERVICE_AVTS_ACTION_STOP,              avts_stop },
-  { SERVICE_AVTS_ACTION_PLAY,              avts_play },
-  { SERVICE_AVTS_ACTION_PAUSE,             avts_pause },
-  { SERVICE_AVTS_ACTION_RECORD,            NULL },
-  { SERVICE_AVTS_ACTION_SEEK,              NULL },
-  { SERVICE_AVTS_ACTION_NEXT,              avts_next },
-  { SERVICE_AVTS_ACTION_PREVIOUS,          avts_previous },
-  { SERVICE_AVTS_ACTION_SET_PLAY_MODE,     NULL },
-  { SERVICE_AVTS_ACTION_SET_RECORD_MODE,   NULL },
-  { SERVICE_AVTS_ACTION_GET_ACTIONS,       NULL },
+  { AVTS_ACTION_SET_URI,           avts_set_uri },
+  { AVTS_ACTION_SET_NEXT_URI,      avts_set_next_uri },
+  { AVTS_ACTION_GET_MEDIA_INFO,    NULL },
+  { AVTS_ACTION_GET_INFO,          NULL },
+  { AVTS_ACTION_GET_POS_INFO,      NULL },
+  { AVTS_ACTION_GET_CAPS,          NULL },
+  { AVTS_ACTION_GET_SETTINGS,      NULL },
+  { AVTS_ACTION_STOP,              avts_stop },
+  { AVTS_ACTION_PLAY,              avts_play },
+  { AVTS_ACTION_PAUSE,             avts_pause },
+  { AVTS_ACTION_RECORD,            NULL },
+  { AVTS_ACTION_SEEK,              NULL },
+  { AVTS_ACTION_NEXT,              avts_next },
+  { AVTS_ACTION_PREVIOUS,          avts_previous },
+  { AVTS_ACTION_SET_PLAY_MODE,     NULL },
+  { AVTS_ACTION_SET_RECORD_MODE,   NULL },
+  { AVTS_ACTION_GET_ACTIONS,       NULL },
   { NULL,                                  NULL }
 };
