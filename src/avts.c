@@ -54,6 +54,7 @@
 #define SERVICE_AVTS_ARG_CURRENT_URI_METADATA  "CurrentURIMetaData"
 #define SERVICE_AVTS_ARG_NEXT_URI_METADATA     "NextURIMetaData"
 #define SERVICE_AVTS_ARG_SPEED                 "TransportPlaySpeed"
+#define SERVICE_AVTS_ARG_NUM_TRACKS            "NrTracks"
 
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_INVALID_INSTANCE              718 
@@ -253,6 +254,47 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 
   free (uri);
   free (uriMetadata);
+
+  return ev->status;
+}
+
+static int
+avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  dlna_dmp_t *instance = NULL;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  upnp_add_response (ev, SERVICE_AVTS_ARG_NUM_TRACKS, "1");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_MEDIA_DURATION, "1");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_CURRENT_URI, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_CURRENT_URI_METADATA, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_NEXT_URI, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_NEXT_URI_METADATA, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_PLAY_MEDIUM, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_REC_MEDIUM, "");
+  upnp_add_response (ev, SERVICE_AVTS_ARG_WRITE_STATUS, "");
 
   return ev->status;
 }
