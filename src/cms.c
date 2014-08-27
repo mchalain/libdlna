@@ -291,7 +291,6 @@ static upnp_service_action_t cms_service_actions[] = {
 
 upnp_service_t cms_service = {
   .id           = CMS_SERVICE_ID,
-  .location     = CMS_LOCATION,
   .type         = CMS_SERVICE_TYPE,
   .scpd_url     = CMS_URL,
   .control_url  = CMS_CONTROL_URL,

@@ -178,7 +178,6 @@ static upnp_service_action_t msr_service_actions[] = {
 
 upnp_service_t msr_service = {
   .id           = MSR_SERVICE_ID,
-  .location     = MSR_LOCATION,
   .type         = MSR_SERVICE_TYPE,
   .scpd_url     = MSR_URL,
   .control_url  = MSR_CONTROL_URL,

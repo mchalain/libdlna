@@ -210,7 +210,6 @@ avts_get_description (dlna_t *dlna)
 
 upnp_service_t avts_service = {
   .id           = AVTS_SERVICE_ID,
-  .location     = AVTS_LOCATION,
   .type         = AVTS_SERVICE_TYPE,
   .scpd_url     = AVTS_URL,
   .control_url  = AVTS_CONTROL_URL,

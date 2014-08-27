@@ -22,8 +22,6 @@
 #ifndef CMS_H
 #define CMS_H
 
-#define CMS_LOCATION "/services/cms.xml"
-
 #define CMS_SERVICE_ID   "urn:upnp-org:serviceId:ConnectionManager"
 #define CMS_SERVICE_TYPE "urn:schemas-upnp-org:service:ConnectionManager:1"
 

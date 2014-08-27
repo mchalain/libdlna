@@ -22,8 +22,6 @@
 #ifndef AVTS_H
 #define AVTS_H
 
-#define AVTS_LOCATION "/services/avts.xml"
-
 #define AVTS_SERVICE_VERSION "1"
 #define AVTS_SERVICE_ID   "urn:upnp-org:serviceId:AVTransport"
 #define AVTS_SERVICE_TYPE "urn:schemas-upnp-org:service:AVTransport:"AVTS_SERVICE_VERSION

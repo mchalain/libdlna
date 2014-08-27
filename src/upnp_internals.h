@@ -33,6 +33,7 @@
 #define DLNA_MAX_CONTENT_LENGTH 4096
 #define VIRTUAL_DIR "/web"
 #define SERVICES_VIRTUAL_DIR "/services"
+#define SERVICES_VIRTUAL_DIR_LEN 9
 #define XBOX_MODEL_NAME "Windows Media Connect Compatible"
 
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks;

@@ -105,20 +105,23 @@ upnp_http_get_info (void *cookie,
     }
   }
   
-  /* look for the good service location */
-  for (service = dlna->services; service; service = service->hh.next)
-    if (service->location && filename && !strcmp (service->location, filename))
-      break;
-
-  /* return the service description if available */
-  if (service)
+  /* look for service directory */
+  if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
-    dlnaWebFileHandle ret;
-    char *description = service->get_description (dlna);
+    /* look for the good service location */
+    for (service = dlna->services; service; service = service->hh.next)
+      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
+        break;
 
-    set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
-    free (description);
-    return HTTP_OK;
+    /* return the service description if available */
+    if (service)
+    {
+      char *description = service->get_description (dlna);
+
+      set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
+      free (description);
+      return HTTP_OK;
+    }
   }
 
   /* ask for anything else ... */
@@ -260,20 +263,24 @@ upnp_http_open (void *cookie,
       return dhdl;
   }
   
-  /* look for the good service location */
-  for (service = dlna->services; service; service = service->hh.next)
-    if (service->location && filename && !strcmp (service->location, filename))
-      break;
-
-  /* return the service description if available */
-  if (service)
+  /* look for service directory */
+  if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
-    dlnaWebFileHandle ret;
-    char *description = service->get_description (dlna);
+    /* look for the good service location */
+    for (service = dlna->services; service; service = service->hh.next)
+      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
+        break;
 
-    ret = http_get_file_from_memory (service->location, description, strlen(description));
-    free (description);
-    return ret;
+    /* return the service description if available */
+    if (service)
+    {
+      dlnaWebFileHandle ret;
+      char *description = service->get_description (dlna);
+
+      ret = http_get_file_from_memory (filename, description, strlen(description));
+      free (description);
+      return ret;
+    }
   }
   
   /* ask for anything else ... */

@@ -1082,7 +1082,6 @@ upnp_service_action_t cds_service_actions[] = {
 
 upnp_service_t cds_service = {
   .id           = CDS_SERVICE_ID,
-  .location     = CDS_LOCATION,
   .type         = CDS_SERVICE_TYPE,
   .scpd_url     = CDS_URL,
   .control_url  = CDS_CONTROL_URL,
