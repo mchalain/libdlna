@@ -121,7 +121,11 @@ upnp_http_get_info (void *cookie,
   /* ask for AVTransport Service (AVTS) */
   if (!strcmp (filename, AVTS_LOCATION))
   {
-    set_service_http_info (info, AVTS_DESCRIPTION_LEN, SERVICE_CONTENT_TYPE);
+    char *description;
+
+    description = avts_get_description ();
+    set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
+    free (description);
     return HTTP_OK;
   }
 
@@ -275,8 +279,16 @@ upnp_http_open (void *cookie,
   
   /* ask for AVTransport Service (AVTS) */
   if (!strcmp (filename, AVTS_LOCATION))
-    return http_get_file_from_memory (AVTS_LOCATION,
-                                      AVTS_DESCRIPTION, AVTS_DESCRIPTION_LEN);
+  {
+    char *description;
+    dlnaWebFileHandle handle;
+
+    description = avts_get_description ();
+    handle = http_get_file_from_memory (AVTS_LOCATION,
+                                      description, strlen(description));
+    free (description);
+    return handle;
+  }
   
   /* ask for anything else ... */
   id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
