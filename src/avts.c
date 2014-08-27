@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "avts.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
@@ -623,35 +624,70 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 
 /* List of UPnP AVTransport Service actions */
 upnp_service_action_t avts_service_actions[] = {
-  { AVTS_ACTION_SET_URI,           avts_set_uri },
-  { AVTS_ACTION_SET_NEXT_URI,      avts_set_next_uri },
-  { AVTS_ACTION_GET_MEDIA_INFO,    NULL },
-  { AVTS_ACTION_GET_INFO,          NULL },
-  { AVTS_ACTION_GET_POS_INFO,      NULL },
-  { AVTS_ACTION_GET_CAPS,          NULL },
-  { AVTS_ACTION_GET_SETTINGS,      NULL },
-  { AVTS_ACTION_STOP,              avts_stop },
-  { AVTS_ACTION_PLAY,              avts_play },
-  { AVTS_ACTION_PAUSE,             avts_pause },
-  { AVTS_ACTION_RECORD,            NULL },
-  { AVTS_ACTION_SEEK,              NULL },
-  { AVTS_ACTION_NEXT,              avts_next },
-  { AVTS_ACTION_PREVIOUS,          avts_previous },
-  { AVTS_ACTION_SET_PLAY_MODE,     NULL },
-  { AVTS_ACTION_SET_REC_MODE,      NULL },
-  { AVTS_ACTION_GET_ACTIONS,       NULL },
-  { NULL,                         NULL }
+  { AVTS_ACTION_SET_URI, AVTS_ACTION_SET_URI_ARGS,           avts_set_uri },
+  { AVTS_ACTION_SET_NEXT_URI, AVTS_ACTION_SET_NEXT_URI_ARGS,      avts_set_next_uri },
+  { AVTS_ACTION_GET_MEDIA_INFO, AVTS_ACTION_GET_MEDIA_INFO_ARGS,    NULL },
+  { AVTS_ACTION_GET_INFO, AVTS_ACTION_GET_INFO_ARGS,          NULL },
+  { AVTS_ACTION_GET_POS_INFO, AVTS_ACTION_GET_POS_INFO_ARGS,      NULL },
+  { AVTS_ACTION_GET_CAPS, AVTS_ACTION_GET_CAPS_ARGS,          NULL },
+  { AVTS_ACTION_GET_SETTINGS, AVTS_ACTION_GET_SETTINGS_ARGS,      NULL },
+  { AVTS_ACTION_STOP, AVTS_ACTION_ARG_INSTANCE_ID,              avts_stop },
+  { AVTS_ACTION_PLAY, AVTS_ACTION_PLAY_ARGS,              avts_play },
+  { AVTS_ACTION_PAUSE, AVTS_ACTION_ARG_INSTANCE_ID,             avts_pause },
+  { AVTS_ACTION_RECORD, NULL,            NULL },
+  { AVTS_ACTION_SEEK, AVTS_ACTION_SEEK_ARGS,              NULL },
+  { AVTS_ACTION_NEXT, AVTS_ACTION_ARG_INSTANCE_ID,              avts_next },
+  { AVTS_ACTION_PREVIOUS, AVTS_ACTION_ARG_INSTANCE_ID,          avts_previous },
+  { AVTS_ACTION_SET_PLAY_MODE, NULL,     NULL },
+  { AVTS_ACTION_SET_REC_MODE, NULL,     NULL },
+  { AVTS_ACTION_GET_ACTIONS, NULL,       NULL },
+  { NULL, NULL,                        NULL }
+};
+
+upnp_service_variable_t avts_service_variables[] = {
+  {AVTS_VAR_STATE,E_STRING,0},
+  {AVTS_VAR_STATUS,E_STRING,0},
+  {AVTS_VAR_MEDIA_CATEGORY,E_STRING,0},
+  {AVTS_VAR_PLAY_MEDIUM,E_STRING,0},
+  {AVTS_VAR_REC_MEDIUM,E_STRING,0},
+  {AVTS_VAR_POSSIBLE_PLAY_MEDIA,E_STRING,0},
+  {AVTS_VAR_POSSIBLE_REC_MEDIA,E_STRING,0},
+  {AVTS_VAR_PLAY_MODE,E_STRING,0},
+  {AVTS_VAR_PLAY_SPEED,E_STRING,0},
+  {AVTS_VAR_REC_WRITE_STATUS,E_STRING,0},
+  {AVTS_VAR_REC_QUALITY,E_STRING,0},
+  {AVTS_VAR_POSSIBLE_REC_QUALITY_MODES,E_STRING,0},
+  {AVTS_VAR_NB_OF_TRACKS,E_UI4,0},
+  {AVTS_VAR_TRACK,E_UI4,0},
+  {AVTS_VAR_TRACK_DURATION,E_STRING,0},
+  {AVTS_VAR_MEDIA_DURATION,E_STRING,0},
+  {AVTS_VAR_TRACK_METADATA,E_STRING,0},
+  {AVTS_VAR_TRACK_URI,E_STRING,0},
+  {AVTS_VAR_AVT_URI,E_STRING,0},
+  {AVTS_VAR_AVT_URI_METADATA,E_STRING,0},
+  {AVTS_VAR_NEXT_AVT_URI,E_STRING,0},
+  {AVTS_VAR_NEXT_AVT_URI_METADATA,E_STRING,0},
+  {AVTS_VAR_RTIME,E_STRING,0},
+  {AVTS_VAR_ATIME,E_STRING,0},
+  {AVTS_VAR_RCOUNT,E_I4,0},
+  {AVTS_VAR_ACOUNT,E_UI4,0},
+  {"CurrentTransportActions",E_STRING,0},
+  {"LastChange",E_STRING,0},
+  {"DRMState",E_STRING,0},
+  {"SyncOffset",E_STRING,0},
+  {AVTS_VAR_A_ARG_TYPE_SEEK_MODE,E_STRING,0},
+  {AVTS_VAR_A_ARG_TYPE_SEEK_TARGET,E_STRING,0},
+  {AVTS_VAR_A_ARG_TYPE_INSTANCE_ID,E_UI4,0}
 };
 
 static char *
 avts_get_description (dlna_t *dlna)
 {
-  return strdup(AVTS_DESCRIPTION);
+  return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
 }
 
 upnp_service_t avts_service = {
   .id           = AVTS_SERVICE_ID,
-  .location     = AVTS_LOCATION,
   .type         = AVTS_SERVICE_TYPE,
   .scpd_url     = AVTS_URL,
   .control_url  = AVTS_CONTROL_URL,

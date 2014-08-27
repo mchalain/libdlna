@@ -19,16 +19,18 @@
  * Foundation, Inc, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef CMS_H
-#define CMS_H
+#ifndef RCS_H
+#define RCS_H
 
-#define CMS_SERVICE_ID   "urn:upnp-org:serviceId:ConnectionManager"
-#define CMS_SERVICE_TYPE "urn:schemas-upnp-org:service:ConnectionManager:1"
+#define RCS_SERVICE           "RenderingControl"
+#define RCS_SERVICE_VERSION   "1"
+#define RCS_SERVICE_ID   "urn:upnp-org:serviceId:"RCS_SERVICE
+#define RCS_SERVICE_TYPE "urn:schemas-upnp-org:service:"RCS_SERVICE":"RCS_SERVICE_VERSION
 
-#define CMS_URL              "cms.xml"
-#define CMS_CONTROL_URL      "cms_control"
-#define CMS_EVENT_URL        "cms_event"
+#define RCS_URL              "rcs.xml"
+#define RCS_CONTROL_URL      "rcs_control"
+#define RCS_EVENT_URL        "rcss_event"
 
-extern upnp_service_t cms_service;
+#define RCS_LOCATION "/services/"RCS_URL
 
-#endif /* CMS_H */
+#endif /* AVTS_H */

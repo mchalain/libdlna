@@ -22,8 +22,6 @@
 #ifndef MSR_H
 #define MSR_H
 
-#define MSR_LOCATION "/services/msr.xml"
-
 #define MSR_SERVICE_ID "urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar"
 #define MSR_SERVICE_TYPE "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1"
 

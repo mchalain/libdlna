@@ -22,50 +22,14 @@
 #ifndef AVTS_H
 #define AVTS_H
 
-#define STRING "string"
-#define BOOLEAN "boolean"
-#define I2 "i2"
-#define UI2 "ui2"
-#define I4 "i4"
-#define UI4 "ui4"
-#define URI "uri"
-
-#define STATEVARIABLE(name,type,eventing) \
-"    <stateVariable sendEvents=\""eventing"\">" \
-"      <name>"name"</name>" \
-"      <dataType>"type"</dataType>" \
-"    </stateVariable>"
-
-#define ACTION(name,args) \
-"    <action>" \
-"      <name>"name"</name>" \
-"      <argumentList>" \
-args \
-"      </argumentList>" \
-"    </action>"
-#define ACTION_ARG_IN(name,variable) \
-"        <argument>" \
-"          <name>"name"</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>"variable"</relatedStateVariable>" \
-"        </argument>"
-
-#define ACTION_ARG_OUT(name,variable) \
-"        <argument>" \
-"          <name>"name"</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>"variable"</relatedStateVariable>" \
-"        </argument>"
-
 #define AVTS_SERVICE_VERSION "1"
-#define AVTS_SERVICE_ID   "urn:upnp-org:serviceId:AVTransport"
-#define AVTS_SERVICE_TYPE "urn:schemas-upnp-org:service:AVTransport:"AVTS_SERVICE_VERSION
+#define AVTS_SERVICE "AVTransport"
+#define AVTS_SERVICE_ID   "urn:upnp-org:serviceId:"AVTS_SERVICE
+#define AVTS_SERVICE_TYPE "urn:schemas-upnp-org:service:"AVTS_SERVICE":"AVTS_SERVICE_VERSION
 
 #define AVTS_URL              "avts.xml"
 #define AVTS_CONTROL_URL      "avts_control"
 #define AVTS_EVENT_URL        "avts_event"
-
-#define AVTS_LOCATION SERVICES_VIRTUAL_DIR "/"AVTS_URL
 
 extern upnp_service_t avts_service;
 

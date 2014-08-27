@@ -22,8 +22,6 @@
 #ifndef CDS_H
 #define CDS_H
 
-#define CDS_LOCATION "/services/cds.xml"
-
 #define CDS_SERVICE_ID   "urn:upnp-org:serviceId:ContentDirectory"
 #define CDS_SERVICE_TYPE "urn:schemas-upnp-org:service:ContentDirectory:1"
 
