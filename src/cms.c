@@ -26,177 +26,69 @@
  */
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "cms.h"
 
-#define CMS_DESCRIPTION \
-"<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
-"<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">" \
-"  <specVersion>" \
-"    <major>1</major>" \
-"    <minor>0</minor>" \
-"  </specVersion>" \
-"  <actionList>" \
-"    <action>" \
-"      <name>GetProtocolInfo</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>Source</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>SourceProtocolInfo</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>Sink</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>SinkProtocolInfo</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"    <action>" \
-"      <name>GetCurrentConnectionIDs</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>ConnectionIDs</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>CurrentConnectionIDs</relatedStateVariable> " \
-"        </argument>" \
-"      </argumentList> " \
-"    </action>" \
-"    <action>" \
-"      <name>GetCurrentConnectionInfo</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>ConnectionID</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ConnectionID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>RcsID</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_RcsID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>AVTransportID</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_AVTransportID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>ProtocolInfo</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ProtocolInfo</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>PeerConnectionManager</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ConnectionManager</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>PeerConnectionID</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ConnectionID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>Direction</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Direction</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>Status</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ConnectionStatus</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"  </actionList>" \
-"  <serviceStateTable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>SourceProtocolInfo</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>SinkProtocolInfo</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>CurrentConnectionIDs</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_ConnectionStatus</name>" \
-"     <dataType>string</dataType>" \
+#define CMS_ARG_CONNECTION_STATUS_ALLOWED \
 "      <allowedValueList>" \
 "        <allowedValue>OK</allowedValue>" \
 "        <allowedValue>ContentFormatMismatch</allowedValue>" \
 "        <allowedValue>InsufficientBandwidth</allowedValue>" \
 "        <allowedValue>UnreliableChannel</allowedValue>" \
 "        <allowedValue>Unknown</allowedValue>" \
-"      </allowedValueList>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_ConnectionManager</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_Direction</name>" \
-"      <dataType>string</dataType>" \
+"      </allowedValueList>"
+#define CMS_ARG_DIRECTION_ALLOWED \
 "      <allowedValueList>" \
 "        <allowedValue>Input</allowedValue>" \
 "        <allowedValue>Output</allowedValue>" \
-"      </allowedValueList>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_ProtocolInfo</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_ConnectionID</name>" \
-"      <dataType>i4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_AVTransportID</name>" \
-"      <dataType>i4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_RcsID</name>" \
-"      <dataType>i4</dataType>" \
-"    </stateVariable>" \
-"  </serviceStateTable>" \
-"</scpd>"
+"      </allowedValueList>"
 
 /* CMS Action Names */
-#define SERVICE_CMS_ACTION_PROT_INFO          "GetProtocolInfo"
-#define SERVICE_CMS_ACTION_PREPARE            "PrepareForConnection"
-#define SERVICE_CMS_ACTION_CON_COMPLETE       "ConnectionComplete"
-#define SERVICE_CMS_ACTION_CON_ID             "GetCurrentConnectionIDs"
-#define SERVICE_CMS_ACTION_CON_INFO           "GetCurrentConnectionInfo"
+#define CMS_ACTION_PROT_INFO          "GetProtocolInfo"
+#define CMS_ACTION_PROT_INFO_ARGS \
+ACTION_ARG_OUT(CMS_ARG_SOURCE,"SourceProtocolInfo") \
+ACTION_ARG_OUT(CMS_ARG_SINK,"SinkProtocolInfo")
+
+#define CMS_ACTION_PREPARE            "PrepareForConnection"
+#define CMS_ACTION_CON_COMPLETE       "ConnectionComplete"
+#define CMS_ACTION_CON_ID             "GetCurrentConnectionIDs"
+#define CMS_ACTION_CON_ID_ARGS \
+ACTION_ARG_OUT(CMS_ARG_CONNECTION_IDS,"CurrentConnectionIDs")
+
+#define CMS_ACTION_CON_INFO           "GetCurrentConnectionInfo"
+#define CMS_ACTION_CON_INFO_ARGS \
+ACTION_ARG_OUT(CMS_ARG_CONNECTION_ID,"A_ARG_TYPE_ConnectionID") \
+ACTION_ARG_OUT(CMS_ARG_RCS_ID,"A_ARG_TYPE_RcsID") \
+ACTION_ARG_OUT(CMS_ARG_TRANSPORT_ID,"A_ARG_TYPE_AVTransportID") \
+ACTION_ARG_OUT(CMS_ARG_PROT_INFO,"A_ARG_TYPE_ProtocolInfo") \
+ACTION_ARG_OUT(CMS_ARG_PEER_CON_MANAGER,"A_ARG_TYPE_ConnectionManager") \
+ACTION_ARG_OUT(CMS_ARG_PEER_CON_ID,"A_ARG_TYPE_ConnectionID") \
+ACTION_ARG_OUT(CMS_ARG_DIRECTION,"A_ARG_TYPE_Direction") \
+ACTION_ARG_OUT(CMS_ARG_STATUS,"A_ARG_TYPE_ConnectionStatus") \
+
 
 /* CMS Arguments */
-#define SERVICE_CMS_ARG_SOURCE                "Source"
-#define SERVICE_CMS_ARG_SINK                  "Sink"
-#define SERVICE_CMS_ARG_CONNECTION_IDS        "ConnectionIDs"
-#define SERVICE_CMS_ARG_CONNECTION_ID         "ConnectionID"
-#define SERVICE_CMS_ARG_RCS_ID                "RcsID"
-#define SERVICE_CMS_ARG_TRANSPORT_ID          "AVTransportID"
-#define SERVICE_CMS_ARG_PROT_INFO             "ProtocolInfo"
-#define SERVICE_CMS_ARG_PEER_CON_MANAGER      "PeerConnectionManager"
-#define SERVICE_CMS_ARG_PEER_CON_ID           "PeerConnectionID"
-#define SERVICE_CMS_ARG_DIRECTION             "Direction"
-#define SERVICE_CMS_ARG_STATUS                "Status"
+#define CMS_ARG_SOURCE                "Source"
+#define CMS_ARG_SINK                  "Sink"
+#define CMS_ARG_CONNECTION_IDS        "ConnectionIDs"
+#define CMS_ARG_CONNECTION_ID         "ConnectionID"
+#define CMS_ARG_RCS_ID                "RcsID"
+#define CMS_ARG_TRANSPORT_ID          "AVTransportID"
+#define CMS_ARG_PROT_INFO             "ProtocolInfo"
+#define CMS_ARG_PEER_CON_MANAGER      "PeerConnectionManager"
+#define CMS_ARG_PEER_CON_ID           "PeerConnectionID"
+#define CMS_ARG_DIRECTION             "Direction"
+#define CMS_ARG_STATUS                "Status"
 
 /* CMS Argument Values */
-#define SERVICE_CMS_DEFAULT_CON_ID            "0"
-#define SERVICE_CMS_UNKNOW_ID                 "-1"
-#define SERVICE_CMS_OUTPUT                    "Output"
-#define SERVICE_CMS_STATUS_OK                 "OK"
+#define CMS_DEFAULT_CON_ID            "0"
+#define CMS_UNKNOW_ID                 "-1"
+#define CMS_OUTPUT                    "Output"
+#define CMS_STATUS_OK                 "OK"
 
 /* CMS Error Codes */
-#define SERVICE_CMS_ERR_INVALID_ARGS          402
-#define SERVICE_CMS_ERR_PARAMETER_MISMATCH    706
-
-char *
-cms_get_description (dlna_t *dlna)
-{
-  return strdup(CMS_DESCRIPTION);
-}
+#define CMS_ERR_INVALID_ARGS          402
+#define CMS_ERR_PARAMETER_MISMATCH    706
 
 /*
  * GetProtocolInfo:
@@ -227,8 +119,8 @@ cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
       buffer_append (source, ",");
   }
 
-  upnp_add_response (ev, SERVICE_CMS_ARG_SOURCE, source->buf);
-  upnp_add_response (ev, SERVICE_CMS_ARG_SINK, "");
+  upnp_add_response (ev, CMS_ARG_SOURCE, source->buf);
+  upnp_add_response (ev, CMS_ARG_SINK, "");
   
   buffer_free (source);
   
@@ -241,7 +133,7 @@ cms_get_current_connection_ids (dlna_t *dlna, upnp_action_event_t *ev)
   if (!dlna || !ev)
     return 0;
 
-  upnp_add_response (ev, SERVICE_CMS_ARG_CONNECTION_IDS, "");
+  upnp_add_response (ev, CMS_ARG_CONNECTION_IDS, "");
   
   return ev->status;
 }
@@ -254,10 +146,10 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
   if (!dlna || !ev)
     return 0;
 
-  upnp_add_response (ev, SERVICE_CMS_ARG_CONNECTION_ID,
-                     SERVICE_CMS_DEFAULT_CON_ID);
-  upnp_add_response (ev, SERVICE_CMS_ARG_RCS_ID, SERVICE_CMS_UNKNOW_ID);
-  upnp_add_response (ev, SERVICE_CMS_ARG_TRANSPORT_ID, SERVICE_CMS_UNKNOW_ID);
+  upnp_add_response (ev, CMS_ARG_CONNECTION_ID,
+                     CMS_DEFAULT_CON_ID);
+  upnp_add_response (ev, CMS_ARG_RCS_ID, CMS_UNKNOW_ID);
+  upnp_add_response (ev, CMS_ARG_TRANSPORT_ID, CMS_UNKNOW_ID);
 
   mimes = dlna_get_supported_mime_types (dlna);
   tmp = mimes;
@@ -268,26 +160,46 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
 
     memset (protocol, '\0', sizeof (protocol));
     snprintf (protocol, sizeof (protocol), "http-get:*:%s:*", *tmp++);
-    upnp_add_response (ev, SERVICE_CMS_ARG_PROT_INFO, protocol);
+    upnp_add_response (ev, CMS_ARG_PROT_INFO, protocol);
   }
   
-  upnp_add_response (ev, SERVICE_CMS_ARG_PEER_CON_MANAGER, "");
-  upnp_add_response (ev, SERVICE_CMS_ARG_PEER_CON_ID, SERVICE_CMS_UNKNOW_ID);
-  upnp_add_response (ev, SERVICE_CMS_ARG_DIRECTION, SERVICE_CMS_OUTPUT);
-  upnp_add_response (ev, SERVICE_CMS_ARG_STATUS, SERVICE_CMS_STATUS_OK);
+  upnp_add_response (ev, CMS_ARG_PEER_CON_MANAGER, "");
+  upnp_add_response (ev, CMS_ARG_PEER_CON_ID, CMS_UNKNOW_ID);
+  upnp_add_response (ev, CMS_ARG_DIRECTION, CMS_OUTPUT);
+  upnp_add_response (ev, CMS_ARG_STATUS, CMS_STATUS_OK);
   
   return ev->status;
 }
 
 /* List of UPnP ConnectionManager Service actions */
 static upnp_service_action_t cms_service_actions[] = {
-  { SERVICE_CMS_ACTION_PROT_INFO,     cms_get_protocol_info },
-  { SERVICE_CMS_ACTION_PREPARE,       NULL },
-  { SERVICE_CMS_ACTION_CON_COMPLETE,  NULL },
-  { SERVICE_CMS_ACTION_CON_ID,        cms_get_current_connection_ids },
-  { SERVICE_CMS_ACTION_CON_INFO,      cms_get_current_connection_info },
-  { NULL,                             NULL }
+  { CMS_ACTION_PROT_INFO, CMS_ACTION_PROT_INFO_ARGS,    cms_get_protocol_info },
+  { CMS_ACTION_PREPARE, NULL,      NULL },
+  { CMS_ACTION_CON_COMPLETE, NULL,  NULL },
+  { CMS_ACTION_CON_ID, CMS_ACTION_CON_ID_ARGS,        cms_get_current_connection_ids },
+  { CMS_ACTION_CON_INFO, CMS_ACTION_CON_INFO_ARGS,      cms_get_current_connection_info },
+  { NULL, NULL,                            NULL }
 };
+
+upnp_service_variable_t cms_service_variables[] = {
+  { "SourceProtocolInfo", E_STRING, 1},
+  { "SinkProtocolInfo", E_STRING, 1},
+  { "CurrentConnectionIDs", E_STRING, 1},
+  { "FeatureList", E_STRING, 0},
+  { "A_ARG_TYPE_ConnectionStatus", E_STRING, 0},
+  { "A_ARG_TYPE_ConnectionManager", E_STRING, 0},
+  { "A_ARG_TYPE_Direction", E_STRING, 0},
+  { "A_ARG_TYPE_ProtocolInfo", E_STRING, 0},
+  { "A_ARG_TYPE_ConnectionID", E_I4, 0},
+  { "A_ARG_TYPE_AVTransportID", E_I4, 0},
+  { "A_ARG_TYPE_RcsID", E_I4, 0},
+};
+
+static char *
+cms_get_description (dlna_t *dlna)
+{
+  return dlna_service_get_description (dlna, cms_service_actions, cms_service_variables);
+}
 
 upnp_service_t cms_service = {
   .id           = CMS_SERVICE_ID,
@@ -298,3 +210,4 @@ upnp_service_t cms_service = {
   .actions      = cms_service_actions,
   .get_description     = cms_get_description,
 };
+

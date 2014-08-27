@@ -28,291 +28,68 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "cds.h"
 #include "minmax.h"
 
-#define CDS_DESCRIPTION \
-"<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
-"<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">" \
-"  <specVersion>" \
-"    <major>1</major>" \
-"    <minor>0</minor>" \
-"  </specVersion>" \
-"  <actionList>" \
-"    <action>" \
-"      <name>GetSearchCapabilities</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>SearchCaps</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>SearchCapabilities</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"    <action>" \
-"      <name>GetSortCapabilities</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>SortCaps</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>SortCapabilities</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"    <action>" \
-"      <name>GetSystemUpdateID</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>Id</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>SystemUpdateID</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"    <action>" \
-"      <name>Browse</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>ObjectID</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ObjectID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>BrowseFlag</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_BrowseFlag</relatedStateVariable>" \
-"       </argument>" \
-"        <argument>" \
-"          <name>Filter</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Filter</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>StartingIndex</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Index</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>RequestedCount</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>SortCriteria</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_SortCriteria</relatedStateVariable>" \
-"       </argument>" \
-"        <argument>" \
-"          <name>Result</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Result</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>NumberReturned</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>TotalMatches</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>UpdateID</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_UpdateID</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"    <action>" \
-"      <name>Search</name>" \
-"      <argumentList>" \
-"        <argument>" \
-"          <name>ContainerID</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_ObjectID</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>SearchCriteria</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_SearchCriteria</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>Filter</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Filter</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>StartingIndex</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Index</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>RequestedCount</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>SortCriteria</name>" \
-"          <direction>in</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_SortCriteria</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>Result</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Result</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>NumberReturned</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>TotalMatches</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_Count</relatedStateVariable>" \
-"        </argument>" \
-"        <argument>" \
-"          <name>UpdateID</name>" \
-"          <direction>out</direction>" \
-"          <relatedStateVariable>A_ARG_TYPE_UpdateID</relatedStateVariable>" \
-"        </argument>" \
-"      </argumentList>" \
-"    </action>" \
-"  </actionList>" \
-"  <serviceStateTable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>TransferIDs</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_ObjectID</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_Result</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_SearchCriteria</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_BrowseFlag</name>" \
-"      <dataType>string</dataType>" \
+#define CDS_ARG_BROWSE_FLAG_ALLOWED \
 "      <allowedValueList>" \
 "        <allowedValue>BrowseMetadata</allowedValue>" \
 "        <allowedValue>BrowseDirectChildren</allowedValue>" \
-"      </allowedValueList>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_Filter</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_SortCriteria</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_Index</name>" \
-"      <dataType>ui4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_Count</name>" \
-"      <dataType>ui4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_UpdateID</name>" \
-"      <dataType>ui4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_TransferID</name>" \
-"      <dataType>ui4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_TransferStatus</name>" \
-"      <dataType>string</dataType>" \
+"      </allowedValueList>"
+#define CDS_ARG_TRANSFERT_STATUS_ALLOWED \
 "      <allowedValueList>" \
 "        <allowedValue>COMPLETED</allowedValue>" \
 "        <allowedValue>ERROR</allowedValue>" \
 "        <allowedValue>IN_PROGRESS</allowedValue>" \
 "        <allowedValue>STOPPED</allowedValue>" \
-"      </allowedValueList>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_TransferLength</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_TransferTotal</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_TagValueList</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>A_ARG_TYPE_URI</name>" \
-"      <dataType>uri</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>SearchCapabilities</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"no\">" \
-"      <name>SortCapabilities</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>SystemUpdateID</name>" \
-"      <dataType>ui4</dataType>" \
-"    </stateVariable>" \
-"    <stateVariable sendEvents=\"yes\">" \
-"      <name>ContainerUpdateIDs</name>" \
-"      <dataType>string</dataType>" \
-"    </stateVariable>" \
-"  </serviceStateTable>" \
-"</scpd>"
+"      </allowedValueList>" )\
 
 /* CDS Action Names */
-#define SERVICE_CDS_ACTION_SEARCH_CAPS        "GetSearchCapabilities"
-#define SERVICE_CDS_ACTION_SORT_CAPS          "GetSortCapabilities"
-#define SERVICE_CDS_ACTION_UPDATE_ID          "GetSystemUpdateID"
-#define SERVICE_CDS_ACTION_BROWSE             "Browse"
-#define SERVICE_CDS_ACTION_SEARCH             "Search"
-#define SERVICE_CDS_ACTION_CREATE_OBJ         "CreateObject"
-#define SERVICE_CDS_ACTION_DESTROY_OBJ        "DestroyObject"
-#define SERVICE_CDS_ACTION_UPDATE_OBJ         "UpdateObject"
-#define SERVICE_CDS_ACTION_IMPORT_RES         "ImportResource"
-#define SERVICE_CDS_ACTION_EXPORT_RES         "ExportResource"
-#define SERVICE_CDS_ACTION_STOP_TRANSFER      "StopTransferResource"
-#define SERVICE_CDS_ACTION_GET_PROGRESS       "GetTransferProgress"
-#define SERVICE_CDS_ACTION_DELETE_RES         "DeleteResource"
-#define SERVICE_CDS_ACTION_CREATE_REF         "CreateReference"
+#define CDS_ACTION_SEARCH_CAPS        "GetSearchCapabilities"
+#define CDS_ACTION_SORT_CAPS          "GetSortCapabilities"
+#define CDS_ACTION_UPDATE_ID          "GetSystemUpdateID"
+#define CDS_ACTION_BROWSE             "Browse"
+#define CDS_ACTION_SEARCH             "Search"
+#define CDS_ACTION_CREATE_OBJ         "CreateObject"
+#define CDS_ACTION_DESTROY_OBJ        "DestroyObject"
+#define CDS_ACTION_UPDATE_OBJ         "UpdateObject"
+#define CDS_ACTION_IMPORT_RES         "ImportResource"
+#define CDS_ACTION_EXPORT_RES         "ExportResource"
+#define CDS_ACTION_STOP_TRANSFER      "StopTransferResource"
+#define CDS_ACTION_GET_PROGRESS       "GetTransferProgress"
+#define CDS_ACTION_DELETE_RES         "DeleteResource"
+#define CDS_ACTION_CREATE_REF         "CreateReference"
 
 /* CDS Arguments */
-#define SERVICE_CDS_ARG_SEARCH_CAPS           "SearchCaps"
-#define SERVICE_CDS_ARG_SORT_CAPS             "SortCaps"
-#define SERVICE_CDS_ARG_UPDATE_ID             "Id"
+#define CDS_ARG_SEARCH_CAPS           "SearchCaps"
+#define CDS_ARG_SORT_CAPS             "SortCaps"
+#define CDS_ARG_ID                    "Id"
 
 /* CDS Browse Input Arguments */
-#define SERVICE_CDS_ARG_OBJECT_ID             "ObjectID"
-#define SERVICE_CDS_ARG_BROWSE_FLAG           "BrowseFlag"
-#define SERVICE_CDS_ARG_FILTER                "Filter"
-#define SERVICE_CDS_ARG_START_INDEX           "StartingIndex"
-#define SERVICE_CDS_ARG_REQUEST_COUNT         "RequestedCount"
-#define SERVICE_CDS_ARG_SORT_CRIT             "SortCriteria"
-#define SERVICE_CDS_ARG_SEARCH_CRIT           "SearchCriteria"
+#define CDS_ARG_OBJECT_ID             "ObjectID"
+#define CDS_ARG_BROWSE_FLAG           "BrowseFlag"
+#define CDS_ARG_FILTER                "Filter"
+#define CDS_ARG_START_INDEX           "StartingIndex"
+#define CDS_ARG_REQUEST_COUNT         "RequestedCount"
+#define CDS_ARG_SORT_CRIT             "SortCriteria"
+#define CDS_ARG_SEARCH_CRIT           "SearchCriteria"
+#define CDS_ARG_RESULT                "Result"
+#define CDS_ARG_NUM_RETURNED          "NumberReturned"
+#define CDS_ARG_TOTAL_MATCHES         "TotalMatches"
+#define CDS_ARG_UPDATE_ID             "UpdateID"
+
+#define CDS_ARG_CONTAINER_ID          "ContainerID"
 
 /* CDS Argument Values */
-#define SERVICE_CDS_ROOT_OBJECT_ID            "0"
-#define SERVICE_CDS_BROWSE_METADATA           "BrowseMetadata"
-#define SERVICE_CDS_BROWSE_CHILDREN           "BrowseDirectChildren"
-#define SERVICE_CDS_OBJECT_CONTAINER          "object.container.storageFolder"
-#define SERVICE_CDS_DIDL_RESULT               "Result"
-#define SERVICE_CDS_DIDL_NUM_RETURNED         "NumberReturned"
-#define SERVICE_CDS_DIDL_TOTAL_MATCH          "TotalMatches"
-#define SERVICE_CDS_DIDL_UPDATE_ID            "UpdateID"
+#define CDS_ROOT_OBJECT_ID            "0"
+#define CDS_BROWSE_METADATA           "BrowseMetadata"
+#define CDS_BROWSE_CHILDREN           "BrowseDirectChildren"
+#define CDS_OBJECT_CONTAINER          "object.container.storageFolder"
+#define CDS_DIDL_RESULT               "Result"
+#define CDS_DIDL_NUM_RETURNED         "NumberReturned"
+#define CDS_DIDL_TOTAL_MATCH          "TotalMatches"
+#define CDS_DIDL_UPDATE_ID            "UpdateID"
 
 /* CDS Search Parameters */
 #define SEARCH_CLASS_MATCH_KEYWORD            "(upnp:class = \""
@@ -382,12 +159,6 @@
 #define CDS_ERR_ACESS_DENIED_DESTINATION      719
 #define CDS_ERR_PROCESS_REQUEST               720
 
-char *
-cds_get_description (dlna_t *dlna)
-{
-  return strdup(CDS_DESCRIPTION);
-}
-
 /*
  * GetSearchCapabilities:
  *   This action returns the searching capabilities that
@@ -402,7 +173,7 @@ cds_get_search_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, SERVICE_CDS_ARG_SEARCH_CAPS, "");
+  upnp_add_response (ev, CDS_ARG_SEARCH_CAPS, "");
   
   return ev->status;
 }
@@ -420,7 +191,7 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, SERVICE_CDS_ARG_SORT_CAPS, "");
+  upnp_add_response (ev, CDS_ARG_SORT_CAPS, "");
   
   return ev->status;
 }
@@ -440,8 +211,8 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, SERVICE_CDS_ARG_UPDATE_ID,
-                     SERVICE_CDS_ROOT_OBJECT_ID);
+  upnp_add_response (ev, CDS_ARG_UPDATE_ID,
+                     CDS_ROOT_OBJECT_ID);
   
   return ev->status;
 }
@@ -614,7 +385,7 @@ didl_add_container (buffer_t *out, vfs_item_t *item,
   didl_add_param (out, DIDL_CONTAINER_SEARCH, searchable);
   buffer_append (out, ">");
 
-  didl_add_tag (out, DIDL_CONTAINER_CLASS, SERVICE_CDS_OBJECT_CONTAINER);
+  didl_add_tag (out, DIDL_CONTAINER_CLASS, CDS_OBJECT_CONTAINER);
   didl_add_tag (out, DIDL_CONTAINER_TITLE, item->title);
 
   buffer_appendf (out, "</%s>", DIDL_CONTAINER);
@@ -646,9 +417,9 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
   }
   didl_add_footer (out);
   
-  upnp_add_response (ev, SERVICE_CDS_DIDL_RESULT, out->buf);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_NUM_RETURNED, "1");
-  upnp_add_response (ev, SERVICE_CDS_DIDL_TOTAL_MATCH, "1");
+  upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
+  upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, "1");
+  upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, "1");
 
   return result_count;
 }
@@ -703,11 +474,11 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
 
   didl_add_footer (out);
 
-  upnp_add_response (ev, SERVICE_CDS_DIDL_RESULT, out->buf);
+  upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   sprintf (tmp, "%d", result_count);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_NUM_RETURNED, tmp);
+  upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
   sprintf (tmp, "%d", item->u.container.children_count);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_TOTAL_MATCH, tmp);
+  upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
 
   return result_count;
 }
@@ -746,12 +517,12 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
   
   /* Retrieve input arguments */
-  id     = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_OBJECT_ID);
-  flag   = upnp_get_string (ev->ar, SERVICE_CDS_ARG_BROWSE_FLAG);
-  filter = upnp_get_string (ev->ar, SERVICE_CDS_ARG_FILTER);
-  index  = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_START_INDEX);
-  count  = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_REQUEST_COUNT);
-  sort   = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_SORT_CRIT);
+  id     = upnp_get_ui4    (ev->ar, CDS_ARG_OBJECT_ID);
+  flag   = upnp_get_string (ev->ar, CDS_ARG_BROWSE_FLAG);
+  filter = upnp_get_string (ev->ar, CDS_ARG_FILTER);
+  index  = upnp_get_ui4    (ev->ar, CDS_ARG_START_INDEX);
+  count  = upnp_get_ui4    (ev->ar, CDS_ARG_REQUEST_COUNT);
+  sort   = upnp_get_ui4    (ev->ar, CDS_ARG_SORT_CRIT);
 
   if (!flag || !filter)
   {
@@ -760,7 +531,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
  
   /* check for arguments validity */
-  if (!strcmp (flag, SERVICE_CDS_BROWSE_METADATA))
+  if (!strcmp (flag, CDS_BROWSE_METADATA))
   {
     if (index)
     {
@@ -769,7 +540,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     }
     meta = 1;
     }
-  else if (!strcmp (flag, SERVICE_CDS_BROWSE_CHILDREN))
+  else if (!strcmp (flag, CDS_BROWSE_CHILDREN))
     meta = 0;
   else
   {
@@ -803,8 +574,8 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   buffer_free (out);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_UPDATE_ID,
-                     SERVICE_CDS_ROOT_OBJECT_ID);
+  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
+                     CDS_ROOT_OBJECT_ID);
   
   return ev->status;
 
@@ -959,11 +730,11 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
 
   didl_add_footer (out);
 
-  upnp_add_response (ev, SERVICE_CDS_DIDL_RESULT, out->buf);
+  upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   sprintf (tmp, "%d", result_count);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_NUM_RETURNED, tmp);
+  upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
   sprintf (tmp, "%d", result_count);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_TOTAL_MATCH, tmp);
+  upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
 
   return result_count;
 }
@@ -1001,13 +772,13 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  id              = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_OBJECT_ID);
+  id              = upnp_get_ui4    (ev->ar, CDS_ARG_OBJECT_ID);
   search_criteria = upnp_get_string (ev->ar,
-                                     SERVICE_CDS_ARG_SEARCH_CRIT);
-  filter          = upnp_get_string (ev->ar, SERVICE_CDS_ARG_FILTER);
-  index           = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_START_INDEX);
-  count           = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_REQUEST_COUNT);
-  sort_criteria   = upnp_get_ui4    (ev->ar, SERVICE_CDS_ARG_SORT_CRIT);
+                                     CDS_ARG_SEARCH_CRIT);
+  filter          = upnp_get_string (ev->ar, CDS_ARG_FILTER);
+  index           = upnp_get_ui4    (ev->ar, CDS_ARG_START_INDEX);
+  count           = upnp_get_ui4    (ev->ar, CDS_ARG_REQUEST_COUNT);
+  sort_criteria   = upnp_get_ui4    (ev->ar, CDS_ARG_SORT_CRIT);
 
   if (!search_criteria || !filter)
   {
@@ -1037,8 +808,8 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   }
   
   buffer_free (out);
-  upnp_add_response (ev, SERVICE_CDS_DIDL_UPDATE_ID,
-                     SERVICE_CDS_ROOT_OBJECT_ID);
+  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
+                     CDS_ROOT_OBJECT_ID);
 
   free (search_criteria);
   free (filter);
@@ -1059,26 +830,85 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {
   /* CDS Required Actions */
-  { SERVICE_CDS_ACTION_SEARCH_CAPS,    cds_get_search_capabilities },
-  { SERVICE_CDS_ACTION_SORT_CAPS,      cds_get_sort_capabilities },
-  { SERVICE_CDS_ACTION_UPDATE_ID,      cds_get_system_update_id },
-  { SERVICE_CDS_ACTION_BROWSE,         cds_browse },
+  { CDS_ACTION_SEARCH_CAPS, 
+    ACTION_ARG_OUT(CDS_ARG_SEARCH_CAPS,"SearchCapabilities") ,
+    cds_get_search_capabilities },
+  { CDS_ACTION_SORT_CAPS,
+    ACTION_ARG_OUT(CDS_ARG_SORT_CAPS,"SortCapabilities") ,
+    cds_get_sort_capabilities },
+  { CDS_ACTION_UPDATE_ID,
+    ACTION_ARG_OUT(CDS_ARG_ID,"SystemUpdateID"),
+    cds_get_system_update_id },
+  { CDS_ACTION_BROWSE,
+    ACTION_ARG_IN(CDS_ARG_OBJECT_ID,"A_ARG_TYPE_ObjectID") \
+    ACTION_ARG_IN(CDS_ARG_BROWSE_FLAG,"A_ARG_TYPE_BrowseFlag") \
+    ACTION_ARG_IN(CDS_ARG_FILTER,"A_ARG_TYPE_Filter") \
+    ACTION_ARG_IN(CDS_ARG_START_INDEX,"A_ARG_TYPE_Index") \
+    ACTION_ARG_IN(CDS_ARG_REQUEST_COUNT,"A_ARG_TYPE_Count") \
+    ACTION_ARG_IN(CDS_ARG_SORT_CRIT,"A_ARG_TYPE_SortCriteria") \
+    ACTION_ARG_OUT(CDS_ARG_RESULT,"A_ARG_TYPE_Result") \
+    ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
+    ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
+    ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID"),
+    cds_browse },
 
   /* CDS Optional Actions */
-  { SERVICE_CDS_ACTION_SEARCH,         cds_search },
-  { SERVICE_CDS_ACTION_CREATE_OBJ,     NULL },
-  { SERVICE_CDS_ACTION_DESTROY_OBJ,    NULL },
-  { SERVICE_CDS_ACTION_UPDATE_OBJ,     NULL },
-  { SERVICE_CDS_ACTION_IMPORT_RES,     NULL },
-  { SERVICE_CDS_ACTION_EXPORT_RES,     NULL },
-  { SERVICE_CDS_ACTION_STOP_TRANSFER,  NULL },
-  { SERVICE_CDS_ACTION_GET_PROGRESS,   NULL },
-  { SERVICE_CDS_ACTION_DELETE_RES,     NULL },
-  { SERVICE_CDS_ACTION_CREATE_REF,     NULL },
+  { CDS_ACTION_SEARCH,
+    ACTION_ARG_IN(CDS_ARG_CONTAINER_ID,"A_ARG_TYPE_ObjectID") \
+    ACTION_ARG_IN(CDS_ARG_SEARCH_CRIT,"A_ARG_TYPE_SearchCriteria") \
+    ACTION_ARG_IN(CDS_ARG_FILTER,"A_ARG_TYPE_Filter") \
+    ACTION_ARG_IN(CDS_ARG_START_INDEX,"A_ARG_TYPE_Index") \
+    ACTION_ARG_IN(CDS_ARG_REQUEST_COUNT,"A_ARG_TYPE_Count") \
+    ACTION_ARG_IN(CDS_ARG_SORT_CRIT,"A_ARG_TYPE_SortCriteria") \
+    ACTION_ARG_OUT(CDS_ARG_RESULT,"A_ARG_TYPE_Result") \
+    ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
+    ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
+    ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID") ,
+    cds_search },
+  { CDS_ACTION_CREATE_OBJ, NULL,     NULL },
+  { CDS_ACTION_DESTROY_OBJ, NULL,    NULL },
+  { CDS_ACTION_UPDATE_OBJ, NULL,     NULL },
+  { CDS_ACTION_IMPORT_RES, NULL,     NULL },
+  { CDS_ACTION_EXPORT_RES, NULL,     NULL },
+  { CDS_ACTION_STOP_TRANSFER, NULL,  NULL },
+  { CDS_ACTION_GET_PROGRESS, NULL,   NULL },
+  { CDS_ACTION_DELETE_RES, NULL,     NULL },
+  { CDS_ACTION_CREATE_REF, NULL,     NULL },
 
   /* CDS Vendor-specific Actions */ 
-  { NULL,                              NULL }
+  { NULL, NULL,                              NULL }
 };
+
+upnp_service_variable_t cds_service_variables[] = {
+  { "TransferIDs", E_STRING, 1},
+  { "A_ARG_TYPE_ObjectID", E_STRING, 0},
+  { "A_ARG_TYPE_ObjectID", E_STRING, 0},
+  { "A_ARG_TYPE_Result", E_STRING, 0},
+  { "A_ARG_TYPE_SearchCriteria", E_STRING, 0},
+  { "A_ARG_TYPE_BrowseFlag", E_STRING, 0},
+  { "A_ARG_TYPE_Filter", E_STRING, 0},
+  { "A_ARG_TYPE_SortCriteria", E_STRING, 0},
+  { "A_ARG_TYPE_Index", E_UI4, 0},
+  { "A_ARG_TYPE_Count", E_UI4, 0},
+  { "A_ARG_TYPE_UpdateID", E_UI4, 0},
+  { "A_ARG_TYPE_TransferID", E_UI4, 0},
+  { "A_ARG_TYPE_TransferStatus", E_STRING, 0},
+  { "A_ARG_TYPE_TransferLength", E_STRING, 0},
+  { "A_ARG_TYPE_TransferTotal", E_STRING, 0},
+  { "A_ARG_TYPE_TagValueList", E_STRING, 0},
+  { "A_ARG_TYPE_URI", E_URI, 0},
+  { "SearchCapabilities", E_STRING, 0},
+  { "SortCapabilities", E_STRING, 0},
+  { "SystemUpdateID", E_UI4, 1},
+  { "ContainerUpdateIDs", E_UI4, 1},
+};
+
+static char *
+cds_get_description (dlna_t *dlna)
+{
+  return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
+}
+
 
 upnp_service_t cds_service = {
   .id           = CDS_SERVICE_ID,

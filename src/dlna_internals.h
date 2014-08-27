@@ -107,6 +107,7 @@ struct dlna_dmp_s
 /* UPnP Service properties */
 typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
+typedef struct upnp_service_variable_s  upnp_service_variable_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
 
 struct upnp_action_event_s {
@@ -115,8 +116,23 @@ struct upnp_action_event_s {
   upnp_service_t *service;
 };
 
+struct upnp_service_variable_s {
+  char *name;
+  enum {
+    E_STRING,
+    E_BOOLEAN,
+    E_I2,
+    E_UI2,
+    E_I4,
+    E_UI4,
+    E_URI,
+  } type;
+  int eventing;
+};
+
 struct upnp_service_action_s {
   char *name;
+  char *args;
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 
