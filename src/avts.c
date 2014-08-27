@@ -56,6 +56,8 @@
 #define SERVICE_AVTS_ARG_SPEED                 "TransportPlaySpeed"
 
 #define AVTS_ERR_ACTION_FAILED                 501
+#define AVTS_ERR_INVALID_INSTANCE              718 
+
 
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
@@ -177,9 +179,8 @@ avts_set_thread (dlna_t *dlna, uint32_t id)
 static int
 avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char *URI, *URIMetadata;
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  char *uri, *uriMetadata;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -196,35 +197,32 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
-  URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI);
-  URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI_METADATA);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  uri   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI);
+  uriMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_CURRENT_URI_METADATA);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
   if (!instance)
   {
-    instance = avts_set_thread (dlna, InstanceID);
+    instance = avts_set_thread (dlna, instanceID);
   }
   if (instance->state == E_STOPPED)
   {
     instance->playlist = playlist_empty (instance->playlist);
   }
-  instance->playlist = playlist_add_item (instance->playlist, dlna, URI, URIMetadata);
+  instance->playlist = playlist_add_item (instance->playlist, dlna, uri, uriMetadata);
 
-  out = buffer_new ();
-  buffer_free (out);
-  free (URI);
-  free (URIMetadata);
+  free (uri);
+  free (uriMetadata);
 
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char *URI, *URIMetadata;
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  char *uri, *uriMetadata;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -241,27 +239,29 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
-  URI   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI);
-  URIMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI_METADATA);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  uri   = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI);
+  uriMetadata = upnp_get_string (ev->ar, SERVICE_AVTS_ARG_NEXT_URI_METADATA);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
-  playlist_add_item (instance->playlist, dlna, URI, URIMetadata);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+  playlist_add_item (instance->playlist, dlna, uri, uriMetadata);
 
-  out = buffer_new ();
-  buffer_free (out);
-  free (URI);
-  free (URIMetadata);
+  free (uri);
+  free (uriMetadata);
 
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_play (dlna_t *dlna, upnp_action_event_t *ev)
 {
   int speed;
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -278,26 +278,27 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
   speed = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_SPEED);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
   ithread_mutex_lock (&instance->state_mutex);
   instance->state = E_PLAYING;
   ithread_cond_signal (&instance->state_change);
   ithread_mutex_unlock (&instance->state_mutex);
 
-  out = buffer_new ();
-  buffer_free (out);
-
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -314,26 +315,29 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
   ithread_mutex_lock (&instance->state_mutex);
   instance->state = E_STOPPED;
   ithread_cond_signal (&instance->state_change);
   ithread_mutex_unlock (&instance->state_mutex);
   ithread_join (instance->playthread, NULL);
   HASH_DEL (dlna->dmp, instance);
-  out = buffer_new ();
-  buffer_free (out);
 
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -350,9 +354,15 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
   ithread_mutex_lock (&instance->state_mutex);
   if (instance->state == E_PLAYING)
   {
@@ -361,17 +371,13 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
   }
   ithread_mutex_unlock (&instance->state_mutex);
 
-  out = buffer_new ();
-  buffer_free (out);
-
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -388,21 +394,23 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
 
-  out = buffer_new ();
-  buffer_free (out);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
 
-  return 0;
+  return ev->status;
 }
 
 static int
 avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  uint32_t InstanceID;
-  buffer_t *out = NULL;
+  uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
 
   if (!dlna || !ev)
@@ -419,14 +427,17 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* Retrieve input arguments */
-  InstanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
+  instanceID   = upnp_get_ui4 (ev->ar, SERVICE_AVTS_ARG_INSTANCEID);
 
-  HASH_FIND_INT (dlna->dmp, &InstanceID, instance);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
 
-  out = buffer_new ();
-  buffer_free (out);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
 
-  return 0;
+  return ev->status;
 }
 
 /* List of UPnP AVTransport Service actions */
