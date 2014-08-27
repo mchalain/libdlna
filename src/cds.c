@@ -723,7 +723,7 @@ static int
 cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 {
   /* input arguments */
-  int id, index, count, sort;
+  uint32_t id, index, count, sort;
   char *flag = NULL, *filter = NULL;
 
   /* output arguments */
@@ -979,7 +979,7 @@ static int
 cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 {
   /* input arguments */
-  int index, count, id, sort_criteria;
+  uint32_t index, count, id, sort_criteria;
   char *search_criteria = NULL, *filter = NULL;
 
   /* output arguments */

@@ -125,7 +125,7 @@ upnp_http_get_info (void *cookie,
   }
 
   /* ask for anything else ... */
-  id = atoi (strrchr (filename, '/') + 1);
+  id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
   item = vfs_get_item_by_id (dlna, id);
   if (!item)
     return HTTP_ERROR;
@@ -284,7 +284,7 @@ upnp_http_open (void *cookie,
   }
   
   /* ask for anything else ... */
-  id = atoi (strrchr (filename, '/') + 1);
+  id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
   item = vfs_get_item_by_id (dlna, id);
   if (!item)
     return NULL;
