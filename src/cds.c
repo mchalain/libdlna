@@ -911,8 +911,15 @@ upnp_service_action_t cds_service_actions[] = {
 };
 
 upnp_service_variable_t cds_service_variables[] = {
+  { "SearchCapabilities", E_STRING, 0},
+  { "SortCapabilities", E_STRING, 0},
+  { "SystemUpdateID", E_UI4, 1},
+  { "ContainerUpdateIDs", E_UI4, 1},
+  { "ServiceResetToken", E_STRING, 0},
+  { "LastChange", E_STRING, 1},
   { "TransferIDs", E_STRING, 1},
-  { "A_ARG_TYPE_ObjectID", E_STRING, 0},
+  { "FeatureList", E_STRING, 0},
+  { "DeviceMode", E_STRING, 1},
   { "A_ARG_TYPE_ObjectID", E_STRING, 0},
   { "A_ARG_TYPE_Result", E_STRING, 0},
   { "A_ARG_TYPE_SearchCriteria", E_STRING, 0},
@@ -928,10 +935,6 @@ upnp_service_variable_t cds_service_variables[] = {
   { "A_ARG_TYPE_TransferTotal", E_STRING, 0},
   { "A_ARG_TYPE_TagValueList", E_STRING, 0},
   { "A_ARG_TYPE_URI", E_URI, 0},
-  { "SearchCapabilities", E_STRING, 0},
-  { "SortCapabilities", E_STRING, 0},
-  { "SystemUpdateID", E_UI4, 1},
-  { "ContainerUpdateIDs", E_UI4, 1},
 };
 
 static char *
