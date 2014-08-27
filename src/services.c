@@ -93,7 +93,8 @@ dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp
     buffer_appendf (b, SERVICE_ACTIONLIST_HEADER);
     while (actions->name)
     {
-      buffer_appendf (b, SERVICE_ACTION_DEF, actions->name, actions->args?actions->args:"");
+      if (actions->cb)
+        buffer_appendf (b, SERVICE_ACTION_DEF, actions->name, actions->args?actions->args:"");
       actions++;
     }
     buffer_appendf (b, SERVICE_ACTIONLIST_FOOTER);

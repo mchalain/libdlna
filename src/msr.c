@@ -173,7 +173,7 @@ static upnp_service_action_t msr_service_actions[] = {
   { SERVICE_MSR_ACTION_IS_AUTHORIZED, NULL,   msr_is_authorized },
   { SERVICE_MSR_ACTION_REGISTER_DEVICE, NULL, msr_register_device },
   { SERVICE_MSR_ACTION_IS_VALIDATED, NULL,    msr_is_validated },
-  { NULL,                               NULL }
+  { NULL, NULL,                              NULL }
 };
 
 upnp_service_t msr_service = {
