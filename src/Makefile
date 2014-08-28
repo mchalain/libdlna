@@ -52,6 +52,7 @@ SRCS =  \
 	dlna.c \
 	upnp.c \
 	buffer.c \
+	didl.c \
 	vfs.c \
 	services.c \
 	cms.c \
