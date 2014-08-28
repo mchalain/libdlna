@@ -195,6 +195,7 @@ upnp_service_variable_t cms_service_variables[] = {
   { "A_ARG_TYPE_ConnectionID", E_I4, 0},
   { "A_ARG_TYPE_AVTransportID", E_I4, 0},
   { "A_ARG_TYPE_RcsID", E_I4, 0},
+  { NULL, 0, 0},
 };
 
 static char *
