@@ -291,6 +291,28 @@ playlist_next (dlna_dmp_item_t *playlist, uint32_t id)
 }
 
 static int
+playlist_count (dlna_dmp_item_t *playlist)
+{
+  int i = 0;
+  while ((playlist = playlist->hh.next)) i++;
+  return i;
+}
+
+static int
+playlist_index (dlna_dmp_item_t *playlist, dlna_dmp_item_t *item)
+{
+  int i = 0;
+  while (playlist && playlist != item)
+  {
+    playlist = playlist->hh.next;
+    i++;
+  }
+  if (playlist)
+    return i;
+  return 0;
+}
+
+static int
 playitem_prepare (dlna_item_t *item dlna_unused)
 {
   return 0;
@@ -306,8 +328,10 @@ static int
 instance_change_state (dlna_dmp_t *instance, int newstate)
 {
   ithread_mutex_lock (&instance->state_mutex);
-  switch (newstate)
+  if (instance->state != E_NO_MEDIA && newstate != -1)
   {
+    switch (newstate)
+    {
     case E_RECORDING:
       /* recording is not allowed */
     break;
@@ -330,6 +354,7 @@ instance_change_state (dlna_dmp_t *instance, int newstate)
         ithread_cond_signal (&instance->state_change);
       }
     break;
+    }
   }
   ithread_mutex_unlock (&instance->state_mutex);
   return instance->state;
@@ -518,6 +543,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
+  buffer_t *out;
 
   if (!dlna || !ev)
   {
@@ -541,15 +567,35 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, "1");
+  out = buffer_new ();
+  buffer_appendf (out, "%u", playlist_count(instance->playlist));
+  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
+  buffer_free (out);
+
   upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "NOT_IMPLEMENTED");
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    buffer_appendf (out, "%s", item->item->filename);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "NOT_IMPLEMENTED");
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
 
   return ev->status;
 }
@@ -559,6 +605,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
+  buffer_t *out;
 
   if (!dlna || !ev)
   {
@@ -582,16 +629,38 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_CURRENT_TYPE, "");
-  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, "1");
+  upnp_add_response (ev, AVTS_ARG_CURRENT_TYPE, "TRACK_AWARE");
+
+  out = buffer_new ();
+  buffer_appendf (out, "%u", playlist_count(instance->playlist));
+  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
+  buffer_free (out);
+
   upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "NOT_IMPLEMENTED");
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    buffer_appendf (out, "%s", item->item->filename);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "NOT_IMPLEMENTED");
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
+
 
   return ev->status;
 }
@@ -624,8 +693,28 @@ avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_STATE, "");
-  upnp_add_response (ev, AVTS_ARG_STATUS, "1");
+  switch (instance_change_state(instance, -1))
+  {
+  case E_NO_MEDIA:
+    upnp_add_response (ev, AVTS_ARG_STATE, "NO_MEDIA_PRESENT");
+    break;
+  case E_STOPPED:
+    upnp_add_response (ev, AVTS_ARG_STATE, "STOPPED");
+    break;
+  case E_PLAYING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "PLAYING");
+    break;
+  case E_TRANSITIONING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "TRANSITIONING");
+    break;
+  case E_PAUSING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "PAUSED_PLAYBACK");
+    break;
+  case E_RECORDING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "RECORDING");
+    break;
+  }
+  upnp_add_response (ev, AVTS_ARG_STATUS, "OK");
   upnp_add_response (ev, AVTS_ARG_CURRENT_SPEED, "1");
 
   return ev->status;
@@ -636,6 +725,8 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
+  buffer_t *out;
+  int index = 0;
 
   if (!dlna || !ev)
   {
@@ -659,14 +750,32 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
+  out = buffer_new ();
+  if (instance->current_item)
+    index = playlist_index (instance->playlist, instance->current_item);
+  buffer_appendf (out, "%u", index);
+  upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
+  buffer_free (out);
   upnp_add_response (ev, AVTS_ARG_TRACK, "");
-  upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, "1");
-  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, "1");
-  upnp_add_response (ev, AVTS_ARG_TRACK_URI, "1");
-  upnp_add_response (ev, AVTS_ARG_RTIME, "1");
-  upnp_add_response (ev, AVTS_ARG_ATIME, "1");
-  upnp_add_response (ev, AVTS_ARG_RCOUNT, "1");
-  upnp_add_response (ev, AVTS_ARG_ACOUNT, "1");
+
+  out = buffer_new ();
+  if (instance->current_item && instance->current_item->item->properties)
+    buffer_appendf (out, "%s", instance->current_item->item->properties->duration);
+  upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, "NOT_IMPLEMENTED");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_RCOUNT, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_ACOUNT, "NOT_IMPLEMENTED");
 
   return ev->status;
 }

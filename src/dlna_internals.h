@@ -95,6 +95,7 @@ struct dlna_dmp_s
   dlna_dmp_item_t *playlist;
   dlna_dmp_item_t *current_item;
   enum {
+    E_NO_MEDIA,
     E_STOPPED,
     E_PLAYING,
     E_PAUSING,
