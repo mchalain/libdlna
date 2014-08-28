@@ -135,6 +135,38 @@ didl_add_value (buffer_t *out, char *param, off_t value)
 }
 
 void
+didl_add_short_item (buffer_t *out, dlna_dmp_item_t *item)
+{
+  dlna_metadata_t *metadata;
+
+  buffer_appendf (out, "<%s", DIDL_ITEM);
+  didl_add_value (out, DIDL_ITEM_ID, item->id);
+  didl_add_value (out, DIDL_ITEM_PARENT_ID, 0);
+  buffer_append (out, ">");
+
+  metadata = item->item->metadata;
+
+  if (metadata && strlen (metadata->title) > 1)
+    didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
+  else
+    didl_add_tag (out, DIDL_ITEM_TITLE, item->item->filename);
+  if (metadata)
+  {
+    if (strlen ( metadata->author) > 1)
+      didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
+    if (strlen ( metadata->comment) > 1)
+      didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
+    if (strlen ( metadata->album) > 1)
+      didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
+    if (metadata->track)
+      didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
+    if (strlen ( metadata->genre) > 1)
+      didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
+  }
+  buffer_appendf (out, "</%s>", DIDL_ITEM);
+}
+
+void
 didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
                char *restricted, char *filter)
 {

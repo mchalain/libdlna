@@ -34,6 +34,8 @@ didl_add_param (struct buffer_s *out, char *param, char *value);
 void
 didl_add_value (struct buffer_s *out, char *param, off_t value);
 void
+didl_add_short_item (buffer_t *out, dlna_dmp_item_t *item);
+void
 didl_add_item (dlna_t *dlna, struct buffer_s *out, vfs_item_t *item,
                char *restricted, char *filter);
 void

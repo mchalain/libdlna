@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
+#include "didl.h"
 #include "avts.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
@@ -580,7 +581,11 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "NOT_IMPLEMENTED");
+  out = buffer_new ();
+  if (instance->current_item)
+    didl_add_short_item (out, instance->current_item);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
+  buffer_free (out);
 
   out = buffer_new ();
   if (instance->current_item->hh.next)
@@ -591,7 +596,14 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "NOT_IMPLEMENTED");
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    didl_add_short_item (out, item);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
+  buffer_free (out);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
   upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
@@ -644,7 +656,11 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "NOT_IMPLEMENTED");
+  out = buffer_new ();
+  if (instance->current_item)
+    didl_add_short_item (out, instance->current_item);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
+  buffer_free (out);
 
   out = buffer_new ();
   if (instance->current_item->hh.next)
@@ -655,7 +671,14 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "NOT_IMPLEMENTED");
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    didl_add_short_item (out, item);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
+  buffer_free (out);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
   upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
