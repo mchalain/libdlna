@@ -424,7 +424,7 @@ rcs_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, rcs_service_actions, rcs_service_variables);
 }
 
-upnp_service_t rcs_service = {
+dlna_service_t rcs_service = {
   .id           = RCS_SERVICE_ID,
   .type         = RCS_SERVICE_TYPE,
   .scpd_url     = RCS_URL,

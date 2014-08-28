@@ -913,8 +913,7 @@ cds_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
 }
 
-
-upnp_service_t cds_service = {
+dlna_service_t cds_service = {
   .id           = CDS_SERVICE_ID,
   .type         = CDS_SERVICE_TYPE,
   .scpd_url     = CDS_URL,

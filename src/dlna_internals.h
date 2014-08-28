@@ -105,7 +105,6 @@ struct dlna_dmp_s
 };
 
 /* UPnP Service properties */
-typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_variable_s  upnp_service_variable_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -113,7 +112,7 @@ typedef struct upnp_service_action_s  upnp_service_action_t;
 struct upnp_action_event_s {
   struct dlna_Action_Request *ar;
   int status;
-  upnp_service_t *service;
+  dlna_service_t *service;
 };
 
 struct upnp_service_variable_s {
@@ -136,19 +135,7 @@ struct upnp_service_action_s {
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 
-struct upnp_service_s {
-  char *id;
-  char *type;
-  char *scpd_url;
-  char *control_url;
-  char *event_url;
-  upnp_service_action_t *actions;
-  char *(*get_description) (dlna_t *dlna);
-  UT_hash_handle hh;
-};
-
-upnp_service_t *dlna_service_find (dlna_t *dlna, char *id);
-void dlna_service_unregister (dlna_t *dlna, dlna_service_type_t srv);
+dlna_service_t *dlna_service_find (dlna_t *dlna, char *id);
 void dlna_service_unregister_all (dlna_t *dlna);
 
 /**
@@ -173,7 +160,7 @@ struct dlna_s {
   dlna_http_callback_t *http_callback;
 
   /* UPnP Services */
-  upnp_service_t *services;
+  dlna_service_t *services;
   
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;

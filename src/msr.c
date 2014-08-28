@@ -176,7 +176,7 @@ static upnp_service_action_t msr_service_actions[] = {
   { NULL, NULL,                              NULL }
 };
 
-upnp_service_t msr_service = {
+dlna_service_t msr_service = {
   .id           = MSR_SERVICE_ID,
   .type         = MSR_SERVICE_TYPE,
   .scpd_url     = MSR_URL,

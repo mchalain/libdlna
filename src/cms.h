@@ -29,6 +29,6 @@
 #define CMS_CONTROL_URL      "cms_control"
 #define CMS_EVENT_URL        "cms_event"
 
-extern upnp_service_t cms_service;
+extern dlna_service_t cms_service;
 
 #endif /* CMS_H */

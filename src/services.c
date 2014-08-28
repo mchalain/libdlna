@@ -120,33 +120,16 @@ dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp
 }
 
 void
-dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
+dlna_service_register (dlna_t *dlna, dlna_service_t *service)
 {
-  upnp_service_t *service;
-
-  service = calloc (1, sizeof (upnp_service_t));
-  
-  switch (srv)
-  {
-  case DLNA_SERVICE_CONNECTION_MANAGER:
-    service = &cms_service;
-    break;
-  case DLNA_SERVICE_CONTENT_DIRECTORY:
-    service = &cds_service;
-   break;
-  case DLNA_SERVICE_AV_TRANSPORT:
-    service = &avts_service;
-    break;
-  case DLNA_SERVICE_MS_REGISTAR:
-    service = &msr_service;
-    break;
-  }
+  if (!dlna || !service)
+    return;
 
   HASH_ADD_STR (dlna->services, id, service);
 }
 
 static void
-dlna_service_free (dlna_t *dlna, upnp_service_t *service)
+dlna_service_free (dlna_t *dlna, dlna_service_t *service)
 {
   if (!dlna || !service)
     return;
@@ -154,10 +137,10 @@ dlna_service_free (dlna_t *dlna, upnp_service_t *service)
   HASH_DEL (dlna->services, service);
 }
 
-upnp_service_t *
+dlna_service_t *
 dlna_service_find (dlna_t *dlna, char *id)
 {
-  upnp_service_t *service;
+  dlna_service_t *service;
 
   if (!dlna || !dlna->services || !id)
     return NULL;
@@ -170,39 +153,15 @@ dlna_service_find (dlna_t *dlna, char *id)
 }
 
 void
-dlna_service_unregister (dlna_t *dlna, dlna_service_type_t srv)
+dlna_service_unregister (dlna_t *dlna, dlna_service_t *service)
 {
-  upnp_service_t *service;
-  char *srv_id = NULL;
-  
-  switch (srv)
-  {
-  case DLNA_SERVICE_CONNECTION_MANAGER:
-    srv_id = CMS_SERVICE_ID;
-    break;
-  case DLNA_SERVICE_CONTENT_DIRECTORY:
-    srv_id = CDS_SERVICE_ID;
-    break;
-  case DLNA_SERVICE_AV_TRANSPORT:
-    srv_id = AVTS_SERVICE_ID;
-    break;
-  case DLNA_SERVICE_MS_REGISTAR:
-    srv_id = MSR_SERVICE_ID;
-    break;
-  }
-
-  for (service = dlna->services; service; service = service->hh.next)
-    if (service->id && srv_id && !strcmp (service->id, srv_id))
-    {
-      dlna_service_free (dlna, service);
-      break;
-    }
+  dlna_service_free (dlna, service);
 }
 
 void
 dlna_service_unregister_all (dlna_t *dlna)
 {
-  upnp_service_t *service;
+  dlna_service_t *service;
 
   for (service = dlna->services; service; service = service->hh.next)
     dlna_service_free (dlna, service);

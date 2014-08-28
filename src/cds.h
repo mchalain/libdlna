@@ -29,6 +29,6 @@
 #define CDS_CONTROL_URL      "cds_control"
 #define CDS_EVENT_URL        "cds_event"
 
-extern upnp_service_t cds_service;
+extern dlna_service_t cds_service;
 
 #endif /* CDS_H */

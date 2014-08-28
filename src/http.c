@@ -81,7 +81,7 @@ upnp_http_get_info (void *cookie,
   char *content_type;
   char *protocol_info;
   struct stat st;
-  upnp_service_t *service;
+  dlna_service_t *service;
   
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
@@ -241,7 +241,7 @@ upnp_http_open (void *cookie,
   dlna_t *dlna;
   uint32_t id;
   vfs_item_t *item;
-  upnp_service_t *service;
+  dlna_service_t *service;
   
   if (!cookie || !filename)
     return NULL;

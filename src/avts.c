@@ -687,7 +687,7 @@ avts_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
 }
 
-upnp_service_t avts_service = {
+dlna_service_t avts_service = {
   .id           = AVTS_SERVICE_ID,
   .type         = AVTS_SERVICE_TYPE,
   .scpd_url     = AVTS_URL,
