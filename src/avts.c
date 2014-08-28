@@ -29,6 +29,7 @@
 
 #include "upnp_internals.h"
 #include "services.h"
+#include "didl.h"
 #include "avts.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
@@ -226,9 +227,31 @@ playlist_next (dlna_dmp_item_t *playlist, uint32_t id)
   {
     HASH_FIND_INT (playlist, &id, item);
     if (item)
-      return item;
+      return item->hh.next;
   }
   return playlist;
+}
+
+static int
+playlist_count (dlna_dmp_item_t *playlist)
+{
+  int i = 0;
+  while ((playlist = playlist->hh.next)) i++;
+  return i;
+}
+
+static int
+playlist_index (dlna_dmp_item_t *playlist, dlna_dmp_item_t *item)
+{
+  int i = 0;
+  while (playlist && playlist != item)
+  {
+    playlist = playlist->hh.next;
+    i++;
+  }
+  if (playlist)
+    return i;
+  return 0;
 }
 
 static int
@@ -243,49 +266,117 @@ playitem_decodeframe (dlna_item_t *item dlna_unused)
   return 0;
 }
 
+static int
+instance_change_state (dlna_dmp_t *instance, int newstate)
+{
+  ithread_mutex_lock (&instance->state_mutex);
+  if (instance->state != E_NO_MEDIA && newstate != -1)
+  {
+    switch (newstate)
+    {
+    case E_RECORDING:
+      /* recording is not allowed */
+    break;
+    case E_PLAYING:
+      if (instance->state != E_RECORDING)
+      {
+        instance->state = newstate;
+        ithread_cond_signal (&instance->state_change);
+      }
+    break;
+    case E_STOPPED:
+      instance->state = newstate;
+      ithread_cond_signal (&instance->state_change);
+    break;
+    case E_TRANSITIONING:
+    case E_PAUSING:
+      if (instance->state == E_PLAYING)
+      {
+        instance->state = newstate;
+        ithread_cond_signal (&instance->state_change);
+      }
+    break;
+    }
+  }
+  ithread_mutex_unlock (&instance->state_mutex);
+  return instance->state;
+}
+
+static int
+instance_change_current_item (dlna_dmp_t *instance, dlna_dmp_item_t *newitem)
+{
+  instance->current_item = newitem;
+  return 0;
+}
+
 static void *
 avts_thread_play (void *arg)
 {
   dlna_dmp_t *instance = (dlna_dmp_t *) arg;
-  dlna_dmp_item_t *item;
+  dlna_dmp_item_t *next_item;
 
-  item = playlist_next (instance->playlist, 0);
-  if (!item)
+  instance_change_current_item(instance, playlist_next (instance->playlist, 0));
+  if (!instance->current_item)
     return NULL;
-  playitem_prepare (item->item);
+  playitem_prepare (instance->current_item->item);
   while (1)
   {
     int play_frame = 0;
+    int state;
 
     ithread_mutex_lock (&instance->state_mutex);
-    switch (instance->state)
+    state = instance->state;
+    ithread_mutex_unlock (&instance->state_mutex);
+    switch (state)
     {
     case E_STOPPED:
-      ithread_mutex_unlock (&instance->state_mutex);
       return NULL;
     case E_PLAYING:
-      ithread_mutex_unlock (&instance->state_mutex);
+      play_frame = 1;
+      break;
+    case E_TRANSITIONING:
+      next_item = playlist_next (instance->playlist, instance->current_item->id);
+      if (next_item)
+      {
+        playitem_prepare (next_item->item);
+      }
       play_frame = 1;
       break;
     case E_PAUSING:
+      ithread_mutex_lock (&instance->state_mutex);
       ithread_cond_wait (&instance->state_change, &instance->state_mutex);
       ithread_mutex_unlock (&instance->state_mutex);
       break;
     }
     if (play_frame)
     {
-      if (playitem_decodeframe (item->item))
+      int ret = playitem_decodeframe (instance->current_item->item);
+      if (ret == 0 && state == E_PLAYING)
       {
-        item = playlist_next (instance->playlist, item->id);
-        if (!item)
-        {
-          ithread_mutex_lock (&instance->state_mutex);
-          instance->state = E_STOPPED;
-          ithread_cond_signal (&instance->state_change);
-          ithread_mutex_unlock (&instance->state_mutex);
-        }
+        instance_change_state (instance, E_TRANSITIONING);
+      }
+      else if (ret < 0 && state == E_PLAYING)
+      {
+        next_item = playlist_next (instance->playlist, instance->current_item->id);
+        if (!next_item)
+          instance_change_state (instance, E_STOPPED);
         else
-          playitem_prepare (item->item);
+          playitem_prepare (next_item->item);            
+        instance_change_current_item(instance, next_item);
+        next_item = NULL;
+      }
+      /* in transition, two cases:
+       *   - play_item returns -1 to complete the transition and switch to the next track
+       *   - play_item returns 1 to continue but a transition is requested from user
+       **/
+      else if (ret != 0 && state == E_TRANSITIONING)
+      {
+        if (!next_item)
+          instance_change_state (instance, E_STOPPED);
+        else
+          instance_change_state (instance, E_PLAYING);
+        instance_change_current_item(instance, next_item);
+        next_item = NULL;
       }
     }
   }
@@ -394,6 +485,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
+  buffer_t *out;
 
   if (!dlna || !ev)
   {
@@ -417,21 +509,128 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, "1");
+  out = buffer_new ();
+  buffer_appendf (out, "%u", playlist_count(instance->playlist));
+  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
+  buffer_free (out);
+
   upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item)
+    didl_add_short_item (out, instance->current_item);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    buffer_appendf (out, "%s", item->item->filename);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    didl_add_short_item (out, item);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
 
   return ev->status;
 }
 
 static int
 avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  dlna_dmp_t *instance = NULL;
+  buffer_t *out;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  upnp_add_response (ev, AVTS_ARG_CURRENT_TYPE, "TRACK_AWARE");
+
+  out = buffer_new ();
+  buffer_appendf (out, "%u", playlist_count(instance->playlist));
+  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item)
+    didl_add_short_item (out, instance->current_item);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    buffer_appendf (out, "%s", item->item->filename);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  if (instance->current_item->hh.next)
+  {
+    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    didl_add_short_item (out, item);
+  }
+  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
+
+
+  return ev->status;
+}
+
+static int
+avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
   dlna_dmp_t *instance = NULL;
@@ -458,16 +657,158 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_CURRENT_TYPE, "");
-  upnp_add_response (ev, AVTS_ARG_NR_TRACKS, "1");
-  upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI, "");
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, "");
-  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "");
+  switch (instance_change_state(instance, -1))
+  {
+  case E_NO_MEDIA:
+    upnp_add_response (ev, AVTS_ARG_STATE, "NO_MEDIA_PRESENT");
+    break;
+  case E_STOPPED:
+    upnp_add_response (ev, AVTS_ARG_STATE, "STOPPED");
+    break;
+  case E_PLAYING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "PLAYING");
+    break;
+  case E_TRANSITIONING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "TRANSITIONING");
+    break;
+  case E_PAUSING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "PAUSED_PLAYBACK");
+    break;
+  case E_RECORDING:
+    upnp_add_response (ev, AVTS_ARG_STATE, "RECORDING");
+    break;
+  }
+  upnp_add_response (ev, AVTS_ARG_STATUS, "OK");
+  upnp_add_response (ev, AVTS_ARG_CURRENT_SPEED, "1");
+
+  return ev->status;
+}
+
+static int
+avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  dlna_dmp_t *instance = NULL;
+  buffer_t *out;
+  int index = 0;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  out = buffer_new ();
+  if (instance->current_item)
+    index = playlist_index (instance->playlist, instance->current_item);
+  buffer_appendf (out, "%u", index);
+  upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
+  buffer_free (out);
+  upnp_add_response (ev, AVTS_ARG_TRACK, "");
+
+  out = buffer_new ();
+  if (instance->current_item && instance->current_item->item->properties)
+    buffer_appendf (out, "%s", instance->current_item->item->properties->duration);
+  upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, "NOT_IMPLEMENTED");
+
+  out = buffer_new ();
+  if (instance->current_item)
+    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
+  buffer_free (out);
+
+  upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_RCOUNT, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_ACOUNT, "NOT_IMPLEMENTED");
+
+  return ev->status;
+}
+
+static int
+avts_get_dev_caps (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  dlna_dmp_t *instance = NULL;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIA, "NETWORK");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIA, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_REC_QUALITY_MODES, "NOT_IMPLEMENTED");
+
+  return ev->status;
+}
+
+static int
+avts_get_settings (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  dlna_dmp_t *instance = NULL;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  upnp_add_response (ev, AVTS_ARG_PLAY_MODE, "NORMAL");
+  upnp_add_response (ev, AVTS_ARG_REC_QUALITY, "NOT_IMPLEMENTED");
 
   return ev->status;
 }
@@ -502,10 +843,7 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   }
   speed = upnp_get_ui4 (ev->ar, AVTS_ARG_SPEED);
 
-  ithread_mutex_lock (&instance->state_mutex);
-  instance->state = E_PLAYING;
-  ithread_cond_signal (&instance->state_change);
-  ithread_mutex_unlock (&instance->state_mutex);
+  instance_change_state(instance, E_PLAYING);
 
   return ev->status;
 }
@@ -538,10 +876,7 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  ithread_mutex_lock (&instance->state_mutex);
-  instance->state = E_STOPPED;
-  ithread_cond_signal (&instance->state_change);
-  ithread_mutex_unlock (&instance->state_mutex);
+  instance_change_state(instance, E_STOPPED);
   ithread_join (instance->playthread, NULL);
   HASH_DEL (dlna->dmp, instance);
 
@@ -576,13 +911,7 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  ithread_mutex_lock (&instance->state_mutex);
-  if (instance->state == E_PLAYING)
-  {
-    instance->state = E_PAUSING;
-    ithread_cond_signal (&instance->state_change);
-  }
-  ithread_mutex_unlock (&instance->state_mutex);
+  instance_change_state(instance, E_PAUSING);
 
   return ev->status;
 }
@@ -614,6 +943,8 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
     return 0;
   }
+  
+  instance_change_state (instance, E_TRANSITIONING);
 
   return ev->status;
 }
@@ -655,10 +986,10 @@ upnp_service_action_t avts_service_actions[] = {
   { AVTS_ACTION_SET_NEXT_URI, AVTS_ACTION_SET_NEXT_URI_ARGS,      avts_set_next_uri },
   { AVTS_ACTION_GET_MEDIA_INFO, AVTS_ACTION_GET_MEDIA_INFO_ARGS,    avts_get_minfo },
   { AVTS_ACTION_GET_MEDIA_INFO_EXT, AVTS_ACTION_GET_MEDIA_INFO_EXT_ARGS,    avts_get_minfo_ext },
-  { AVTS_ACTION_GET_INFO, AVTS_ACTION_GET_INFO_ARGS,          NULL },
-  { AVTS_ACTION_GET_POS_INFO, AVTS_ACTION_GET_POS_INFO_ARGS,      NULL },
-  { AVTS_ACTION_GET_CAPS, AVTS_ACTION_GET_CAPS_ARGS,          NULL },
-  { AVTS_ACTION_GET_SETTINGS, AVTS_ACTION_GET_SETTINGS_ARGS,      NULL },
+  { AVTS_ACTION_GET_INFO, AVTS_ACTION_GET_INFO_ARGS,          avts_get_info },
+  { AVTS_ACTION_GET_POS_INFO, AVTS_ACTION_GET_POS_INFO_ARGS,      avts_get_pos_info },
+  { AVTS_ACTION_GET_CAPS, AVTS_ACTION_GET_CAPS_ARGS,          avts_get_dev_caps },
+  { AVTS_ACTION_GET_SETTINGS, AVTS_ACTION_GET_SETTINGS_ARGS,      avts_get_settings },
   { AVTS_ACTION_STOP, AVTS_ACTION_ARG_INSTANCE_ID,              avts_stop },
   { AVTS_ACTION_PLAY, AVTS_ACTION_PLAY_ARGS,              avts_play },
   { AVTS_ACTION_PAUSE, AVTS_ACTION_ARG_INSTANCE_ID,             avts_pause },
