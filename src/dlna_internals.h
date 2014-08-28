@@ -135,9 +135,6 @@ struct upnp_service_action_s {
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 
-dlna_service_t *dlna_service_find (dlna_t *dlna, char *id);
-void dlna_service_unregister_all (dlna_t *dlna);
-
 /**
  * DLNA Library's controller.
  * This controls the whole library.
@@ -160,7 +157,7 @@ struct dlna_s {
   dlna_http_callback_t *http_callback;
 
   /* UPnP Services */
-  dlna_service_t *services;
+  struct dlna_service_list_s *services;
   
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;

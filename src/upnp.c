@@ -49,7 +49,7 @@ upnp_find_service_action (dlna_t *dlna,
                           struct dlna_Action_Request *ar)
 {
   int a;
-  dlna_service_t *srv;
+  const dlna_service_t *srv;
   
   *service = NULL;
   *action = NULL;
@@ -85,7 +85,7 @@ upnp_find_service_action (dlna_t *dlna,
 static void
 upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
 {
-  dlna_service_t *service;
+  dlna_service_t *service = NULL;
   upnp_service_action_t *action;
   char val[256];
   uint32_t ip;

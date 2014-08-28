@@ -109,9 +109,7 @@ upnp_http_get_info (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    for (service = dlna->services; service; service = service->hh.next)
-      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
-        break;
+    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)
@@ -267,9 +265,7 @@ upnp_http_open (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    for (service = dlna->services; service; service = service->hh.next)
-      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
-        break;
+    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)

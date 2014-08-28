@@ -22,8 +22,6 @@
 #ifndef DLNA_H
 #define DLNA_H
 
-#include "uthash.h"
-
 /**
  * @file dlna.h
  * external api header.
@@ -474,7 +472,6 @@ struct dlna_service_s {
   char *event_url;
   struct upnp_service_action_s *actions;
   char *(*get_description) (dlna_t *dlna);
-  UT_hash_handle hh;
 };
 
 /**

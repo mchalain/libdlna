@@ -62,6 +62,19 @@
 "        <eventSubURL>%s/%s</eventSubURL>" \
 "      </service>" \
 
+int
+device_add_service (void *cookie, dlna_service_t *service)
+{
+  buffer_t *b = cookie;
+
+  buffer_appendf (b, DLNA_SERVICE_DESCRIPTION,
+                service->type, service->id,
+                SERVICES_VIRTUAL_DIR, service->scpd_url,
+                SERVICES_VIRTUAL_DIR, service->control_url,
+                SERVICES_VIRTUAL_DIR, service->event_url);
+
+  return 0;
+}
 char *
 dlna_dms_description_get (dlna_t *dlna)
 {
@@ -92,12 +105,7 @@ dlna_dms_description_get (dlna_t *dlna)
 
   free (model_name);
   
-  for (service = dlna->services; service; service = service->hh.next)
-    buffer_appendf (b, DLNA_SERVICE_DESCRIPTION,
-                    service->type, service->id,
-                    SERVICES_VIRTUAL_DIR, service->scpd_url,
-                    SERVICES_VIRTUAL_DIR, service->control_url,
-                    SERVICES_VIRTUAL_DIR, service->event_url);
+  dlna_service_foreach (dlna, device_add_service, b);
 
   buffer_append (b, DLNA_DMS_DESCRIPTION_FOOTER);
 

@@ -122,48 +122,95 @@ dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp
 void
 dlna_service_register (dlna_t *dlna, dlna_service_t *service)
 {
+  dlna_service_list_t *item = NULL;
   if (!dlna || !service)
     return;
 
-  HASH_ADD_STR (dlna->services, id, service);
+  item = calloc (1, sizeof(dlna_service_list_t));
+
+  item->id = service->typeid;
+  item->service = calloc (1, sizeof (dlna_service_t));
+  memcpy (item->service, service, sizeof (dlna_service_t));
+  HASH_ADD_INT (dlna->services, id, item);
 }
 
 static void
-dlna_service_free (dlna_t *dlna, dlna_service_t *service)
+dlna_service_free (dlna_t *dlna, dlna_service_list_t *item)
 {
-  if (!dlna || !service)
+  if (!dlna || !item)
     return;
 
-  HASH_DEL (dlna->services, service);
+  HASH_DEL (dlna->services, item);
+  free (item->service);
+  free (item);
 }
 
-dlna_service_t *
+const dlna_service_t *
 dlna_service_find (dlna_t *dlna, char *id)
 {
-  dlna_service_t *service;
+  dlna_service_list_t *item;
 
   if (!dlna || !dlna->services || !id)
     return NULL;
 
-  for (service = dlna->services; service; service = service->hh.next)
-    if (service->id && id && !strcmp (service->id, id))
-      return service;
+  for (item = dlna->services; item; item = item->hh.next)
+    if (item->service->id && id && !strcmp (item->service->id, id))
+      return (const dlna_service_t *)item->service;
 
   return NULL;
+}
+
+const dlna_service_t *
+dlna_service_find_url (dlna_t *dlna, char *url)
+{
+  dlna_service_list_t *item;
+
+  if (!dlna || !dlna->services || !url)
+    return NULL;
+
+  for (item = dlna->services; item; item = item->hh.next)
+    if (item->service->scpd_url && url && !strcmp (item->service->scpd_url, url))
+      return (const dlna_service_t *)item->service;
+
+  return NULL;
+}
+
+int
+dlna_service_foreach (dlna_t *dlna, int (*cb)(void *cookie, dlna_service_t *service), void *cookie)
+{
+  int ret = 0;
+  dlna_service_list_t *item;
+
+  if (!dlna || !cb)
+    return -1;
+
+  for (item = dlna->services; item; item = item->hh.next)
+  {
+    ret = cb (cookie, item->service);
+    if (ret)
+      break;
+  }
+  return ret;
 }
 
 void
 dlna_service_unregister (dlna_t *dlna, dlna_service_t *service)
 {
-  dlna_service_free (dlna, service);
+  int id;
+  dlna_service_list_t *item = NULL;
+
+  id = service->typeid;
+  HASH_FIND_INT (dlna->services, &id, item);
+
+  dlna_service_free (dlna, item);
 }
 
 void
 dlna_service_unregister_all (dlna_t *dlna)
 {
-  dlna_service_t *service;
+  dlna_service_list_t *item;
 
-  for (service = dlna->services; service; service = service->hh.next)
-    dlna_service_free (dlna, service);
+  for (item = dlna->services; item; item = item->hh.next)
+    dlna_service_free (dlna, item);
   dlna->services = NULL;
 }
