@@ -33,4 +33,6 @@
 
 #define RCS_LOCATION "/services/"RCS_URL
 
-#endif /* AVTS_H */
+extern dlna_service_t rcs_service;
+
+#endif /* RCS_H */

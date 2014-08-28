@@ -68,6 +68,7 @@ EXTRADIST = \
 	cds.h \
 	avts.h \
 	msr.h \
+	rcs.h \
 
 ifeq ($(DEBUG),yes)
 CFLAGS += -DHAVE_DEBUG

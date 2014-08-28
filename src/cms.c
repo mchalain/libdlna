@@ -204,7 +204,7 @@ cms_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cms_service_actions, cms_service_variables);
 }
 
-upnp_service_t cms_service = {
+dlna_service_t cms_service = {
   .id           = CMS_SERVICE_ID,
   .type         = CMS_SERVICE_TYPE,
   .scpd_url     = CMS_URL,

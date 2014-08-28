@@ -26,6 +26,11 @@
 #include "dlna_internals.h"
 #include "upnp_internals.h"
 #include "dlna_db.h"
+#include "cms.h"
+#include "cds.h"
+#include "avts.h"
+#include "msr.h"
+#include "rcs.h"
 
 #define MEDIASERVER_VERSION 1
 #define MEDIASERVER "MediaServer"
@@ -78,12 +83,25 @@
 "        <eventSubURL>%s/%s</eventSubURL>" \
 "      </service>" \
 
+static int
+device_add_service (void *cookie, dlna_service_t *service)
+{
+  buffer_t *b = cookie;
+
+  buffer_appendf (b, DLNA_SERVICE_DESCRIPTION,
+                service->type, service->id,
+                SERVICES_VIRTUAL_DIR, service->scpd_url,
+                SERVICES_VIRTUAL_DIR, service->control_url,
+                SERVICES_VIRTUAL_DIR, service->event_url);
+
+  return 0;
+}
 char *
 dlna_dms_description_get (dlna_t *dlna)
 {
   buffer_t *b = NULL;
   char *model_name, *desc = NULL;
-  upnp_service_t *service;
+  dlna_service_t *service;
   
   if (!dlna)
     return NULL;
@@ -114,12 +132,7 @@ dlna_dms_description_get (dlna_t *dlna)
   if (dlna->services)
   {
     buffer_append (b, DLNA_SERVICELIST_HEADER);
-    for (service = dlna->services; service; service = service->hh.next)
-	  buffer_appendf (b, DLNA_SERVICE_DESCRIPTION,
-                    service->type, service->id,
-                    SERVICES_VIRTUAL_DIR, service->scpd_url,
-                    SERVICES_VIRTUAL_DIR, service->control_url,
-                    SERVICES_VIRTUAL_DIR, service->event_url);
+    dlna_service_foreach (dlna, device_add_service, b);
     buffer_append (b, DLNA_SERVICELIST_FOOTER);
   }
   buffer_append (b, DLNA_DEVICE_DESCRIPTION_FOOTER);
@@ -140,11 +153,11 @@ dlna_dms_init (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
-  dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
-  dlna_service_register (dlna, DLNA_SERVICE_CONTENT_DIRECTORY);
-  dlna_service_register (dlna, DLNA_SERVICE_AV_TRANSPORT);
+  dlna_service_register (dlna, &cms_service);
+  dlna_service_register (dlna, &cds_service);
+  dlna_service_register (dlna, &avts_service);
   if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
+    dlna_service_register (dlna, &msr_service);
   
   return upnp_init (dlna, DLNA_DEVICE_DMS);
 }

@@ -79,7 +79,7 @@ dlna_http_get_info (void *cookie,
   vfs_item_t *item;
   dlna_item_t *dlna_item;
   struct stat st;
-  upnp_service_t *service;
+  dlna_service_t *service;
   
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
@@ -107,9 +107,7 @@ dlna_http_get_info (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    for (service = dlna->services; service; service = service->hh.next)
-      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
-        break;
+    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)
@@ -229,7 +227,7 @@ dlna_http_open (void *cookie,
   uint32_t id;
   vfs_item_t *item;
   dlna_item_t *dlna_item;
-  upnp_service_t *service;
+  dlna_service_t *service;
   
   if (!cookie || !filename)
     return NULL;
@@ -255,9 +253,7 @@ dlna_http_open (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    for (service = dlna->services; service; service = service->hh.next)
-      if (service->scpd_url && !strcmp (service->scpd_url, filename + SERVICES_VIRTUAL_DIR_LEN + 1))
-        break;
+    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)

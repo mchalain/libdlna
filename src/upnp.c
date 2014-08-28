@@ -44,12 +44,12 @@
 
 static int
 upnp_find_service_action (dlna_t *dlna,
-                          upnp_service_t **service,
+                          dlna_service_t **service,
                           upnp_service_action_t **action,
                           struct dlna_Action_Request *ar)
 {
   int a;
-  upnp_service_t *srv;
+  const dlna_service_t *srv;
   
   *service = NULL;
   *action = NULL;
@@ -85,7 +85,7 @@ upnp_find_service_action (dlna_t *dlna,
 static void
 upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
 {
-  upnp_service_t *service;
+  dlna_service_t *service = NULL;
   upnp_service_action_t *action;
   char val[256];
   uint32_t ip;
@@ -129,7 +129,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     event.status  = 1;
     event.service = service;
 
-    if (action->cb (dlna, &event) && event.status)
+    if (action->cb && action->cb (dlna, &event) && event.status)
       ar->ErrCode = DLNA_E_SUCCESS;
 
     if (dlna->verbosity == DLNA_MSG_INFO)

@@ -391,12 +391,25 @@ char *dlna_dmr_description_get (dlna_t *dlna);
 /*                                                                         */
 /***************************************************************************/
 
+typedef struct dlna_service_s         dlna_service_t;
+
 typedef enum {
   DLNA_SERVICE_CONNECTION_MANAGER,
   DLNA_SERVICE_CONTENT_DIRECTORY,
   DLNA_SERVICE_AV_TRANSPORT,
   DLNA_SERVICE_MS_REGISTAR,
 } dlna_service_type_t;
+
+struct dlna_service_s {
+  char *id;
+  dlna_service_type_t typeid;
+  char *type;
+  char *scpd_url;
+  char *control_url;
+  char *event_url;
+  struct upnp_service_action_s *actions;
+  char *(*get_description) (dlna_t *dlna);
+};
 
 /**
  * Register a known DLNA/UPnP Service to be used by the device.
@@ -405,7 +418,8 @@ typedef enum {
  * @param[in] dlna  The DLNA library's controller.
  * @param[in] srv   The service type to be registered.
  */
-void dlna_service_register (dlna_t *dlna, dlna_service_type_t srv);
+void dlna_service_register (dlna_t *dlna, dlna_service_t *srv);
+void dlna_service_unregister (dlna_t *dlna, dlna_service_t *srv);
 
 /***************************************************************************/
 /*                                                                         */
