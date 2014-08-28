@@ -904,6 +904,7 @@ upnp_service_variable_t cds_service_variables[] = {
   { "A_ARG_TYPE_TransferTotal", E_STRING, 0},
   { "A_ARG_TYPE_TagValueList", E_STRING, 0},
   { "A_ARG_TYPE_URI", E_URI, 0},
+  { NULL, 0, 0},
 };
 
 static char *
