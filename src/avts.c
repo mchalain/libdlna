@@ -705,7 +705,7 @@ upnp_service_variable_t avts_service_variables[] = {
   {"SyncOffset",E_STRING,0},
   {AVTS_VAR_A_ARG_TYPE_SEEK_MODE,E_STRING,0},
   {AVTS_VAR_A_ARG_TYPE_SEEK_TARGET,E_STRING,0},
-  {AVTS_VAR_A_ARG_TYPE_INSTANCE_ID,E_UI4,0}
+  {AVTS_VAR_A_ARG_TYPE_INSTANCE_ID,E_UI4,0},
   { NULL, 0, 0},
 };
 
