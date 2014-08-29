@@ -2,8 +2,9 @@
 #define __UPNP_DLNA_WRAPPER_H__
 
 #define dlnaDevice_Handle           UpnpDevice_Handle
-#define dlnaVirtualDirCallbacks     UpnpVirtualDirCallbacks
+#define dlnaVirtualDirCallbacks    UpnpVirtualDirCallbacks
 #define dlna_Action_Request         Upnp_Action_Request
+#define dlna_State_Var_Request     Upnp_State_Var_Request
 #define dlna_EventType              Upnp_EventType
 #define dlnaWebFileHandle           UpnpWebFileHandle
 #define dlnaOpenFileMode           UpnpOpenFileMode

@@ -169,6 +169,11 @@ msr_is_validated (dlna_t *dlna, upnp_action_event_t *ev)
   return ev->status;
 }
 
+/* List of UPnP Microsoft Registrar Service State Variables */
+static upnp_service_statevar_t msr_service_variables[] = {
+  { NULL, 0, 0, NULL},
+};
+
 /* List of UPnP Microsoft Registrar Service actions */
 static upnp_service_action_t msr_service_actions[] = {
   { SERVICE_MSR_ACTION_IS_AUTHORIZED, NULL,   msr_is_authorized },
@@ -184,5 +189,6 @@ dlna_service_t msr_service = {
   .control_url  = MSR_CONTROL_URL,
   .event_url    = MSR_EVENT_URL,
   .actions      = msr_service_actions,
+  .statevar     = msr_service_variables,
   .get_description     = msr_get_description,
 };

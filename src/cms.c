@@ -200,19 +200,19 @@ static upnp_service_action_t cms_service_actions[] = {
   { NULL, NULL,                            NULL }
 };
 
-upnp_service_variable_t cms_service_variables[] = {
-  { "SourceProtocolInfo", E_STRING, 1},
-  { "SinkProtocolInfo", E_STRING, 1},
-  { "CurrentConnectionIDs", E_STRING, 1},
-  { "FeatureList", E_STRING, 0},
-  { "A_ARG_TYPE_ConnectionStatus", E_STRING, 0},
-  { "A_ARG_TYPE_ConnectionManager", E_STRING, 0},
-  { "A_ARG_TYPE_Direction", E_STRING, 0},
-  { "A_ARG_TYPE_ProtocolInfo", E_STRING, 0},
-  { "A_ARG_TYPE_ConnectionID", E_I4, 0},
-  { "A_ARG_TYPE_AVTransportID", E_I4, 0},
-  { "A_ARG_TYPE_RcsID", E_I4, 0},
-  { NULL, 0, 0},
+upnp_service_statevar_t cms_service_variables[] = {
+  { "SourceProtocolInfo", E_STRING, 1, NULL},
+  { "SinkProtocolInfo", E_STRING, 1, NULL},
+  { "CurrentConnectionIDs", E_STRING, 1, NULL},
+  { "FeatureList", E_STRING, 0, NULL},
+  { "A_ARG_TYPE_ConnectionStatus", E_STRING, 0, NULL},
+  { "A_ARG_TYPE_ConnectionManager", E_STRING, 0, NULL},
+  { "A_ARG_TYPE_Direction", E_STRING, 0, NULL},
+  { "A_ARG_TYPE_ProtocolInfo", E_STRING, 0, NULL},
+  { "A_ARG_TYPE_ConnectionID", E_I4, 0, NULL},
+  { "A_ARG_TYPE_AVTransportID", E_I4, 0, NULL},
+  { "A_ARG_TYPE_RcsID", E_I4, 0, NULL},
+  { NULL, 0, 0, NULL},
 };
 
 static char *
@@ -228,6 +228,7 @@ dlna_service_t cms_service = {
   .control_url  = CMS_CONTROL_URL,
   .event_url    = CMS_EVENT_URL,
   .actions      = cms_service_actions,
+  .statevar      = cms_service_variables,
   .get_description     = cms_get_description,
 };
 

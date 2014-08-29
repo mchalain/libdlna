@@ -81,7 +81,7 @@ char *SERVICE_STATE_TYPES[] = {
 };
 
 char *
-dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp_service_variable_t *variables)
+dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp_service_statevar_t *variables)
 {
   buffer_t *b = NULL;
   char *desc = NULL;
