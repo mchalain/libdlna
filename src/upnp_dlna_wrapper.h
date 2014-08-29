@@ -4,7 +4,8 @@
 #define dlnaDevice_Handle           UpnpDevice_Handle
 #define dlnaVirtualDirCallbacks    UpnpVirtualDirCallbacks
 #define dlna_Action_Request         Upnp_Action_Request
-#define dlna_State_Var_Request     Upnp_State_Var_Request
+#define dlna_State_Var_Request      Upnp_State_Var_Request
+#define dlna_Subscription_Request  Upnp_Subscription_Request
 #define dlna_EventType              Upnp_EventType
 #define dlnaWebFileHandle           UpnpWebFileHandle
 #define dlnaOpenFileMode           UpnpOpenFileMode
@@ -30,6 +31,9 @@
 #define dlnaSendAdvertisement       UpnpSendAdvertisement
 #define dlnaAddToActionResponse     UpnpAddToActionResponse
 #define dlnaFinish                  UpnpFinish
+#define dlnaAcceptSubscriptionExt   UpnpAcceptSubscriptionExt
+#define dlnaAddToPropertySet        UpnpAddToPropertySet
+#define dlnaGetErrorMessage         UpnpGetErrorMessage
 
 int dlnaSetVirtualDirCallbacks(
     struct dlnaVirtualDirCallbacks *callbacks,

@@ -142,7 +142,7 @@ struct upnp_service_statevar_s {
     E_URI,
   } type;
   int eventing;
-  int (*get) (dlna_t *, char *);
+  char * (*get) (dlna_t *);
 };
 
 /**

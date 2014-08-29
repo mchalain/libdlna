@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "upnp_internals.h"
+#include "services.h"
 
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */
@@ -107,7 +108,7 @@ dlna_http_get_info (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
+    service = dlna_service_find_url (dlna, (char *)filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)
@@ -253,7 +254,7 @@ dlna_http_open (void *cookie,
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
     /* look for the good service location */
-    service = dlna_service_find_url (dlna, filename + SERVICES_VIRTUAL_DIR_LEN + 1);
+    service = dlna_service_find_url (dlna, (char *)filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
     /* return the service description if available */
     if (service)
@@ -317,7 +318,7 @@ dlna_http_read (void *cookie,
     break;
   case HTTP_FILE_MEMORY:
     dlna_log (dlna, DLNA_MSG_INFO, "Read file from memory.\n");
-    len = (ssize_t) MIN (buflen, hdl->detail.memory.len - hdl->pos);
+    len = (ssize_t) MIN ((ssize_t)buflen, hdl->detail.memory.len - hdl->pos);
     memcpy (buf, hdl->detail.memory.content + hdl->pos, (ssize_t) len);
     break;
   default:
