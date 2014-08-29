@@ -43,6 +43,95 @@
 #include "upnp_internals.h"
 
 static int
+upnp_find_service_statevar (dlna_t *dlna,
+                          upnp_service_t **service,
+                          upnp_service_statevar_t **statevar,
+                          struct dlna_State_Var_Request *ar)
+{
+  int a;
+  const upnp_service_t *srv;
+  
+  *service = NULL;
+  *statevar = NULL;
+
+  if (!ar || !ar->StateVarName)
+    return DLNA_ST_ERROR;
+
+  dlna_log (dlna, DLNA_MSG_INFO,
+            "ActionRequest: using service %s\n", ar->ServiceID);
+  
+  /* find the resquested service in all registered ones */
+  srv = dlna_service_find (dlna, ar->ServiceID);
+  if (!srv || !srv->statevar)
+    return DLNA_ST_ERROR;
+  
+  /* parse all known actions */
+  for (a = 0; srv->statevar[a].name; a++)
+  {
+    /* find the requested one */
+    if (!strcmp (srv->actions[a].name, ar->StateVarName))
+    {
+      dlna_log (dlna, DLNA_MSG_INFO,
+                "ActionRequest: using action %s\n", ar->StateVarName);
+      *service = srv;
+      *statevar = &srv->statevar[a];
+      return DLNA_ST_OK;
+    }
+  }
+
+  return DLNA_ST_ERROR;
+}
+
+static void
+upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
+{
+  upnp_service_t *service = NULL;
+  upnp_service_statevar_t *statevar;
+  char val[256];
+  uint32_t ip;
+
+  if (!dlna || !ar)
+    return;
+
+  if (ar->ErrCode != DLNA_E_SUCCESS)
+    return;
+
+  /* ensure that message target is the specified device */
+  if (strcmp (ar->DevUDN + 5, dlna->uuid))
+    return;
+  
+  ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
+  ip = ntohl (ip);
+  sprintf (val, "%d.%d.%d.%d",
+           (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+
+  if (dlna->verbosity == DLNA_MSG_INFO)
+  {
+    dlna_log (dlna, DLNA_MSG_INFO,
+              "***************************************************\n");
+    dlna_log (dlna, DLNA_MSG_INFO,
+              "**             New State Var Request                **\n");
+    dlna_log (dlna, DLNA_MSG_INFO,
+              "***************************************************\n");
+    dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", ar->ServiceID);
+    dlna_log (dlna, DLNA_MSG_INFO, "StateVarName: %s\n", ar->StateVarName);
+    dlna_log (dlna, DLNA_MSG_INFO, "CtrlPtIP: %s\n", val);
+  }
+
+  if (upnp_find_service_statevar (dlna, &service, &statevar, ar) == DLNA_ST_OK)
+  {
+    char *result = NULL;
+    const char *value = statevar->get (dlna, ar->StateVarName);
+    if (value)
+      result = strdup (value);
+    ar->CurrentVal = result;
+    ar->ErrCode = (result == NULL)
+      ? DLNA_SOAP_E_INVALID_ACTION
+      : DLNA_E_SUCCESS;
+  }
+}
+
+static int
 upnp_find_service_action (dlna_t *dlna,
                           upnp_service_t **service,
                           upnp_service_action_t **action,
@@ -165,9 +254,12 @@ device_callback_event_handler (dlna_EventType type,
     upnp_action_request_handler ((dlna_t *) cookie,
                                  (struct dlna_Action_Request *) event);
     break;
+  case DLNA_CONTROL_GET_VAR_REQUEST:
+    upnp_var_request_handler ((dlna_t *) cookie,
+                                 (struct dlna_State_Var_Request *) event);
+    break;
   case DLNA_CONTROL_ACTION_COMPLETE:
   case DLNA_EVENT_SUBSCRIPTION_REQUEST:
-  case DLNA_CONTROL_GET_VAR_REQUEST:
     break;
   default:
     break;
