@@ -122,9 +122,26 @@ cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   upnp_add_response (ev, CMS_ARG_SOURCE, source->buf);
-  upnp_add_response (ev, CMS_ARG_SINK, "");
-  
   buffer_free (source);
+
+  source = buffer_new ();
+  mimes = dlna_get_supported_mime_types (dlna);
+  tmp = mimes;
+
+  while (*tmp)
+  {
+    /* we do only support HTTP right now */
+    /* format for protocol info is:
+     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
+     */
+    buffer_appendf (source, "http-get:*:%s:*", *tmp++);
+    if (*tmp)
+      buffer_append (source, ",");
+  }
+
+  upnp_add_response (ev, CMS_ARG_SINK, source->buf);
+  buffer_free (source);
+  
   
   return ev->status;
 }
