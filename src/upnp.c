@@ -42,6 +42,45 @@
 
 #include "upnp_internals.h"
 
+static void
+upnp_subscription_request_handler(dlna_t *dlna,
+                            struct dlna_Subscription_Request *req)
+{
+  upnp_service_t *srv;
+	int rc;
+  IXML_Document *propset = NULL;
+
+  if (!dlna || !req)
+    return;
+
+	srv = dlna_service_find (dlna, req->ServiceId);
+	if (srv)
+  {
+    int eventvars_num = 0;
+    upnp_service_eventvar_t *eventvars = NULL;
+
+    if (srv->get_events)
+    {
+      int i;
+      srv->get_events (&eventvars_num, &eventvars);
+      for (i = 0; i < eventvars_num; i++)
+        dlnaAddToPropertySet (&propset, eventvars[i].name, eventvars[i].value);
+    }
+
+    rc = dlnaAcceptSubscriptionExt(dlna->dev,
+              req->UDN, req->ServiceId, propset, req->Sid);
+
+    ixmlDocument_free (propset);
+    if (rc != DLNA_E_SUCCESS)
+    {
+      dlna_log (dlna, DLNA_MSG_ERROR,
+        "upnp", "Accept Subscription Error: %s (%d)",
+          dlnaGetErrorMessage(rc), rc);
+    }
+  }
+	return;
+}
+
 static int
 upnp_find_service_action (dlna_t *dlna,
                           upnp_service_t **service,
@@ -161,12 +200,15 @@ device_callback_event_handler (dlna_EventType type,
 {
   switch (type)
   {
+  case DLNA_EVENT_SUBSCRIPTION_REQUEST:
+    upnp_subscription_request_handler ((dlna_t *) cookie,
+                                 (struct dlna_Subscription_Request *) event);
+    break;
   case DLNA_CONTROL_ACTION_REQUEST:
     upnp_action_request_handler ((dlna_t *) cookie,
                                  (struct dlna_Action_Request *) event);
     break;
   case DLNA_CONTROL_ACTION_COMPLETE:
-  case DLNA_EVENT_SUBSCRIPTION_REQUEST:
   case DLNA_CONTROL_GET_VAR_REQUEST:
     break;
   default:

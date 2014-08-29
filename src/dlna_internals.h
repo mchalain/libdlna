@@ -81,6 +81,7 @@ void vfs_item_free (dlna_t *dlna, vfs_item_t *item);
 typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
+typedef struct upnp_service_eventvar_s  upnp_service_eventvar_t;
 
 struct upnp_action_event_s {
   struct dlna_Action_Request *ar;
@@ -93,6 +94,11 @@ struct upnp_service_action_s {
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 
+struct upnp_service_eventvar_s {
+  char *name;
+  char *value;
+};
+
 struct upnp_service_s {
   char *id;
   char *type;
@@ -100,6 +106,7 @@ struct upnp_service_s {
   char *control_url;
   char *event_url;
   upnp_service_action_t *actions;
+  int (*get_events)(int *, upnp_service_eventvar_t **);
   UT_hash_handle hh;
 };
 
