@@ -268,13 +268,13 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
 
-  if (stat (filename, &st))
-    return NULL;
-  
   item = calloc (1, sizeof (dlna_item_t));
 
   item->filename   = strdup (filename);
-  item->filesize   = st.st_size;
+  if (!stat (filename, &st))
+    item->filesize   = st.st_size;
+  else
+    item->filesize	 = -1;
 
   item->profile    = dlna->profiler->guess_media_profile ((char *)item->filename, &item->profile_cookie);
   if (!item->profile) /* not DLNA compliant */
