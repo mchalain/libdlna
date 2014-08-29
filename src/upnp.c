@@ -130,7 +130,14 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     event.service = service;
 
     if (action->cb && action->cb (dlna, &event) && event.status)
+    {
       ar->ErrCode = DLNA_E_SUCCESS;
+      if (!ar->ActionResult)
+      {
+        ar->ActionResult = UpnpMakeActionResponse (
+                              ar->ActionName, service->type, 0, NULL);
+      }
+    }
 
     if (dlna->verbosity == DLNA_MSG_INFO)
     {
