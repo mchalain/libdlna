@@ -42,6 +42,50 @@
 
 #include "upnp_internals.h"
 
+static void
+upnp_subscription_request_handler(dlna_t *dlna,
+                            struct dlna_Subscription_Request *req)
+{
+  upnp_service_t *srv;
+	int rc;
+  IXML_Document *propset = NULL;
+
+  if (!dlna || !req)
+    return;
+
+	srv = dlna_service_find (dlna, req->ServiceId);
+	if (srv && srv->statevar)
+  {
+    int i;
+
+    for (i = 0; srv->statevar[i].name; i++)
+    {
+      char *result = NULL;
+      const char *value;
+      if (srv->statevar[i].eventing && srv->statevar[i].get)
+       value = srv->statevar[i].get (dlna);
+      if (value)
+      {
+        result = strdup (value);
+        dlnaAddToPropertySet (&propset, srv->statevar[i].name, result);
+        free (result);
+      }
+    }
+
+    rc = dlnaAcceptSubscriptionExt(dlna->dev,
+              req->UDN, req->ServiceId, propset, req->Sid);
+
+    ixmlDocument_free (propset);
+    if (rc != DLNA_E_SUCCESS)
+    {
+      dlna_log (dlna, DLNA_MSG_ERROR,
+        "upnp", "Accept Subscription Error: %s (%d)",
+          dlnaGetErrorMessage(rc), rc);
+    }
+  }
+	return;
+}
+
 static int
 upnp_find_service_statevar (dlna_t *dlna,
                           upnp_service_t **service,
@@ -121,7 +165,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
   if (upnp_find_service_statevar (dlna, &service, &statevar, ar) == DLNA_ST_OK)
   {
     char *result = NULL;
-    const char *value = statevar->get (dlna, ar->StateVarName);
+    const char *value = statevar->get (dlna);
     if (value)
       result = strdup (value);
     ar->CurrentVal = result;
@@ -250,6 +294,10 @@ device_callback_event_handler (dlna_EventType type,
 {
   switch (type)
   {
+  case DLNA_EVENT_SUBSCRIPTION_REQUEST:
+    upnp_subscription_request_handler ((dlna_t *) cookie,
+                                 (struct dlna_Subscription_Request *) event);
+    break;
   case DLNA_CONTROL_ACTION_REQUEST:
     upnp_action_request_handler ((dlna_t *) cookie,
                                  (struct dlna_Action_Request *) event);
@@ -259,7 +307,6 @@ device_callback_event_handler (dlna_EventType type,
                                  (struct dlna_State_Var_Request *) event);
     break;
   case DLNA_CONTROL_ACTION_COMPLETE:
-  case DLNA_EVENT_SUBSCRIPTION_REQUEST:
     break;
   default:
     break;

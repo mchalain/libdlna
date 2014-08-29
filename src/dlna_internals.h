@@ -100,7 +100,8 @@ struct upnp_service_action_s {
 
 struct upnp_service_statevar_s {
   char *name;
-  int (*get) (dlna_t *, char *);
+  int eventing;
+  char * (*get) (dlna_t *);
 };
 
 struct upnp_service_s {
