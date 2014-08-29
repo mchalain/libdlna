@@ -62,7 +62,7 @@ upnp_find_service_statevar (dlna_t *dlna,
   
   /* find the resquested service in all registered ones */
   srv = dlna_service_find (dlna, ar->ServiceID);
-  if (!srv)
+  if (!srv || !srv->statevar)
     return DLNA_ST_ERROR;
   
   /* parse all known actions */
@@ -254,9 +254,12 @@ device_callback_event_handler (dlna_EventType type,
     upnp_action_request_handler ((dlna_t *) cookie,
                                  (struct dlna_Action_Request *) event);
     break;
+  case DLNA_CONTROL_GET_VAR_REQUEST:
+    upnp_var_request_handler ((dlna_t *) cookie,
+                                 (struct dlna_State_Var_Request *) event);
+    break;
   case DLNA_CONTROL_ACTION_COMPLETE:
   case DLNA_EVENT_SUBSCRIPTION_REQUEST:
-  case DLNA_CONTROL_GET_VAR_REQUEST:
     break;
   default:
     break;
