@@ -62,7 +62,7 @@ upnp_subscription_request_handler(dlna_t *dlna,
     for (i = 0; srv->statevar[i].name; i++)
     {
       char *result = NULL;
-      const char *value;
+      const char *value = NULL;
       if (srv->statevar[i].eventing && srv->statevar[i].get)
        value = srv->statevar[i].get (dlna);
       if (value)
