@@ -212,9 +212,16 @@ playlist_add_item (dlna_dmp_item_t *playlist, dlna_t *dlna, char *uri, char *uri
 
   item = calloc (1, sizeof(dlna_dmp_item_t));
   item->item = dlna_item_new (dlna, uri);
-  /* set id with the id of the last item + 1 */
-  item->id = crc32(0, uri, strlen(uri));
-  HASH_ADD_INT (playlist, id, item);
+  if (!item->item)
+  {
+    free (item);
+  }
+  else
+  {
+    /* set id with the id of the last item + 1 */
+    item->id = crc32(0, uri, strlen(uri));
+    HASH_ADD_INT (playlist, id, item);
+  }
 
   return playlist;
 }
