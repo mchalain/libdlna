@@ -461,6 +461,9 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
     p = p->next;
   }
 
+  if (!profile)
+    return;
+
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;
