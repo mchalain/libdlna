@@ -22,6 +22,7 @@
 #include <stdlib.h>
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "msr.h"
 
 #define MSR_DESCRIPTION \

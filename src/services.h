@@ -59,6 +59,19 @@ args \
 
 typedef struct dlna_service_list_s dlna_service_list_t;
 
+struct dlna_service_s {
+  char *id;
+  dlna_service_type_t typeid;
+  char *type;
+  char *scpd_url;
+  char *control_url;
+  char *event_url;
+  struct upnp_service_action_s *actions;
+  struct upnp_service_statevar_s *statevar;
+  int last_change;
+  char *(*get_description) (dlna_t *dlna);
+};
+
 struct dlna_service_list_s {
   dlna_service_type_t id;
   dlna_service_t *service;
