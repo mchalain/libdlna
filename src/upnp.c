@@ -41,6 +41,7 @@
 #include <fcntl.h>
 
 #include "upnp_internals.h"
+#include "devices.h"
 
 static void
 upnp_subscription_request_handler(dlna_t *dlna,
@@ -141,7 +142,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
     return;
 
   /* ensure that message target is the specified device */
-  if (strcmp (ar->DevUDN + 5, dlna->uuid))
+  if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
   ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
@@ -230,7 +231,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     return;
 
   /* ensure that message target is the specified device */
-  if (strcmp (ar->DevUDN + 5, dlna->uuid))
+  if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
   ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
@@ -361,13 +362,10 @@ dlna_start (dlna_t *dlna)
   char *ip = NULL;
   int res;
 
-  if (!dlna)
+  if (!dlna || !dlna->device || !dlna->device->get_description)
     return DLNA_ST_ERROR;
 
-  if (!dlna->urn_type)
-    return DLNA_ST_ERROR;
-
-  description = dlna_device_get_description (dlna);
+  description = dlna->device->get_description (dlna);
   if (!description)
     goto upnp_init_err;
 

@@ -27,164 +27,207 @@
 #include "buffer.h"
 #include "devices.h"
 
-void
-dlna_device_set_type (dlna_t *dlna, char *str, char *short_str)
+static char *
+dlna_device_get_description (dlna_t *dlna);
+
+dlna_device_t *
+dlna_device_new ()
 {
-  if (!dlna || !str)
+  dlna_device_t *device;
+
+  device = calloc (1, sizeof (dlna_device_t));
+  
+  device->friendly_name = strdup ("libdlna");
+  device->manufacturer = strdup ("Benjamin Zores");
+  device->manufacturer_url = strdup ("http://libdlna.geexbox.org/");
+  device->model_description = strdup ("libdlna device");
+  device->model_name = strdup ("libdlna");
+  device->model_number = strdup ("libdlna-001");
+  device->model_url = strdup ("http://libdlna.geexbox.org/");
+  device->serial_number = strdup ("libdlna-001");
+  device->uuid = strdup ("01:23:45:67:89");
+  device->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
+
+  device->get_description = dlna_device_get_description;
+  return device;
+}
+
+void
+dlna_device_free (dlna_device_t *device)
+{
+  free (device->friendly_name);
+  free (device->manufacturer);
+  free (device->manufacturer_url);
+  free (device->model_description);
+  free (device->model_name);
+  free (device->model_number);
+  free (device->model_url);
+  free (device->serial_number);
+  free (device->uuid);
+  free (device->presentation_url);
+}
+
+void
+dlna_device_set_type (dlna_device_t *device, char *str, char *short_str)
+{
+  if (!device || !str)
     return;
 
-  if (dlna->urn_type)
-    free (dlna->urn_type);
-  dlna->urn_type = strdup (str);
+  if (device->urn_type)
+    free (device->urn_type);
+  device->urn_type = strdup (str);
 }
 
 
 void
-dlna_device_set_friendly_name (dlna_t *dlna, char *str)
+dlna_device_set_friendly_name (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->friendly_name)
-    free (dlna->friendly_name);
-  dlna->friendly_name = strdup (str);
+  if (device->friendly_name)
+    free (device->friendly_name);
+  device->friendly_name = strdup (str);
 }
 
 void
-dlna_device_set_manufacturer (dlna_t *dlna, char *str)
+dlna_device_set_manufacturer (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->manufacturer)
-    free (dlna->manufacturer);
-  dlna->manufacturer = strdup (str);
+  if (device->manufacturer)
+    free (device->manufacturer);
+  device->manufacturer = strdup (str);
 }
 
 void
-dlna_device_set_manufacturer_url (dlna_t *dlna, char *str)
+dlna_device_set_manufacturer_url (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->manufacturer_url)
-    free (dlna->manufacturer_url);
-  dlna->manufacturer_url = strdup (str);
+  if (device->manufacturer_url)
+    free (device->manufacturer_url);
+  device->manufacturer_url = strdup (str);
 }
 
 void
-dlna_device_set_model_description (dlna_t *dlna, char *str)
+dlna_device_set_model_description (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->model_description)
-    free (dlna->model_description);
-  dlna->model_description = strdup (str);
+  if (device->model_description)
+    free (device->model_description);
+  device->model_description = strdup (str);
 }
 
 void
-dlna_device_set_model_name (dlna_t *dlna, char *str)
+dlna_device_set_model_name (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->model_name)
-    free (dlna->model_name);
-  dlna->model_name = strdup (str);
+  if (device->model_name)
+    free (device->model_name);
+  device->model_name = strdup (str);
 }
 
 void
-dlna_device_set_model_number (dlna_t *dlna, char *str)
+dlna_device_set_model_number (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->model_number)
-    free (dlna->model_number);
-  dlna->model_number = strdup (str);
+  if (device->model_number)
+    free (device->model_number);
+  device->model_number = strdup (str);
 }
 
 void
-dlna_device_set_model_url (dlna_t *dlna, char *str)
+dlna_device_set_model_url (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->model_url)
-    free (dlna->model_url);
-  dlna->model_url = strdup (str);
+  if (device->model_url)
+    free (device->model_url);
+  device->model_url = strdup (str);
 }
 
 
 void
-dlna_device_set_serial_number (dlna_t *dlna, char *str)
+dlna_device_set_serial_number (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->serial_number)
-    free (dlna->serial_number);
-  dlna->serial_number = strdup (str);
+  if (device->serial_number)
+    free (device->serial_number);
+  device->serial_number = strdup (str);
 }
 
 void
-dlna_device_set_uuid (dlna_t *dlna, char *str)
+dlna_device_set_uuid (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->uuid)
-    free (dlna->uuid);
-  dlna->uuid = strdup (str);
+  if (device->uuid)
+    free (device->uuid);
+  device->uuid = strdup (str);
 }
 
 void
-dlna_device_set_presentation_url (dlna_t *dlna, char *str)
+dlna_device_set_presentation_url (dlna_device_t *device, char *str)
 {
-  if (!dlna || !str)
+  if (!device || !str)
     return;
 
-  if (dlna->presentation_url)
-    free (dlna->presentation_url);
-  dlna->presentation_url = strdup (str);
+  if (device->presentation_url)
+    free (device->presentation_url);
+  device->presentation_url = strdup (str);
 }
 
-char *
+static char *
 dlna_device_get_description (dlna_t *dlna)
 {
   buffer_t *b = NULL;
   char *model_name, *desc = NULL;
   upnp_service_t *service;
+  dlna_device_t *device;
   
-  if (!dlna)
+  if (!dlna || !dlna->device)
     return NULL;
+
+  device = dlna->device;
 
   if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
   {
     model_name =
-      malloc (strlen (XBOX_MODEL_NAME) + strlen (dlna->model_name) + 4);
-    sprintf (model_name, "%s (%s)", XBOX_MODEL_NAME, dlna->model_name);
+      malloc (strlen (XBOX_MODEL_NAME) + strlen (device->model_name) + 4);
+    sprintf (model_name, "%s (%s)", XBOX_MODEL_NAME, device->model_name);
   }
   else
-    model_name = strdup (dlna->model_name);
+    model_name = strdup (device->model_name);
 
   b = buffer_new ();
   
   buffer_appendf (b, DLNA_DESCRIPTION_HEADER, 
-                  dlna->urn_type, dlna->friendly_name,
-                  dlna->manufacturer, dlna->manufacturer_url,
-                  dlna->model_description, model_name,
-                  dlna->model_number, dlna->model_url,
-                  dlna->serial_number, dlna->uuid);
+                  device->urn_type, device->friendly_name,
+                  device->manufacturer, device->manufacturer_url,
+                  device->model_description, model_name,
+                  device->model_number, device->model_url,
+                  device->serial_number, device->uuid);
 
   free (model_name);
   
-  if (dlna->presentation_url)
-    buffer_appendf (b, DLNA_DEVICE_PRESENTATION, dlna->presentation_url);
+  if (device->presentation_url)
+    buffer_appendf (b, DLNA_DEVICE_PRESENTATION, device->presentation_url);
 
   if (dlna->mode & DLNA_CAPABILITY_DLNA)
-    buffer_append (b, DLNA_DLNADOC_DESCRIPTION);
+    buffer_append (b, DLNA_DLNADOC_DMS_DESCRIPTION);
 
   if (dlna->services)
   {

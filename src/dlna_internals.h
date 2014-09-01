@@ -117,17 +117,7 @@ struct dlna_s {
   char *interface;
   unsigned short port; /* server port */
   dlnaDevice_Handle dev;
-  char *urn_type;
-  char *friendly_name;
-  char *manufacturer;
-  char *manufacturer_url;
-  char *model_description;
-  char *model_name;
-  char *model_number;
-  char *model_url;
-  char *serial_number;
-  char *uuid;
-  char *presentation_url;
+  struct dlna_device_s *device;
 };
 
 /***************************************************************************/

@@ -101,18 +101,6 @@ dlna_init (void)
   dlna->interface = strdup ("lo"); /* bind to loopback as a default */
   dlna->port = 0;
   
-  /* UPnP Properties */
-  dlna->friendly_name = strdup ("libdlna");
-  dlna->manufacturer = strdup ("Benjamin Zores");
-  dlna->manufacturer_url = strdup ("http://libdlna.geexbox.org/");
-  dlna->model_description = strdup ("libdlna device");
-  dlna->model_name = strdup ("libdlna");
-  dlna->model_number = strdup ("libdlna-001");
-  dlna->model_url = strdup ("http://libdlna.geexbox.org/");
-  dlna->serial_number = strdup ("libdlna-001");
-  dlna->uuid = strdup ("01:23:45:67:89");
-  dlna->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
-
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
   
   dlna_profiler_init (dlna);
@@ -139,16 +127,8 @@ dlna_uninit (dlna_t *dlna)
   dlna_service_unregister_all (dlna);
   
   /* UPnP Properties */
-  free (dlna->friendly_name);
-  free (dlna->manufacturer);
-  free (dlna->manufacturer_url);
-  free (dlna->model_description);
-  free (dlna->model_name);
-  free (dlna->model_number);
-  free (dlna->model_url);
-  free (dlna->serial_number);
-  free (dlna->uuid);
-  free (dlna->presentation_url);
+  if (dlna->device)
+	dlna_device_free (dlna->device);
 
   free (dlna);
 }
@@ -172,6 +152,14 @@ dlna_log (dlna_t *dlna, dlna_verbosity_level_t level, const char *format, ...)
   fprintf (stderr, "[libdlna] ");
   vfprintf (stderr, format, va);
   va_end (va);
+}
+
+void
+dlna_set_device (dlna_t *dlna, struct dlna_device_s *device)
+{
+  if (dlna->device)
+    dlna_device_free (dlna->device);
+  dlna->device = device;
 }
 
 void
