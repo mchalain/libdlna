@@ -365,6 +365,15 @@ get_iface_address (char *interface)
   return val;
 }
 
+static int
+upnp_service_init (void *cookie, dlna_t *service)
+{
+  dlna_t *dlna = (dlna_t *)cookie;
+  if (service->init)
+    return service->init(dlna);
+  return 0;
+}
+
 int
 upnp_init (dlna_t *dlna, dlna_device_type_t type)
 {
@@ -385,7 +394,7 @@ upnp_init (dlna_t *dlna, dlna_device_type_t type)
     description = dlna_dms_description_get (dlna);
     break;
   }
-  
+  upnp_service_init
   case DLNA_DEVICE_DMR:
   {
     description = dlna_dmr_description_get (dlna);
@@ -437,6 +446,7 @@ upnp_init (dlna_t *dlna, dlna_device_type_t type)
     goto upnp_init_err;
   }
 
+  dlna_service_foreach (dlna, upnp_service_init, dlna);
   res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
   if (res != DLNA_E_SUCCESS)
   {

@@ -1062,4 +1062,5 @@ dlna_service_t avts_service = {
   .actions      = avts_service_actions,
   .statevar      = avts_service_variables,
   .get_description     = avts_get_description,
+  .init         = NULL,
 };

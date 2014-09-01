@@ -230,5 +230,6 @@ dlna_service_t cms_service = {
   .actions      = cms_service_actions,
   .statevar      = cms_service_variables,
   .get_description     = cms_get_description,
+  .init         = NULL,
 };
 

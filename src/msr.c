@@ -191,4 +191,5 @@ dlna_service_t msr_service = {
   .actions      = msr_service_actions,
   .statevar     = msr_service_variables,
   .get_description     = msr_get_description,
+  .init         = NULL,
 };
