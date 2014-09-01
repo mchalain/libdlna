@@ -7,6 +7,8 @@ DISTFILE = libdlna-$(VERSION).tar.bz2
 PKGCONFIG_DIR = $(libdir)/pkgconfig
 PKGCONFIG_FILE = libdlna.pc
 
+PROFILERS=ffmpeg_profiler/libffmpeg_profiler.so
+
 EXTRADIST = \
 	AUTHORS \
 	ChangeLog \
@@ -18,16 +20,20 @@ SUBDIRS = \
 	src \
 	utils \
 
-all: lib utils
+all: lib $(PROFILERS) utils
 
 lib:
 	$(MAKE) -C src
+
+$(PROFILERS):
+	make -C $(dir $@)
 
 utils: lib
 	$(MAKE) -C utils
 
 clean:
 	$(MAKE) -C src clean
+	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(dir $(profiler)) clean;)
 	$(MAKE) -C utils clean
 	-$(RM) -f IUpnpErrFile.txt IUpnpInfoFile.txt
 

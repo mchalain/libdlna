@@ -30,7 +30,6 @@
 #include <getopt.h>
 
 #include "dlna.h"
-#include "ffmpeg_profiler.h"
 
 static void
 display_usage (char *name)
@@ -108,17 +107,20 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
-  ffmpeg_profiler_register_all_media_profiles ();
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
 
   /* set some UPnP device properties */
   dlna_device_set_friendly_name (dlna, "libdlna DMR template");
-  dlna_device_set_uuid (dlna, "123456789");
+  dlna_device_set_uuid (dlna, "123456780");
+
+  dlna_service_register (dlna, &cms_service);
+  dlna_service_register (dlna, &rcs_service);
+  dlna_service_register (dlna, &avts_service);
 
   /* initialize DMS: from this point you have a working/running media server */
-  if (dlna_dmr_init (dlna) != DLNA_ST_OK)
+  if (dlna_start (dlna, DLNA_DEVICE_DMR) != DLNA_ST_OK)
   {
     printf ("DMR init went wrong\n");
     dlna_uninit (dlna);
@@ -134,7 +136,7 @@ main (int argc, char **argv)
   }
   
   /* DMS shutdown */
-  dlna_dmr_uninit (dlna);
+  dlna_stop (dlna);
 
   /* DLNA stack cleanup */
   dlna_uninit (dlna);

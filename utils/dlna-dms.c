@@ -186,6 +186,7 @@ main (int argc, char **argv)
 
   /* init Media profiler */
   ffmpeg_profiler_register_all_media_profiles ();
+  dlna_set_profiler (dlna, ffmpeg_profiler);
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
@@ -195,7 +196,12 @@ main (int argc, char **argv)
   dlna_device_set_uuid (dlna, "123456789");
 
   /* initialize DMS: from this point you have a working/running media server */
-  if (dlna_dms_init (dlna) != DLNA_ST_OK)
+  dlna_service_register (dlna, &cms_service);
+  dlna_service_register (dlna, &cds_service);
+  if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
+    dlna_service_register (dlna, &msr_service);
+  
+  if (dlna_start (dlna, DLNA_DEVICE_DMS) != DLNA_ST_OK)
   {
     printf ("DMS init went wrong\n");
     dlna_uninit (dlna);
@@ -224,7 +230,7 @@ main (int argc, char **argv)
   }
   
   /* DMS shutdown */
-  dlna_dms_uninit (dlna);
+  dlna_stop (dlna);
 
   /* DLNA stack cleanup */
   dlna_uninit (dlna);

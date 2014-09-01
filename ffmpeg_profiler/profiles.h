@@ -25,9 +25,15 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "ffmpeg_profiler.h"
 #include "containers.h"
+
+#if defined(__GNUC__)
+#    define dlna_unused __attribute__((unused))
+#else
+#    define dlna_unused
+#endif
 
 /* DLNA MIME types */
 #define MIME_IMAGE_JPEG                   "image/jpeg"

@@ -30,6 +30,7 @@
 
 #include "upnp_internals.h"
 #include "services.h"
+#include "vfs.h"
 #include "cds.h"
 #include "minmax.h"
 #include "didl.h"

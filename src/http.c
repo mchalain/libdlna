@@ -31,6 +31,7 @@
 
 #include "upnp_internals.h"
 #include "services.h"
+#include "vfs.h"
 
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */

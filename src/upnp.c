@@ -118,7 +118,7 @@ upnp_find_service_statevar (dlna_t *dlna,
     {
       dlna_log (dlna, DLNA_MSG_INFO,
                 "ActionRequest: using action %s\n", ar->StateVarName);
-      *service = srv;
+      *service = (dlna_service_t *)srv;
       *statevar = &srv->statevar[a];
       return DLNA_ST_OK;
     }
@@ -130,7 +130,7 @@ upnp_find_service_statevar (dlna_t *dlna,
 static void
 upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
 {
-  const dlna_service_t *service = NULL;
+  dlna_service_t *service = NULL;
   upnp_service_statevar_t *statevar;
   char val[256];
   uint32_t ip;
@@ -210,7 +210,7 @@ upnp_find_service_action (dlna_t *dlna,
     {
       dlna_log (dlna, DLNA_MSG_INFO,
                 "ActionRequest: using action %s\n", ar->ActionName);
-      *service = srv;
+      *service = (dlna_service_t *)srv;
       *action = &srv->actions[a];
       return DLNA_ST_OK;
     }
@@ -366,7 +366,7 @@ get_iface_address (char *interface)
 }
 
 int
-upnp_init (dlna_t *dlna, dlna_device_type_t type)
+dlna_start (dlna_t *dlna, dlna_device_type_t type)
 {
   char *description = NULL;
   char *ip = NULL;
@@ -487,7 +487,7 @@ upnp_init (dlna_t *dlna, dlna_device_type_t type)
 }
 
 int
-upnp_uninit (dlna_t *dlna)
+dlna_stop (dlna_t *dlna)
 {
   if (!dlna)
     return DLNA_ST_ERROR;

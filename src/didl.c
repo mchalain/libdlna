@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #include "upnp_internals.h"
+#include "vfs.h"
 #include "didl.h"
 
 /* CDS DIDL Messages */

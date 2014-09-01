@@ -157,7 +157,7 @@ dlna_dmr_init (dlna_t *dlna)
   dlna_service_register (dlna, &rcs_service);
   dlna_service_register (dlna, &avts_service);
   
-  return upnp_init (dlna, DLNA_DEVICE_DMR);
+  return dlna_start (dlna, DLNA_DEVICE_DMR);
 }
 
 int
@@ -169,5 +169,5 @@ dlna_dmr_uninit (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
-  return upnp_uninit (dlna);
+  return dlna_stop (dlna);
 }

@@ -49,14 +49,25 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
-#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
-void dlna_profiler_init (dlna_t *dlna)
+void
+dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler)
+{
+  if (!dlna)
+    return;
+  if (dlna->profiler && dlna->profiler->free)
+    dlna->profiler->free ();
+  dlna->profiler = profiler;
+}
+
+static void
+dlna_profiler_init (dlna_t *dlna)
 {
   dlna_profiler_t **profiler;
   profiler = dlsym (RTLD_DEFAULT, "ffmpeg_profiler");
-  dlna->profiler = *profiler;
-  if (!dlna->profiler)
+  if (profiler)
+    dlna->profiler = *profiler;
+  else
     dlna->profiler = &upnpav_profiler;
 }
 
@@ -116,6 +127,8 @@ dlna_uninit (dlna_t *dlna)
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
   vfs_item_free (dlna, dlna->vfs_root);
   free (dlna->interface);
+
+  dms_db_close (dlna);
 
   /* Internal HTTP Server */
   if (dlna->http_callback)
