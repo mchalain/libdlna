@@ -43,39 +43,6 @@
 
 typedef struct dlna_item_s dlna_item_t;
 
-typedef struct vfs_item_s {
-  uint32_t id;
-  char *title;
-
-  enum {
-    DLNA_RESOURCE,
-    DLNA_CONTAINER
-  } type;
-
-  union {
-    struct {
-      dlna_item_t *item;
-      dlna_org_conversion_t cnv;
-      char *fullpath;
-      char *url;
-      int fd;
-    } resource;
-    struct {
-      struct vfs_item_s **children;
-      uint32_t children_count;
-      uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
-    } container;
-  } u;
-
-  struct vfs_item_s *parent;
-
-  UT_hash_handle hh;
-} vfs_item_t;
-
-vfs_item_t *vfs_get_item_by_id (dlna_t *dlna, uint32_t id);
-vfs_item_t *vfs_get_item_by_name (dlna_t *dlna, char *name);
-void vfs_item_free (dlna_t *dlna, vfs_item_t *item);
-
 typedef struct upnp_service_s         upnp_service_t;
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -142,7 +109,7 @@ struct dlna_s {
 
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
-  vfs_item_t *vfs_root;
+  struct vfs_item_s *vfs_root;
   uint32_t vfs_items;
   void *db;
   
@@ -232,7 +199,7 @@ void dlna_item_free (dlna_item_t *item);
  * @return The DLNA object item if existing, NULL otherwise.
  */
 dlna_item_t *
-dlna_item_get(dlna_t *dlna, vfs_item_t *item);
+dlna_item_get(dlna_t *dlna, struct vfs_item_s *item);
 
 void dlna_log (dlna_t *dlna,
                dlna_verbosity_level_t level,

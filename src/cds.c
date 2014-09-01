@@ -29,6 +29,7 @@
 #include <stdio.h>
 
 #include "upnp_internals.h"
+#include "vfs.h"
 #include "cds.h"
 #include "minmax.h"
 
