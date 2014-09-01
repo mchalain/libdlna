@@ -37,9 +37,6 @@
 
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks;
 
-int dlna_start (dlna_t *dlna, dlna_device_type_t type);
-int dlna_stop (dlna_t *dlna);
-
 int upnp_add_response (upnp_action_event_t *ev, char *key, const char *value);
 char *upnp_get_string (struct dlna_Action_Request *ar, const char *key);
 int upnp_get_ui4 (struct dlna_Action_Request *ar, const char *key);

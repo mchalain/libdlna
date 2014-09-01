@@ -154,6 +154,15 @@ typedef enum {
 typedef struct dlna_s dlna_t;
 
 /**
+ * DLNA Device type
+ **/
+typedef enum {
+  DLNA_DEVICE_UNKNOWN,
+  DLNA_DEVICE_DMS,      /* Digital Media Server */
+  DLNA_DEVICE_DMP,      /* Digital Media Player */
+} dlna_device_type_t;
+
+/**
  * Initialization of library.
  *
  * @warning This function must be called before any libdlna function.
@@ -167,6 +176,24 @@ dlna_t *dlna_init (void);
  * @param[in] dlna The DLNA library's controller.
  */
 void dlna_uninit (dlna_t *dlna);
+
+/**
+ * Start device subscription, webserver and all internals composants.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_start (dlna_t *dlna, dlna_device_type_t type);
+
+/**
+ * Stop device registration, webserver and all internals composants.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_stop (dlna_t *dlna);
 
 /**
  * Set library's verbosity level.
@@ -334,24 +361,6 @@ typedef enum {
   DLNA_DMS_STORAGE_MEMORY,
   DLNA_DMS_STORAGE_SQL_DB,
 } dlna_dms_storage_type_t;
-
-/**
- * Initialize a DLNA Digital Media Server compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dms_init (dlna_t *dlna);
-
-/**
- * Uninitialize a DLNA Digital Media Server compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dms_uninit (dlna_t *dlna);
 
 /**
  * Create a valid UPnP device description for Digital Media Server (DMS).
