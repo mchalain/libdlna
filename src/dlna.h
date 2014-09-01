@@ -285,10 +285,43 @@ char * dlna_write_protocol_info (dlna_t *dlna,
                                  dlna_profile_t *p);
 
 typedef struct dlna_profiler_s {
+/**
+ * Output the table of mime type supported by the profiler.
+ * reentrance function
+ *
+ * @param[in] mimes    The table to append.
+ * @return            The table with the new values added.
+ */
   char **(*get_supported_mime_types) ( char **mimes);
+/**
+ * Output the Media profile of a type.
+ *
+ * @param[in] profileid    The id string of a profile.
+ * @return            The profile of the file.
+ */
   dlna_profile_t *(*get_media_profile) (char *profileid);
+/**
+ * Output the Media profile of a file.
+ *
+ * @param[in] filename    The file name or the URI to check.
+ * @param[out] cookie     The data to set into the dlna_item_t (profile_cookie).
+ * @return            The profile of the file.
+ */
   dlna_profile_t *(*guess_media_profile) (char *filename, void **cookie);
+/**
+ * free data used by the profiler
+ **/
+ void (*free) ();
 } dlna_profiler_t;
+
+/**
+ * Set the profiler
+ * 
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] profiler The Media file profiler.
+ **/
+void
+dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler);
 
 /***************************************************************************/
 /*                                                                         */

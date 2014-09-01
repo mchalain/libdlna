@@ -198,9 +198,9 @@ upnp_guess_media_profile (char *filename, void **cookie)
 
 dlna_profiler_t upnpav_profiler =
 {
-	.guess_media_profile = upnp_guess_media_profile,
-	.get_media_profile = upnp_get_media_profile,
-	.get_supported_mime_types = upnp_get_supported_mime_types,
+  .guess_media_profile = upnp_guess_media_profile,
+  .get_media_profile = upnp_get_media_profile,
+  .get_supported_mime_types = upnp_get_supported_mime_types,
 };
 
 /* UPnP ContentDirectory Object Item */
