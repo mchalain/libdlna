@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 
 #include "dlna_internals.h"
-#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
 extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
 

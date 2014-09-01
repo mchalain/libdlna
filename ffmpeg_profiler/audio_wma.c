@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "profiles.h"
 
 /* WMA content (bit rate less than 193 kbps) */

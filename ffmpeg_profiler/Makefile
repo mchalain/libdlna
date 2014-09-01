@@ -1,7 +1,7 @@
-ifeq (,$(wildcard ../../config.mak))
-$(error "../../config.mak is not present, run configure !")
+ifeq (,$(wildcard ../config.mak))
+$(error "../config.mak is not present, run configure !")
 endif
-include ../../config.mak
+include ../config.mak
 
 LIBNAME = libffmpeg_profiler
 LIBNAME_STATIC = ${LIBNAME}.a
@@ -53,15 +53,14 @@ EXTRADIST = \
 
 ifeq ($(DEBUG),yes)
 CFLAGS += -DHAVE_DEBUG
-CFLAGS += -DDEBUG # for ixml library
-CFLAGS += -DSTATS # for threadutil library
+CFLAGS += -DDEBUG
 else
-CFLAGS += -DNDEBUG # for ixml library
-CFLAGS += -DNO_DEBUG # for threadutil library
+CFLAGS += -DNDEBUG
+CFLAGS += -DNO_DEBUG
 endif
 
 # add headers from libdlna
-CFLAGS+=-I..
+CFLAGS+=-I../src
 
 OBJS = $(SRCS:.c=.o)
 LOBJS = $(SRCS:.c=.lo)
@@ -89,9 +88,8 @@ lib_static_info_post:
 	@echo "#         Linking static objects            #"
 	@echo "#############################################"
 
-lib_static: lib_static_info_pre $(OBJS) $(IXML_OBJS) $(THREADUTIL_OBJS) $(UPNP_OBJS) lib_static_info_post
-	$(AR) r $(LIBNAME_STATIC) $(OBJS) \
-	  $(IXML_OBJS) $(THREADUTIL_OBJS) $(UPNP_OBJS)
+lib_static: lib_static_info_pre $(OBJS) lib_static_info_post
+	$(AR) r $(LIBNAME_STATIC) $(OBJS)
 	$(RANLIB) $(LIBNAME_STATIC)
 
 lib_shared_info_pre:
@@ -106,9 +104,8 @@ lib_shared_info_post:
 	@echo "#         Linking shared objects            #"
 	@echo "#############################################"
 
-lib_shared: lib_shared_info_pre $(LOBJS) $(IXML_LOBJS) $(THREADUTIL_LOBJS) $(UPNP_LOBJS) lib_shared_info_post
+lib_shared: lib_shared_info_pre $(LOBJS) lib_shared_info_post
 	$(CC) $(LIBNAME_FLAGS) $(LOBJS) \
-	  $(IXML_LOBJS) $(THREADUTIL_LOBJS) $(UPNP_LOBJS) \
 	  $(LDFLAGS) $(EXTRALIBS) -o $(LIBNAME_VERSION)
 	$(LN) -sf $(LIBNAME_VERSION) $(LIBNAME_MAJOR)
 	$(LN) -sf $(LIBNAME_MAJOR) $(LIBNAME_SHARED)
@@ -141,8 +138,7 @@ install: $(INSTALL_RULES)
 	$(INSTALL) -m 644 dlna.h $(includedir)
 
 depend:
-	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) \
-	  $(IXML_SRCS) $(THREADUTIL_SRCS) $(UPNP_SRCS) 1>.depend
+	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
 
 .PHONY: clean depend
 

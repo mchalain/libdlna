@@ -49,7 +49,6 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
-#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
 void
 dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler)

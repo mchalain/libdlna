@@ -24,7 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "dlna.h"
+#include "dlna_internals.h"
 #include "ffmpeg_profiler.h"
 #include "profiles.h"
 #include "containers.h"

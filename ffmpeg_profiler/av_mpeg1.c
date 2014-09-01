@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "profiles.h"
 
 /* MPEG-1 video with 2 channel MPEG-1 Layer2 audio
@@ -98,7 +98,7 @@ registered_profile_t dlna_profile_av_mpeg1 = {
   .id = DLNA_PROFILE_AV_MPEG1,
   .class = DLNA_CLASS_AV,
   .extensions = "mpg,mpeg,mpe,m1v",
-  .profiles = &dlna_profiles_supported_av_mpeg1,
+  .profiles = &dlna_profiles_supported_av_mpeg1[0],
   .probe = probe_mpeg1,
   .next = NULL
 };

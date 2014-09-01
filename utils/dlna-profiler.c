@@ -24,7 +24,7 @@
 
 #include "dlna.h"
 #include "dlna_internals.h"
-#include "ffmpeg_profiler/ffmpeg_profiler.h"
+#include "ffmpeg_profiler.h"
 
 int
 main (int argc, char **argv)
