@@ -216,7 +216,7 @@ get_iface_address (char *interface)
 }
 
 int
-upnp_init (dlna_t *dlna, dlna_device_type_t type)
+dlna_start (dlna_t *dlna, dlna_device_type_t type)
 {
   char *description = NULL;
   char *ip = NULL;
@@ -333,7 +333,7 @@ upnp_init (dlna_t *dlna, dlna_device_type_t type)
 }
 
 int
-upnp_uninit (dlna_t *dlna)
+dlna_stop (dlna_t *dlna)
 {
   if (!dlna)
     return DLNA_ST_ERROR;

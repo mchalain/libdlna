@@ -124,7 +124,7 @@ dlna_dms_init (dlna_t *dlna)
   if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
     dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
   
-  return upnp_init (dlna, DLNA_DEVICE_DMS);
+  return dlna_start (dlna, DLNA_DEVICE_DMS);
 }
 
 int
@@ -138,7 +138,7 @@ dlna_dms_uninit (dlna_t *dlna)
 
   dms_db_close (dlna);
   
-  return upnp_uninit (dlna);
+  return dlna_stop (dlna);
 }
 
 static void
