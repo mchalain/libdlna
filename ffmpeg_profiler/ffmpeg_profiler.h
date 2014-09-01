@@ -44,11 +44,7 @@ void ffmpeg_profiler_register_all_media_profiles ();
  */
 void
 ffmpeg_profiler_register_media_profile (ffmpeg_profiler_media_profile_t profile);
-dlna_profile_t *
-ffmpeg_profiler_guess_media_profile (char *filename, void **cookie);
-char **
-ffmpeg_profiler_get_supported_mime_types ( char **mimes);
-dlna_profile_t *
-ffmpeg_profiler_get_media_profile (char *profileid);
+
+extern dlna_profiler_t *ffmpeg_profiler;
 
 #endif
