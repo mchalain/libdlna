@@ -394,11 +394,13 @@ dlna_metadata_free (dlna_metadata_t *meta)
 static void
 media_profile_free(dlna_item_t *item)
 {
-  AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
 
   dlna_metadata_free (item->metadata);
 
-  avformat_close_input (&ctx);
+  avformat_close_input (&cookie->ctx);
+  free (cookie);
+  item->profile_cookie = NULL;
 }
 
 dlna_profile_t *
@@ -464,7 +466,8 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;
-  *cookie = (void *)ctx;
+  *cookie = calloc (1, sizeof (ffmpeg_profile_t));
+  *cookie->ctx = (void *)ctx;
   free (codecs);
   return profile;
 }
@@ -472,7 +475,8 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
 static dlna_properties_t *
 item_get_properties (dlna_item_t *item)
 {
-  AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
   dlna_properties_t *prop;
   int duration, hours, min, sec;
   av_codecs_t *codecs;
@@ -513,7 +517,8 @@ item_get_properties (dlna_item_t *item)
 static dlna_metadata_t *
 item_get_metadata (dlna_item_t *item)
 {
-  AVFormatContext *ctx = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
   dlna_metadata_t *meta;
   AVDictionary *dict = ctx->metadata;
   AVDictionaryEntry *entry;

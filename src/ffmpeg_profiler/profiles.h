@@ -158,4 +158,9 @@ typedef struct ffmpeg_profiler_data_s
   void *first_profile;
 } ffmpeg_profiler_data_t;
 
+typedef struct ffmpeg_profile_s ffmpeg_profile_t;
+struct ffmpeg_profile_s
+{
+  AVFormatContext *ctx;
+};
 #endif /* PROFILES_H */
