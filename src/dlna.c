@@ -127,6 +127,8 @@ dlna_uninit (dlna_t *dlna)
   vfs_item_free (dlna, dlna->vfs_root);
   free (dlna->interface);
 
+  dms_db_close (dlna);
+
   /* Internal HTTP Server */
   if (dlna->http_callback)
     free (dlna->http_callback);

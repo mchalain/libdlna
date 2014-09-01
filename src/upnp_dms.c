@@ -136,8 +136,6 @@ dlna_dms_uninit (dlna_t *dlna)
   if (!dlna->inited)
     return DLNA_ST_ERROR;
 
-  dms_db_close (dlna);
-  
   return dlna_stop (dlna);
 }
 
