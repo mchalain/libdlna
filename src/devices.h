@@ -4,7 +4,11 @@
 typedef struct dlna_device_s dlna_device_t;
 
 struct dlna_device_s {
+  /* UPnP Services */
+  upnp_service_t *services;
+
   char *(*get_description) (dlna_t *);
+
   char *urn_type;
   char *friendly_name;
   char *manufacturer;

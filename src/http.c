@@ -31,6 +31,7 @@
 
 #include "upnp_internals.h"
 #include "vfs.h"
+#include "devices.h"
 
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */
@@ -105,14 +106,13 @@ dlna_http_get_info (void *cookie,
   }
   
   /* look for the good service location */
-  for (service = dlna->services; service; service = service->hh.next)
+  for (service = dlna->device->services; service; service = service->hh.next)
     if (service->location && filename && !strcmp (service->location, filename))
       break;
 
   /* return the service description if available */
   if (service)
   {
-    dlnaWebFileHandle ret;
     char *description = service->get_description (dlna);
 
     set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
@@ -250,7 +250,7 @@ dlna_http_open (void *cookie,
   }
   
   /* look for the good service location */
-  for (service = dlna->services; service; service = service->hh.next)
+  for (service = dlna->device->services; service; service = service->hh.next)
     if (service->location && filename && !strcmp (service->location, filename))
       break;
 

@@ -88,8 +88,6 @@ dlna_init (void)
   /* Internal HTTP Server */
   dlna->http_callback = NULL;
 
-  dlna->services = NULL;
-
   dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna->vfs_root = NULL;
   dlna->vfs_items = 0;
@@ -124,8 +122,6 @@ dlna_uninit (dlna_t *dlna)
   if (dlna->http_callback)
     free (dlna->http_callback);
 
-  dlna_service_unregister_all (dlna);
-  
   /* UPnP Properties */
   if (dlna->device)
 	dlna_device_free (dlna->device);

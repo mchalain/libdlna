@@ -54,7 +54,7 @@ upnp_subscription_request_handler(dlna_t *dlna,
   if (!dlna || !req)
     return;
 
-	srv = dlna_service_find (dlna, req->ServiceId);
+	srv = dlna_service_find (dlna->device, req->ServiceId);
 	if (srv && srv->statevar)
   {
     int i;
@@ -106,7 +106,7 @@ upnp_find_service_statevar (dlna_t *dlna,
             "ActionRequest: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
-  srv = dlna_service_find (dlna, ar->ServiceID);
+  srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv || !srv->statevar)
     return DLNA_ST_ERROR;
   
@@ -195,7 +195,7 @@ upnp_find_service_action (dlna_t *dlna,
             "ActionRequest: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
-  srv = dlna_service_find (dlna, ar->ServiceID);
+  srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv)
     return DLNA_ST_ERROR;
   

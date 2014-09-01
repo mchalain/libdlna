@@ -199,11 +199,11 @@ main (int argc, char **argv)
   dlna_device_set_uuid (device, "123456789");
 
   /* initialize DMS: from this point you have a working/running media server */
-  dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
-  dlna_service_register (dlna, DLNA_SERVICE_CONTENT_DIRECTORY);
-  dlna_service_register (dlna, DLNA_SERVICE_AV_TRANSPORT);
+  dlna_service_register (device, DLNA_SERVICE_CONNECTION_MANAGER);
+  dlna_service_register (device, DLNA_SERVICE_CONTENT_DIRECTORY);
+  dlna_service_register (device, DLNA_SERVICE_AV_TRANSPORT);
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
+    dlna_service_register (device, DLNA_SERVICE_MS_REGISTAR);
 
   dlna_set_device (dlna, device);
   if (dlna_start (dlna) != DLNA_ST_OK)

@@ -78,9 +78,9 @@ struct upnp_service_s {
   UT_hash_handle hh;
 };
 
-upnp_service_t *dlna_service_find (dlna_t *dlna, char *id);
-void dlna_service_unregister (dlna_t *dlna, dlna_service_type_t srv);
-void dlna_service_unregister_all (dlna_t *dlna);
+upnp_service_t *dlna_service_find (dlna_device_t *device, char *id);
+void dlna_service_unregister (dlna_device_t *device, dlna_service_type_t srv);
+void dlna_service_unregister_all (dlna_device_t *device);
 
 /**
  * DLNA Library's controller.
@@ -100,9 +100,6 @@ struct dlna_s {
 
   /* Internal HTTP Server */
   dlna_http_callback_t *http_callback;
-
-  /* UPnP Services */
-  upnp_service_t *services;
 
   /* Profilers entries */
   dlna_profiler_t *profiler;

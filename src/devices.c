@@ -37,6 +37,8 @@ dlna_device_new ()
 
   device = calloc (1, sizeof (dlna_device_t));
   
+  device->services = NULL;
+
   device->friendly_name = strdup ("libdlna");
   device->manufacturer = strdup ("Benjamin Zores");
   device->manufacturer_url = strdup ("http://libdlna.geexbox.org/");
@@ -55,6 +57,8 @@ dlna_device_new ()
 void
 dlna_device_free (dlna_device_t *device)
 {
+  dlna_service_unregister_all (device);
+  
   free (device->friendly_name);
   free (device->manufacturer);
   free (device->manufacturer_url);
@@ -229,10 +233,10 @@ dlna_device_get_description (dlna_t *dlna)
   if (dlna->mode & DLNA_CAPABILITY_DLNA)
     buffer_append (b, DLNA_DLNADOC_DMS_DESCRIPTION);
 
-  if (dlna->services)
+  if (device->services)
   {
     buffer_appendf (b, DLNA_SERVICELIST_HEADER);
-    for (service = dlna->services; service; service = service->hh.next)
+    for (service = device->services; service; service = service->hh.next)
       buffer_appendf (b, DLNA_SERVICE_DESCRIPTION,
                       service->type, service->id,
                       SERVICES_VIRTUAL_DIR, service->scpd_url,

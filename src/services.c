@@ -25,13 +25,14 @@
 
 #include "dlna_internals.h"
 #include "upnp_internals.h"
+#include "devices.h"
 #include "cms.h"
 #include "cds.h"
 #include "avts.h"
 #include "msr.h"
 
 void
-dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
+dlna_service_register (dlna_device_t *device, dlna_service_type_t srv)
 {
   upnp_service_t *service;
 
@@ -53,27 +54,27 @@ dlna_service_register (dlna_t *dlna, dlna_service_type_t srv)
     break;
   }
 
-  HASH_ADD_STR (dlna->services, id, service);
+  HASH_ADD_STR (device->services, id, service);
 }
 
 static void
-dlna_service_free (dlna_t *dlna, upnp_service_t *service)
+dlna_service_free (dlna_device_t *device, upnp_service_t *service)
 {
-  if (!dlna || !service)
+  if (!device || !service)
     return;
 
-  HASH_DEL (dlna->services, service);
+  HASH_DEL (device->services, service);
 }
 
 upnp_service_t *
-dlna_service_find (dlna_t *dlna, char *id)
+dlna_service_find (dlna_device_t *device, char *id)
 {
   upnp_service_t *service;
 
-  if (!dlna || !dlna->services || !id)
+  if (!device || !device->services || !id)
     return NULL;
 
-  for (service = dlna->services; service; service = service->hh.next)
+  for (service = device->services; service; service = service->hh.next)
     if (service->id && id && !strcmp (service->id, id))
       return service;
 
@@ -81,7 +82,7 @@ dlna_service_find (dlna_t *dlna, char *id)
 }
 
 void
-dlna_service_unregister (dlna_t *dlna, dlna_service_type_t srv)
+dlna_service_unregister (dlna_device_t *device, dlna_service_type_t srv)
 {
   upnp_service_t *service;
   char *srv_id = NULL;
@@ -102,20 +103,20 @@ dlna_service_unregister (dlna_t *dlna, dlna_service_type_t srv)
     break;
   }
 
-  for (service = dlna->services; service; service = service->hh.next)
+  for (service = device->services; service; service = service->hh.next)
     if (service->id && srv_id && !strcmp (service->id, srv_id))
     {
-      dlna_service_free (dlna, service);
+      dlna_service_free (device, service);
       break;
     }
 }
 
 void
-dlna_service_unregister_all (dlna_t *dlna)
+dlna_service_unregister_all (dlna_device_t *device)
 {
   upnp_service_t *service;
 
-  for (service = dlna->services; service; service = service->hh.next)
-    dlna_service_free (dlna, service);
-  dlna->services = NULL;
+  for (service = device->services; service; service = service->hh.next)
+    dlna_service_free (device, service);
+  device->services = NULL;
 }
