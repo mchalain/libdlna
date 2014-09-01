@@ -125,9 +125,6 @@ struct dlna_s {
   /* Internal HTTP Server */
   dlna_http_callback_t *http_callback;
 
-  /* UPnP Services */
-  struct dlna_service_list_s *services;
-
   /* Profilers entries */
   dlna_profiler_t *profiler;
 
@@ -144,16 +141,7 @@ struct dlna_s {
   char *interface;
   unsigned short port; /* server port */
   dlnaDevice_Handle dev;
-  char *friendly_name;
-  char *manufacturer;
-  char *manufacturer_url;
-  char *model_description;
-  char *model_name;
-  char *model_number;
-  char *model_url;
-  char *serial_number;
-  char *uuid;
-  char *presentation_url;
+  struct dlna_device_s *device;
 };
 
 /***************************************************************************/

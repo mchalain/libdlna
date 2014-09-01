@@ -45,6 +45,7 @@ int
 main (int argc, char **argv)
 {
   dlna_t *dlna;
+  dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
   int c, index;
@@ -112,15 +113,18 @@ main (int argc, char **argv)
   dlna_set_interface (dlna, "eth0");
 
   /* set some UPnP device properties */
-  dlna_device_set_friendly_name (dlna, "libdlna DMR template");
-  dlna_device_set_uuid (dlna, "123456780");
+  device = dlna_device_new ();
+  dlna_device_set_type (device, DLNA_DEVICE_TYPE_DMR,"DMR");
+  dlna_device_set_friendly_name (device, "libdlna DMR template");
+  dlna_device_set_uuid (device, "123456780");
 
-  dlna_service_register (dlna, &cms_service);
-  dlna_service_register (dlna, &rcs_service);
-  dlna_service_register (dlna, &avts_service);
+  dlna_service_register (device, &cms_service);
+  dlna_service_register (device, &rcs_service);
+  dlna_service_register (device, &avts_service);
 
-  /* initialize DMS: from this point you have a working/running media server */
-  if (dlna_start (dlna, DLNA_DEVICE_DMR) != DLNA_ST_OK)
+  dlna_set_device (dlna, device);
+
+  if (dlna_start (dlna) != DLNA_ST_OK)
   {
     printf ("DMR init went wrong\n");
     dlna_uninit (dlna);

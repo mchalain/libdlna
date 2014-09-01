@@ -98,6 +98,7 @@ int
 main (int argc, char **argv)
 {
   dlna_t *dlna;
+  dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
   int c, index;
@@ -192,16 +193,19 @@ main (int argc, char **argv)
   dlna_set_interface (dlna, "eth0");
 
   /* set some UPnP device properties */
-  dlna_device_set_friendly_name (dlna, "libdlna DMS template");
-  dlna_device_set_uuid (dlna, "123456789");
+  device = dlna_device_new ();
+  dlna_device_set_type (device, DLNA_DEVICE_TYPE_DMS,"DMS");
+  dlna_device_set_friendly_name (device, "libdlna DMS template");
+  dlna_device_set_uuid (device, "123456789");
 
-  /* initialize DMS: from this point you have a working/running media server */
-  dlna_service_register (dlna, &cms_service);
-  dlna_service_register (dlna, &cds_service);
+  dlna_service_register (device, &cms_service);
+  dlna_service_register (device, &cds_service);
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (dlna, &msr_service);
+    dlna_service_register (device, &msr_service);
   
-  if (dlna_start (dlna, DLNA_DEVICE_DMS) != DLNA_ST_OK)
+  dlna_set_device (dlna, device);
+
+  if (dlna_start (dlna) != DLNA_ST_OK)
   {
     printf ("DMS init went wrong\n");
     dlna_uninit (dlna);

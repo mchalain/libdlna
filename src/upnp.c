@@ -41,6 +41,7 @@
 #include <fcntl.h>
 
 #include "upnp_internals.h"
+#include "devices.h"
 #include "services.h"
 
 static void
@@ -54,7 +55,7 @@ upnp_subscription_request_handler(dlna_t *dlna,
   if (!dlna || !req)
     return;
 
-	srv = dlna_service_find (dlna, req->ServiceId);
+	srv = dlna_service_find (dlna->device, req->ServiceId);
 	if (srv && srv->statevar)
   {
     int i;
@@ -106,7 +107,7 @@ upnp_find_service_statevar (dlna_t *dlna,
             "ActionRequest: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
-  srv = dlna_service_find (dlna, ar->ServiceID);
+  srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv || !srv->statevar)
     return DLNA_ST_ERROR;
   
@@ -142,7 +143,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
     return;
 
   /* ensure that message target is the specified device */
-  if (strcmp (ar->DevUDN + 5, dlna->uuid))
+  if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
   ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
@@ -198,7 +199,7 @@ upnp_find_service_action (dlna_t *dlna,
             "ActionRequest: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
-  srv = dlna_service_find (dlna, ar->ServiceID);
+  srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv)
     return DLNA_ST_ERROR;
   
@@ -234,7 +235,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     return;
 
   /* ensure that message target is the specified device */
-  if (strcmp (ar->DevUDN + 5, dlna->uuid))
+  if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
   ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
@@ -366,35 +367,16 @@ get_iface_address (char *interface)
 }
 
 int
-dlna_start (dlna_t *dlna, dlna_device_type_t type)
+dlna_start (dlna_t *dlna)
 {
   char *description = NULL;
   char *ip = NULL;
   int res;
 
-  if (!dlna)
+  if (!dlna || !dlna->device || !dlna->device->get_description)
     return DLNA_ST_ERROR;
 
-  if (type == DLNA_DEVICE_UNKNOWN)
-    return DLNA_ST_ERROR;
-
-  switch (type)
-  {
-  case DLNA_DEVICE_DMS:
-  {
-    description = dlna_dms_description_get (dlna);
-    break;
-  }
-  
-  case DLNA_DEVICE_DMR:
-  {
-    description = dlna_dmr_description_get (dlna);
-    break;
-  }
-  default:
-    break;
-  }
-  
+  description = dlna->device->get_description (dlna);
   if (!description)
     goto upnp_init_err;
 

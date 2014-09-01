@@ -154,13 +154,9 @@ typedef enum {
 typedef struct dlna_s dlna_t;
 
 /**
- * DLNA Device type
- **/
-typedef enum {
-  DLNA_DEVICE_UNKNOWN,
-  DLNA_DEVICE_DMS,      /* Digital Media Server */
-  DLNA_DEVICE_DMR,      /* Digital Media Renderer */
-} dlna_device_type_t;
+ * DLNA Device's controller.
+ */
+typedef struct dlna_device_s dlna_device_t;
 
 /**
  * Initialization of library.
@@ -184,7 +180,7 @@ void dlna_uninit (dlna_t *dlna);
  *
   * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
  */
-int dlna_start (dlna_t *dlna, dlna_device_type_t type);
+int dlna_start (dlna_t *dlna);
 
 /**
  * Stop device registration, webserver and all internals composants.
@@ -246,6 +242,16 @@ void dlna_set_interface (dlna_t *dlna, char *itf);
  * @param[in] port  The port number.
  */
 void dlna_set_port (dlna_t *dlna, int port);
+
+/**
+ * Set the main UPnP Device
+ * 
+ * The device is automaticly freed when it change.
+ * 
+ * @param[in] dlna  The DLNA library's controller.
+ * @param[in] device  The device.
+ */
+void dlna_set_device (dlna_t *dlna, struct dlna_device_s *device);
 
 /***************************************************************************/
 /*                                                                         */
@@ -363,15 +369,6 @@ typedef enum {
 } dlna_dms_storage_type_t;
 
 /**
- * Create a valid UPnP device description for Digital Media Server (DMS).
- *
- * @param[in] dlna  The DLNA library's controller.
- * 
- * @return                       The DMS device description string.
- */
-char *dlna_dms_description_get (dlna_t *dlna);
-
-/**
  * Defines DMS storage type for VFS Metadata.
  *
  * @param[in] dlna  The DLNA library's controller.
@@ -428,6 +425,109 @@ char *dlna_dmr_description_get (dlna_t *dlna);
 
 /***************************************************************************/
 /*                                                                         */
+/* DLNA UPnP Device Management                                             */
+/*  Optional: Used to overload default device parameters.                  */
+/*                                                                         */
+/***************************************************************************/
+#define DLNA_DEVICE_TYPE_DMS "urn:schemas-upnp-org:device:MediaServer:1"
+#define DLNA_DEVICE_TYPE_DMR "urn:schemas-upnp-org:device:MediaRenderer:1"
+
+/**
+ * create a new device controller
+ * 
+ **/
+dlna_device_t *dlna_device_new ();
+
+/**
+ * Set device UPnP device Type URN.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_type (dlna_device_t *device, char *str, char *short_str);
+
+/**
+ * Set device UPnP friendly name.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_friendly_name (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP manufacturer name.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_manufacturer (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP manufacturer URL.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_manufacturer_url (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP model description.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_model_description (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP model name.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_model_name (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP model number.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_model_number (dlna_device_t *dlna, char *str);
+
+/**
+ * Set device UPnP model URL.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_model_url (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP serial number.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_serial_number (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP UUID.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set ("uuid:" is automatically preprended).
+ */
+void dlna_device_set_uuid (dlna_device_t *device, char *str);
+
+/**
+ * Set device UPnP presentation URL.
+ *
+ * @param[in] device  The UPnP device controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_presentation_url (dlna_device_t *dlna, char *str);
+
+/***************************************************************************/
+/*                                                                         */
 /* DLNA Services Management                                                */
 /*  Optional: Used to register common services or add new ones.            */
 /*                                                                         */
@@ -458,108 +558,16 @@ struct dlna_service_s {
  * Register a known DLNA/UPnP Service to be used by the device.
  *   This is automatically done for all mandatory services at device init.
  *
- * @param[in] dlna  The DLNA library's controller.
+ * @param[in] device  The UPnP device controller.
  * @param[in] srv   The service type to be registered.
  */
-void dlna_service_register (dlna_t *dlna, dlna_service_t *srv);
-void dlna_service_unregister (dlna_t *dlna, dlna_service_t *srv);
+void dlna_service_register (dlna_device_t *device, dlna_service_t *srv);
 
-/**
- * all services available inside DLNA library
- **/
 extern dlna_service_t cms_service;
 extern dlna_service_t cds_service;
 extern dlna_service_t rcs_service;
 extern dlna_service_t avts_service;
 extern dlna_service_t msr_service;
-
-/***************************************************************************/
-/*                                                                         */
-/* DLNA UPnP Device Management                                             */
-/*  Optional: Used to overload default device parameters.                  */
-/*                                                                         */
-/***************************************************************************/
-
-/**
- * Set device UPnP friendly name.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_friendly_name (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP manufacturer name.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_manufacturer (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP manufacturer URL.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_manufacturer_url (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP model description.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_model_description (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP model name.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_model_name (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP model number.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_model_number (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP model URL.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_model_url (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP serial number.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_serial_number (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP UUID.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set ("uuid:" is automatically preprended).
- */
-void dlna_device_set_uuid (dlna_t *dlna, char *str);
-
-/**
- * Set device UPnP presentation URL.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] str   Value to be set.
- */
-void dlna_device_set_presentation_url (dlna_t *dlna, char *str);
-
 /***************************************************************************/
 /*                                                                         */
 /* DLNA UPnP Virtual File System (VFS) Management                          */

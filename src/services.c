@@ -26,6 +26,7 @@
 #include "dlna_internals.h"
 #include "upnp_internals.h"
 #include "services.h"
+#include "devices.h"
 #include "cms.h"
 #include "cds.h"
 #include "avts.h"
@@ -121,10 +122,10 @@ dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp
 }
 
 void
-dlna_service_register (dlna_t *dlna, dlna_service_t *service)
+dlna_service_register (dlna_device_t *device, dlna_service_t *service)
 {
   dlna_service_list_t *item = NULL;
-  if (!dlna || !service)
+  if (!device || !service)
     return;
 
   item = calloc (1, sizeof(dlna_service_list_t));
@@ -132,29 +133,29 @@ dlna_service_register (dlna_t *dlna, dlna_service_t *service)
   item->id = service->typeid;
   item->service = calloc (1, sizeof (dlna_service_t));
   memcpy (item->service, service, sizeof (dlna_service_t));
-  HASH_ADD_INT (dlna->services, id, item);
+  HASH_ADD_INT (device->services, id, item);
 }
 
 static void
-dlna_service_free (dlna_t *dlna, dlna_service_list_t *item)
+dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
 {
-  if (!dlna || !item)
+  if (!device || !device->services || !item)
     return;
 
-  HASH_DEL (dlna->services, item);
+  HASH_DEL (device->services, item);
   free (item->service);
   free (item);
 }
 
 const dlna_service_t *
-dlna_service_find (dlna_t *dlna, char *id)
+dlna_service_find (dlna_device_t *device, char *id)
 {
   dlna_service_list_t *item;
 
-  if (!dlna || !dlna->services || !id)
+  if (!device || !device->services || !id)
     return NULL;
 
-  for (item = dlna->services; item; item = item->hh.next)
+  for (item = device->services; item; item = item->hh.next)
     if (item->service->id && id && !strcmp (item->service->id, id))
       return (const dlna_service_t *)item->service;
 
@@ -162,14 +163,14 @@ dlna_service_find (dlna_t *dlna, char *id)
 }
 
 const dlna_service_t *
-dlna_service_find_url (dlna_t *dlna, char *url)
+dlna_service_find_url (dlna_device_t *device, char *url)
 {
   dlna_service_list_t *item;
 
-  if (!dlna || !dlna->services || !url)
+  if (!device || !device->services || !url)
     return NULL;
 
-  for (item = dlna->services; item; item = item->hh.next)
+  for (item = device->services; item; item = item->hh.next)
     if (item->service->scpd_url && url && !strcmp (item->service->scpd_url, url))
       return (const dlna_service_t *)item->service;
 
@@ -177,15 +178,15 @@ dlna_service_find_url (dlna_t *dlna, char *url)
 }
 
 int
-dlna_service_foreach (dlna_t *dlna, int (*cb)(void *cookie, dlna_service_t *service), void *cookie)
+dlna_service_foreach (dlna_device_t *device, int (*cb)(void *cookie, dlna_service_t *service), void *cookie)
 {
   int ret = 0;
   dlna_service_list_t *item;
 
-  if (!dlna || !cb)
+  if (!device || !device->services || !cb)
     return -1;
 
-  for (item = dlna->services; item; item = item->hh.next)
+  for (item = device->services; item; item = item->hh.next)
   {
     ret = cb (cookie, item->service);
     if (ret)
@@ -195,23 +196,29 @@ dlna_service_foreach (dlna_t *dlna, int (*cb)(void *cookie, dlna_service_t *serv
 }
 
 void
-dlna_service_unregister (dlna_t *dlna, dlna_service_t *service)
+dlna_service_unregister (dlna_device_t *device, dlna_service_t *service)
 {
   int id;
   dlna_service_list_t *item = NULL;
 
-  id = service->typeid;
-  HASH_FIND_INT (dlna->services, &id, item);
+  if (!device || !device->services || !service)
+    return;
 
-  dlna_service_free (dlna, item);
+  id = service->typeid;
+  HASH_FIND_INT (device->services, &id, item);
+
+  dlna_service_free (device, item);
 }
 
 void
-dlna_service_unregister_all (dlna_t *dlna)
+dlna_service_unregister_all (dlna_device_t *device)
 {
   dlna_service_list_t *item;
 
-  for (item = dlna->services; item; item = item->hh.next)
-    dlna_service_free (dlna, item);
-  dlna->services = NULL;
+  if (!device || !device->services)
+    return;
+
+  for (item = device->services; item; item = item->hh.next)
+    dlna_service_free (device, item);
+  device->services = NULL;
 }
