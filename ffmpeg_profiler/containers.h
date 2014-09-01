@@ -23,7 +23,7 @@
 #define CONTAINERS_H
 
 #include <libavformat/avformat.h>
-#include "../dlna_internals.h"
+#include "dlna.h"
 
 typedef enum {
   CT_UNKNOWN,

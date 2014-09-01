@@ -109,38 +109,6 @@ dlna_dms_description_get (dlna_t *dlna)
 
 }
 
-int
-dlna_dms_init (dlna_t *dlna)
-{
-  if (!dlna)
-    return DLNA_ST_ERROR;
-
-  if (!dlna->inited)
-    return DLNA_ST_ERROR;
-
-  dlna_service_register (dlna, DLNA_SERVICE_CONNECTION_MANAGER);
-  dlna_service_register (dlna, DLNA_SERVICE_CONTENT_DIRECTORY);
-  dlna_service_register (dlna, DLNA_SERVICE_AV_TRANSPORT);
-  if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
-  
-  return upnp_init (dlna, DLNA_DEVICE_DMS);
-}
-
-int
-dlna_dms_uninit (dlna_t *dlna)
-{
-  if (!dlna)
-    return DLNA_ST_ERROR;
-
-  if (!dlna->inited)
-    return DLNA_ST_ERROR;
-
-  dms_db_close (dlna);
-  
-  return upnp_uninit (dlna);
-}
-
 static void
 dms_set_memory (dlna_t *dlna)
 {

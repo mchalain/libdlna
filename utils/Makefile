@@ -17,8 +17,11 @@ BINS = \
 	$(PROFILER_BIN) \
 	$(DMS_BIN) \
 
-CFLAGS  += -I../src -I../src/ffmpeg_profiler
-LDFLAGS += -L../src -ldlna  -L../src/ffmpeg_profiler -lffmpeg_profiler
+CFLAGS  += -I../src
+LDFLAGS += -L../src -ldlna
+
+FFMPEG_PROFILER_CFLAGS := -I../ffmpeg_profiler
+FFMPEG_PROFILER_LDFLAGS := -L../ffmpeg_profiler -lffmpeg_profiler
 
 ifeq ($(BUILD_STATIC),yes)
   LDFLAGS += $(EXTRALIBS)
@@ -32,9 +35,13 @@ banner:
 	@echo "#         Building DLNA Utilities           #"
 	@echo "#############################################"
 
+$(PROFILER_BIN): CFLAGS+= $(FFMPEG_PROFILER_CFLAGS)
+$(PROFILER_BIN): LDFLAGS+= $(FFMPEG_PROFILER_LDFLAGS)
 $(PROFILER_BIN): $(PROFILER_SRCS)
 	$(CC) $? $(OPTFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 
+$(DMS_BIN): CFLAGS+= $(FFMPEG_PROFILER_CFLAGS)
+$(DMS_BIN): LDFLAGS+= $(FFMPEG_PROFILER_LDFLAGS)
 $(DMS_BIN): $(DMS_SRCS)
 	$(CC) $? $(OPTFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 

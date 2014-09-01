@@ -154,6 +154,15 @@ typedef enum {
 typedef struct dlna_s dlna_t;
 
 /**
+ * DLNA Device type
+ **/
+typedef enum {
+  DLNA_DEVICE_UNKNOWN,
+  DLNA_DEVICE_DMS,      /* Digital Media Server */
+  DLNA_DEVICE_DMP,      /* Digital Media Player */
+} dlna_device_type_t;
+
+/**
  * Initialization of library.
  *
  * @warning This function must be called before any libdlna function.
@@ -167,6 +176,24 @@ dlna_t *dlna_init (void);
  * @param[in] dlna The DLNA library's controller.
  */
 void dlna_uninit (dlna_t *dlna);
+
+/**
+ * Start device subscription, webserver and all internals composants.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_start (dlna_t *dlna, dlna_device_type_t type);
+
+/**
+ * Stop device registration, webserver and all internals composants.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ *
+  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
+ */
+int dlna_stop (dlna_t *dlna);
 
 /**
  * Set library's verbosity level.
@@ -285,10 +312,43 @@ char * dlna_write_protocol_info (dlna_t *dlna,
                                  dlna_profile_t *p);
 
 typedef struct dlna_profiler_s {
+/**
+ * Output the table of mime type supported by the profiler.
+ * reentrance function
+ *
+ * @param[in] mimes    The table to append.
+ * @return            The table with the new values added.
+ */
   char **(*get_supported_mime_types) ( char **mimes);
+/**
+ * Output the Media profile of a type.
+ *
+ * @param[in] profileid    The id string of a profile.
+ * @return            The profile of the file.
+ */
   dlna_profile_t *(*get_media_profile) (char *profileid);
+/**
+ * Output the Media profile of a file.
+ *
+ * @param[in] filename    The file name or the URI to check.
+ * @param[out] cookie     The data to set into the dlna_item_t (profile_cookie).
+ * @return            The profile of the file.
+ */
   dlna_profile_t *(*guess_media_profile) (char *filename, void **cookie);
+/**
+ * free data used by the profiler
+ **/
+ void (*free) ();
 } dlna_profiler_t;
+
+/**
+ * Set the profiler
+ * 
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] profiler The Media file profiler.
+ **/
+void
+dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler);
 
 /***************************************************************************/
 /*                                                                         */
@@ -301,24 +361,6 @@ typedef enum {
   DLNA_DMS_STORAGE_MEMORY,
   DLNA_DMS_STORAGE_SQL_DB,
 } dlna_dms_storage_type_t;
-
-/**
- * Initialize a DLNA Digital Media Server compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dms_init (dlna_t *dlna);
-
-/**
- * Uninitialize a DLNA Digital Media Server compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dms_uninit (dlna_t *dlna);
 
 /**
  * Create a valid UPnP device description for Digital Media Server (DMS).

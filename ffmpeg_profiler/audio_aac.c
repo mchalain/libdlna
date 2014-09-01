@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "profiles.h"
 #include "containers.h"
 

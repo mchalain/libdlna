@@ -43,12 +43,6 @@
 
 typedef struct dlna_item_s dlna_item_t;
 
-typedef enum {
-  DLNA_DEVICE_UNKNOWN,
-  DLNA_DEVICE_DMS,      /* Digital Media Server */
-  DLNA_DEVICE_DMP,      /* Digital Media Player */
-} dlna_device_type_t;
-
 typedef struct vfs_item_s {
   uint32_t id;
   char *title;

@@ -2,7 +2,6 @@ ifeq (,$(wildcard ../config.mak))
 $(error "../config.mak is not present, run configure !")
 endif
 include ../config.mak
-PROFILERS=ffmpeg_profiler/libffmpeg_profiler.so
 
 ifeq ($(HAVE_EXTERNAL_LIBUPNP),internal)
   include ixml/ixml.mak
@@ -83,7 +82,7 @@ LOBJS = $(SRCS:.c=.lo)
 .SUFFIXES: .c .o .lo
 
 #DEVELOPER_MODE:=TAGS tags
-all: depend $(PROFILERS) $(BUILD_RULES) $(DEVELOPER_MODE)
+all: depend $(BUILD_RULES) $(DEVELOPER_MODE)
 
 .c.o:
 	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
@@ -136,7 +135,6 @@ tags:
 	 ( find -name '*.[chS]' -print ) | xargs ctags -a;
 
 clean:
-	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(dir $(profiler)) clean;)
 	-$(RM) -f *.o *.lo *.a *.so*
 	-$(RM) -f ixml/*.o ixml/*.lo
 	-$(RM) -f threadutil/*.o threadutil/*.lo
@@ -168,9 +166,6 @@ dist-all: ixml-dist-all threadutil-dist-all upnp-dist-all
 	cp $(EXTRADIST) $(SRCS) Makefile $(DIST)
 
 .PHONY: dist-all
-
-$(PROFILERS):
-	make -C $(dir $@)
 
 #
 # include dependency files if they exist

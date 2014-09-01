@@ -28,7 +28,7 @@
 
 #include <libavcodec/avcodec.h>
 
-#include "../dlna_internals.h"
+#include "dlna.h"
 #include "profiles.h"
 #include "containers.h"
 

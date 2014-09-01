@@ -25,7 +25,6 @@
 #include <sys/stat.h>
 
 #include "dlna_internals.h"
-#include "ffmpeg_profiler/ffmpeg_profiler.h"
 
 extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
 
@@ -198,9 +197,9 @@ upnp_guess_media_profile (char *filename, void **cookie)
 
 dlna_profiler_t upnpav_profiler =
 {
-	.guess_media_profile = upnp_guess_media_profile,
-	.get_media_profile = upnp_get_media_profile,
-	.get_supported_mime_types = upnp_get_supported_mime_types,
+  .guess_media_profile = upnp_guess_media_profile,
+  .get_media_profile = upnp_get_media_profile,
+  .get_supported_mime_types = upnp_get_supported_mime_types,
 };
 
 /* UPnP ContentDirectory Object Item */
