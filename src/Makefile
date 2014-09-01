@@ -43,6 +43,7 @@ SRCS :=  \
 	buffer.c \
 	vfs.c \
 	crc32.c \
+	devices.c \
 	services.c \
 	cms.c \
 	cds.c \

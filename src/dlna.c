@@ -48,7 +48,10 @@
 #endif
 
 #include "dlna_internals.h"
+#include "dlna_db.h"
 #include "upnp_internals.h"
+#include "devices.h"
+#include "vfs.h"
 
 void
 dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler)
@@ -326,117 +329,6 @@ dlna_set_port (dlna_t *dlna, int port)
     return;
   
   dlna->port = port;
-}
-
-void
-dlna_device_set_friendly_name (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->friendly_name)
-    free (dlna->friendly_name);
-  dlna->friendly_name = strdup (str);
-}
-
-void
-dlna_device_set_manufacturer (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->manufacturer)
-    free (dlna->manufacturer);
-  dlna->manufacturer = strdup (str);
-}
-
-void
-dlna_device_set_manufacturer_url (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->manufacturer_url)
-    free (dlna->manufacturer_url);
-  dlna->manufacturer_url = strdup (str);
-}
-
-void
-dlna_device_set_model_description (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->model_description)
-    free (dlna->model_description);
-  dlna->model_description = strdup (str);
-}
-
-void
-dlna_device_set_model_name (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->model_name)
-    free (dlna->model_name);
-  dlna->model_name = strdup (str);
-}
-
-void
-dlna_device_set_model_number (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->model_number)
-    free (dlna->model_number);
-  dlna->model_number = strdup (str);
-}
-
-void
-dlna_device_set_model_url (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->model_url)
-    free (dlna->model_url);
-  dlna->model_url = strdup (str);
-}
-
-
-void
-dlna_device_set_serial_number (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->serial_number)
-    free (dlna->serial_number);
-  dlna->serial_number = strdup (str);
-}
-
-void
-dlna_device_set_uuid (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->uuid)
-    free (dlna->uuid);
-  dlna->uuid = strdup (str);
-}
-
-void
-dlna_device_set_presentation_url (dlna_t *dlna, char *str)
-{
-  if (!dlna || !str)
-    return;
-
-  if (dlna->presentation_url)
-    free (dlna->presentation_url);
-  dlna->presentation_url = strdup (str);
 }
 
 void

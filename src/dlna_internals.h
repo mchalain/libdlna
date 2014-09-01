@@ -117,6 +117,7 @@ struct dlna_s {
   char *interface;
   unsigned short port; /* server port */
   dlnaDevice_Handle dev;
+  char *urn_type;
   char *friendly_name;
   char *manufacturer;
   char *manufacturer_url;

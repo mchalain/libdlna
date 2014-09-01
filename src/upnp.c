@@ -355,7 +355,7 @@ get_iface_address (char *interface)
 }
 
 int
-dlna_start (dlna_t *dlna, dlna_device_type_t type)
+dlna_start (dlna_t *dlna)
 {
   char *description = NULL;
   char *ip = NULL;
@@ -364,22 +364,10 @@ dlna_start (dlna_t *dlna, dlna_device_type_t type)
   if (!dlna)
     return DLNA_ST_ERROR;
 
-  if (type == DLNA_DEVICE_UNKNOWN)
+  if (!dlna->urn_type)
     return DLNA_ST_ERROR;
 
-  switch (type)
-  {
-  case DLNA_DEVICE_DMS:
-  {
-    description = dlna_dms_description_get (dlna);
-    break;
-  }
-  
-  case DLNA_DEVICE_DMP:
-  default:
-    break;
-  }
-  
+  description = dlna_device_get_description (dlna);
   if (!description)
     goto upnp_init_err;
 

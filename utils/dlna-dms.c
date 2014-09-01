@@ -192,6 +192,7 @@ main (int argc, char **argv)
   dlna_set_interface (dlna, "eth0");
 
   /* set some UPnP device properties */
+  dlna_device_set_type (dlna, DLNA_DEVICE_TYPE_DMS,"DMS");
   dlna_device_set_friendly_name (dlna, "libdlna DMS template");
   dlna_device_set_uuid (dlna, "123456789");
 
@@ -202,7 +203,7 @@ main (int argc, char **argv)
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
     dlna_service_register (dlna, DLNA_SERVICE_MS_REGISTAR);
   
-  if (dlna_start (dlna, DLNA_DEVICE_DMS) != DLNA_ST_OK)
+  if (dlna_start (dlna) != DLNA_ST_OK)
   {
     printf ("DMS init went wrong\n");
     dlna_uninit (dlna);

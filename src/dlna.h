@@ -154,15 +154,6 @@ typedef enum {
 typedef struct dlna_s dlna_t;
 
 /**
- * DLNA Device type
- **/
-typedef enum {
-  DLNA_DEVICE_UNKNOWN,
-  DLNA_DEVICE_DMS,      /* Digital Media Server */
-  DLNA_DEVICE_DMP,      /* Digital Media Player */
-} dlna_device_type_t;
-
-/**
  * Initialization of library.
  *
  * @warning This function must be called before any libdlna function.
@@ -184,7 +175,7 @@ void dlna_uninit (dlna_t *dlna);
  *
   * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
  */
-int dlna_start (dlna_t *dlna, dlna_device_type_t type);
+int dlna_start (dlna_t *dlna);
 
 /**
  * Stop device registration, webserver and all internals composants.
@@ -421,6 +412,16 @@ void dlna_service_register (dlna_t *dlna, dlna_service_type_t srv);
 /*  Optional: Used to overload default device parameters.                  */
 /*                                                                         */
 /***************************************************************************/
+#define DLNA_DEVICE_TYPE_DMS "urn:schemas-upnp-org:device:MediaServer:1"
+#define DLNA_DEVICE_TYPE_DMR "urn:schemas-upnp-org:device:MediaRenderer:1"
+
+/**
+ * Set device UPnP device Type URN.
+ *
+ * @param[in] dlna  The DLNA library's controller.
+ * @param[in] str   Value to be set.
+ */
+void dlna_device_set_type (dlna_t *dlna, char *str, char *short_str);
 
 /**
  * Set device UPnP friendly name.
