@@ -732,4 +732,5 @@ dlna_service_t cds_service = {
   .actions      = cds_service_actions,
   .statevar      = cds_service_variables,
   .get_description     = cds_get_description,
+  .init         = NULL,
 };

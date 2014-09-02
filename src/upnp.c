@@ -366,6 +366,15 @@ get_iface_address (char *interface)
   return val;
 }
 
+static int
+upnp_service_init (void *cookie, dlna_t *service)
+{
+  dlna_t *dlna = (dlna_t *)cookie;
+  if (service->init)
+    return service->init(dlna);
+  return 0;
+}
+
 int
 dlna_start (dlna_t *dlna)
 {
@@ -419,6 +428,7 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
 
+  dlna_service_foreach (dlna, upnp_service_init, dlna);
   res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
   if (res != DLNA_E_SUCCESS)
   {

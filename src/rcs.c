@@ -346,4 +346,5 @@ dlna_service_t rcs_service = {
   .actions      = rcs_service_actions,
   .statevar      = rcs_service_variables,
   .get_description     = rcs_get_description,
+  .init         = NULL,
 };
