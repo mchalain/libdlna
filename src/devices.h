@@ -23,6 +23,7 @@ struct dlna_device_s {
 };
 
 dlna_device_t *dlna_device_new ();
+void dlna_device_free (dlna_device_t *device);
 
 #define DLNA_DESCRIPTION_HEADER \
 "<?xml version=\"1.0\" encoding=\"utf-8\"?>" \
