@@ -509,6 +509,7 @@ struct dlna_service_s {
   char *event_url;
   struct upnp_service_action_s *actions;
   struct upnp_service_statevar_s *statevar;
+  void *cookie;
   char *(*get_description) (dlna_t *dlna);
   int (*init) (dlna_t *dlna);
 };
