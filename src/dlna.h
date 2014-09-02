@@ -59,7 +59,8 @@ struct dlna_item_s;
 /* Status code for DLNA related functions */
 typedef enum {
   DLNA_ST_OK,
-  DLNA_ST_ERROR
+  DLNA_ST_ERROR,
+  DLNA_ST_VFSEMPTY
 } dlna_status_code_t;
 
 /* Verbosity level: defines which kind of log can be displayed */
@@ -365,7 +366,7 @@ dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler);
 
 typedef enum {
   DLNA_DMS_STORAGE_MEMORY,
-  DLNA_DMS_STORAGE_SQL_DB,
+  DLNA_DMS_STORAGE_DB,
 } dlna_dms_storage_type_t;
 
 /**
@@ -375,8 +376,7 @@ typedef enum {
  * @param[in] type  The VFS storage type.
  * @param[in] data  Optional cookie depending on storage type:
  *                   - May be NULL for memory storage.
- *                   - Path to databased file for SQL_DB storage.
- * 
+ *                   - Path to databased file for DB storage.
  */
 void dlna_dms_set_vfs_storage_type (dlna_t *dlna,
                                     dlna_dms_storage_type_t type, char *data);

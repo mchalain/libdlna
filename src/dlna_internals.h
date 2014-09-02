@@ -54,6 +54,19 @@ struct dlna_dmp_item_s
 };
 
 /* UPnP Service properties */
+typedef struct dlna_dms_s dlna_dms_t;
+struct dlna_dms_s
+{
+  /* VFS for Content Directory */
+  dlna_dms_storage_type_t storage_type;
+  struct vfs_item_s *vfs_root;
+  uint32_t vfs_items;
+#ifdef HAVE_SQLITE
+  void *db;
+#endif /* HAVE_SQLITE */
+};
+
+/* UPnP Services */
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_statevar_s  upnp_service_statevar_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -108,11 +121,8 @@ struct dlna_s {
   /* Profilers entries */
   dlna_profiler_t *profiler;
 
-  /* VFS for Content Directory */
-  dlna_dms_storage_type_t storage_type;
-  struct vfs_item_s *vfs_root;
-  uint32_t vfs_items;
-  void *db;
+  /* DMS Properties */
+  dlna_dms_t dms;
   
   /* UPnP Properties */
   char *interface;

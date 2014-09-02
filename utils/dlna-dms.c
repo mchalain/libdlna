@@ -212,13 +212,12 @@ main (int argc, char **argv)
     return -1;
   }
 
+  printf ("Trying to share '%s'\n", content_dir);
   if (stat (content_dir, &st) < 0)
   {
     printf ("Invalid content directory\n");
     return -1;
   }
-      
-  printf ("Trying to share '%s'\n", content_dir);
   if (S_ISDIR (st.st_mode))
     add_dir (dlna, content_dir, 0);
   else
