@@ -45,32 +45,11 @@
 
 typedef struct dlna_item_s dlna_item_t;
 
-/* DLNA Media Player Properties */
 typedef struct dlna_dmp_item_s dlna_dmp_item_t;
-typedef struct dlna_dmp_s dlna_dmp_t;
 struct dlna_dmp_item_s
 {
   uint32_t id;
   dlna_item_t *item;
-  UT_hash_handle hh;
-};
-
-struct dlna_dmp_s
-{
-  uint32_t id;
-  dlna_dmp_item_t *playlist;
-  dlna_dmp_item_t *current_item;
-  enum {
-    E_NO_MEDIA,
-    E_STOPPED,
-    E_PLAYING,
-    E_PAUSING,
-    E_RECORDING,
-    E_TRANSITIONING,
-  } state;
-  ithread_mutex_t state_mutex;
-  ithread_cond_t state_change;
-  ithread_t playthread;
   UT_hash_handle hh;
 };
 
@@ -135,9 +114,6 @@ struct dlna_s {
   uint32_t vfs_items;
   void *db;
   
-  /* DMP data */
-  struct dlna_dmp_s *dmp;
- 
   /* UPnP Properties */
   char *interface;
   unsigned short port; /* server port */

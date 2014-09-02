@@ -82,7 +82,7 @@ char *SERVICE_STATE_TYPES[] = {
 };
 
 char *
-dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp_service_statevar_t *variables)
+dlna_service_get_description (dlna_t *dlna dlna_unused, upnp_service_action_t *actions, upnp_service_statevar_t *variables)
 {
   buffer_t *b = NULL;
   char *desc = NULL;
@@ -157,7 +157,7 @@ dlna_service_find (dlna_device_t *device, char *id)
 
   for (item = device->services; item; item = item->hh.next)
     if (item->service->id && id && !strcmp (item->service->id, id))
-      return (const dlna_service_t *)item->service;
+      return item->service;
 
   return NULL;
 }
@@ -172,7 +172,7 @@ dlna_service_find_url (dlna_device_t *device, char *url)
 
   for (item = device->services; item; item = item->hh.next)
     if (item->service->scpd_url && url && !strcmp (item->service->scpd_url, url))
-      return (const dlna_service_t *)item->service;
+      return item->service;
 
   return NULL;
 }
