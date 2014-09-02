@@ -31,6 +31,19 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+int
+dlna_vfs_init (dlna_t *dlna)
+{
+  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
+  dlna->dms.vfs_root = NULL;
+  dlna->dms.vfs_items = 0;
+#ifdef HAVE_SQLITE
+  dlna->dms.db = NULL;
+#endif /* HAVE_SQLITE */
+  dlna_vfs_add_container (dlna, "root", 0, 0);
+  return 0;
+}
+
 void
 vfs_item_free (dlna_t *dlna, vfs_item_t *item)
 {

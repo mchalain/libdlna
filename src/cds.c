@@ -723,19 +723,6 @@ cds_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
 }
 
-static int
-cds_init (dlna_t *dlna)
-{
-  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
-  dlna->dms.vfs_root = NULL;
-  dlna->dms.vfs_items = 0;
-#ifdef HAVE_SQLITE
-  dlna->dms.db = NULL;
-#endif /* HAVE_SQLITE */
-  dlna_vfs_add_container (dlna, "root", 0, 0);
-  return 0;
-}
-
 dlna_service_t *
 cds_service_new (dlna_t *dlna dlna_unused)
 {
@@ -750,6 +737,7 @@ cds_service_new (dlna_t *dlna dlna_unused)
   service->actions      = cds_service_actions;
   service->statevar     = cds_service_variables;
   service->get_description     = cds_get_description;
-  service->init         = cds_init;
+  service->init         = NULL;
+
   return service;
 };

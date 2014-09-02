@@ -70,6 +70,10 @@ struct vfs_s
 /*  Optional: Routines to add/remove element from VFS.                     */
 /*                                                                         */
 /***************************************************************************/
+/**
+ * Initialize the VFS of the device
+ */
+int dlna_vfs_init (dlna_t *dlna);
 
 /**
  * Add a new container to the VFS layer.

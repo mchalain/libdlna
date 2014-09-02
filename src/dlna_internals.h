@@ -54,8 +54,8 @@ struct dlna_dmp_item_s
 };
 
 /* UPnP Service properties */
-typedef struct dlna_dms_s dlna_dms_t;
-struct dlna_dms_s
+typedef struct dlna_vfs_s dlna_vfs_t;
+struct dlna_vfs_s
 {
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
@@ -122,7 +122,7 @@ struct dlna_s {
   dlna_profiler_t *profiler;
 
   /* DMS Properties */
-  dlna_dms_t dms;
+  dlna_vfs_t dms;
   
   /* UPnP Properties */
   char *interface;

@@ -93,7 +93,9 @@ dlna_init (void)
   dlna->port = 0;
   
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
-  
+
+  dlna_vfs_init (dlna);
+
   dlna_profiler_init (dlna);
   return dlna;
 }
