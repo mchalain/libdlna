@@ -31,6 +31,6 @@
 #define AVTS_CONTROL_URL      "avts_control"
 #define AVTS_EVENT_URL        "avts_event"
 
-extern dlna_service_t avts_service;
+extern dlna_service_t *avts_service_new (dlna_t*dlna);
 
 #endif /* AVTS_H */
