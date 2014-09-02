@@ -64,40 +64,10 @@ struct vfs_s
 #endif /* HAVE_SQLITE */
 };
 
-/***************************************************************************/
-/*                                                                         */
-/* DLNA UPnP Virtual File System (VFS) Management                          */
-/*  Optional: Routines to add/remove element from VFS.                     */
-/*                                                                         */
-/***************************************************************************/
 /**
  * Initialize the VFS of the device
  */
 int dlna_vfs_init (dlna_t *dlna);
-
-/**
- * Add a new container to the VFS layer.
- *
- * @param[in] vfs         The DLNA library's controller.
- * @param[in] name         Displayed name of the container.
- * @param[in] object_id    Expected UPnP object ID.
- * @param[in] container_id UPnP object ID of its parent.
- * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
- */
-uint32_t dlna_vfs_add_container (dlna_t *dlna, char *name,
-                        uint32_t object_id, uint32_t container_id);
-
-/**
- * Add a new resource to the VFS layer.
- *
- * @param[in] vfs         The DLNA library's controller.
- * @param[in] name         Displayed name of the resource.
- * @param[in] fullname     Full path to the specified resource.
- * @param[in] container_id UPnP object ID of its parent.
- * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
- */
-uint32_t dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                       char *fullpath, uint32_t container_id);
 
 vfs_item_t *vfs_get_item_by_id (dlna_t *dlna, uint32_t id);
 vfs_item_t *vfs_get_item_by_name (dlna_t *dlna, char *name);
