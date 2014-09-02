@@ -656,9 +656,110 @@ audio_profile_guess (AVCodecContext *ac)
   return AUDIO_PROFILE_INVALID;
 }
 
+static void *
+stream_thread_play (void *arg)
+{
+  ffmpeg_stream_t *stream = (ffmpeg_stream_t *)arg;
+  while (1)
+  {
+	ithread_mutex_lock (&stream->mutex);
+	ithread_cond_wait (&stream->cond,&stream->mutex);
+	ithread_mutex_unlock (&stream->mutex);
+  }
+  return NULL;
+}
+
+int
+stream_component_open (ffmpeg_profile_t *cookie, int stream_type)
+{
+  ffmpeg_stream_t *stream = *cookie->stream[stream_type];
+  AVCodecContext *avctx;
+  AVCodec *codec;
+  AVDictionary *opts;
+
+  avctx = cookie->ctx->streams[stream->id]->codec;
+  codec = avcodec_find_decoder(avctx->codec_id);
+
+  if (!codec)
+    return -1;
+  avctx->codec_id = codec->id;
+  if (!av_dict_get(opts, "threads", NULL, 0))
+    av_dict_set(&opts, "threads", "auto", 0);
+  if (avctx->codec_type == AVMEDIA_TYPE_VIDEO || avctx->codec_type == AVMEDIA_TYPE_AUDIO)
+    av_dict_set(&opts, "refcounted_frames", "1", 0);
+  if (avcodec_open2(avctx, codec, &opts) < 0)
+    return -1;
+
+  ithread_mutex_init (&stream->mutex, NULL);
+  ithread_cond_init (&stream->cond, NULL);
+  ithread_create (&stream->thread, NULL, stream_thread_play, stream);
+
+  return 0;
+}
+
+int
+stream_push_packet (ffmpeg_stream_t *stream, AVPacket *pkt)
+{
+  ithread_cond_signal (&stream->cond);
+  return 0;
+}
+
+static int wanted_stream [AVMEDIA_TYPE_NB] = {
+    [AVMEDIA_TYPE_AUDIO]    = -1,
+    [AVMEDIA_TYPE_VIDEO]    = -1,stream_push_packet
+    [AVMEDIA_TYPE_SUBTITLE] = -1,
+};
+
+int
+ffmpeg_prepare_stream (dlna_item_t *item)
+{
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
+
+  cookie->st_index[AVMEDIA_TYPE_VIDEO] =
+        av_find_best_stream(ctx, AVMEDIA_TYPE_VIDEO,
+                      wanted_stream[AVMEDIA_TYPE_VIDEO], -1, NULL, 0);
+  cookie->st_index[AVMEDIA_TYPE_AUDIO] =
+        av_find_best_stream(ctx, AVMEDIA_TYPE_AUDIO,
+                      wanted_stream[AVMEDIA_TYPE_AUDIO],
+                      cookie->st_index[AVMEDIA_TYPE_VIDEO], NULL, 0);
+  cookie->st_index[AVMEDIA_TYPE_SUBTITLE] =
+        av_find_best_stream(ctx, AVMEDIA_TYPE_SUBTITLE,
+                      wanted_stream[AVMEDIA_TYPE_SUBTITLE],
+                      (cookie->st_index[AVMEDIA_TYPE_AUDIO] >= 0 ?
+                         cookie->st_index[AVMEDIA_TYPE_AUDIO] :
+                         cookie->st_index[AVMEDIA_TYPE_VIDEO]), NULL, 0);
+  if (cookie->st_index[AVMEDIA_TYPE_AUDIO] >= 0)
+  {
+    stream_component_open(cookie, AVMEDIA_TYPE_AUDIO);
+  }
+  return 0;
+}
+
+int
+ffmpeg_read_stream (dlna_item_t *item)
+{
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
+  AVPacket pkt1, *pkt = &pkt1;
+
+  ret = av_read_frame(ctx, pkt);
+  if (ret < 0)
+    return -1;
+  for (i = 0; i < AVMEDIA_TYPE_NB; i++)
+  {
+    stream = &cookie->stream[i];
+    if (pkt->stream_index == stream->id)
+    {
+      stream_push_packet (stream, pkt);
+    }
+  }
+}
 static const dlna_profiler_t s_ffmpeg_profiler = {
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,
   .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,
+  .prepare_stream = ffmpeg_prepare_stream,
+  .read_stream = ffmpeg_read_stream,
 };
 const dlna_profiler_t *ffmpeg_profiler = &s_ffmpeg_profiler;
