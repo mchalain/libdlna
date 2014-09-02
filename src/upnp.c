@@ -266,6 +266,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     event.ar      = ar;
     event.status  = 1;
     event.service = service;
+    event.device = dlna->device;
 
     if (action->cb && action->cb (dlna, &event) && event.status)
     {
@@ -367,11 +368,11 @@ get_iface_address (char *interface)
 }
 
 static int
-upnp_service_init (void *cookie, dlna_t *service)
+upnp_service_init (void *cookie, dlna_service_t *service)
 {
   dlna_t *dlna = (dlna_t *)cookie;
   if (service->init)
-    return service->init(dlna);
+    return service->init (dlna);
   return 0;
 }
 
@@ -428,7 +429,7 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
 
-  dlna_service_foreach (dlna, upnp_service_init, dlna);
+  dlna_service_foreach (dlna->device, upnp_service_init, dlna);
   res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
   if (res != DLNA_E_SUCCESS)
   {

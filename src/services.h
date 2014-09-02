@@ -65,10 +65,10 @@ struct dlna_service_list_s {
   UT_hash_handle hh;
 };
 
-const dlna_service_t *dlna_service_find (dlna_device_t *dlna, char *id);
-const dlna_service_t *dlna_service_find_url (dlna_device_t *dlna, char *url);
-int dlna_service_foreach (dlna_device_t *dlna, int (*cb)(void *cookie, dlna_service_t *service), void *cookie);
-void dlna_service_unregister_all (dlna_device_t *dlna);
+dlna_service_t *dlna_service_find (dlna_device_t *device, char *id);
+dlna_service_t *dlna_service_find_url (dlna_device_t *device, char *url);
+int dlna_service_foreach (dlna_device_t *device, int (*cb)(void *cookie, dlna_service_t *service), void *cookie);
+void dlna_service_unregister_all (dlna_device_t *device);
 
 char *
 dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp_service_statevar_t *variables);

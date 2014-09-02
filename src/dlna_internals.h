@@ -83,6 +83,7 @@ struct upnp_action_event_s {
   struct dlna_Action_Request *ar;
   int status;
   dlna_service_t *service;
+  dlna_device_t *device;
 };
 
 struct upnp_service_action_s {

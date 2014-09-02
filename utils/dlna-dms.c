@@ -198,10 +198,10 @@ main (int argc, char **argv)
   dlna_device_set_friendly_name (device, "libdlna DMS template");
   dlna_device_set_uuid (device, "123456789");
 
-  dlna_service_register (device, &cms_service);
-  dlna_service_register (device, &cds_service);
+  dlna_service_register (device, cms_service_new(dlna));
+  dlna_service_register (device, cds_service_new(dlna));
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
-    dlna_service_register (device, &msr_service);
+    dlna_service_register (device, msr_service_new(dlna));
   
   dlna_set_device (dlna, device);
 

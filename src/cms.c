@@ -221,15 +221,20 @@ cms_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cms_service_actions, cms_service_variables);
 }
 
-dlna_service_t cms_service = {
-  .id           = CMS_SERVICE_ID,
-  .type         = CMS_SERVICE_TYPE,
-  .scpd_url     = CMS_URL,
-  .control_url  = CMS_CONTROL_URL,
-  .event_url    = CMS_EVENT_URL,
-  .actions      = cms_service_actions,
-  .statevar      = cms_service_variables,
-  .get_description     = cms_get_description,
-  .init         = NULL,
+dlna_service_t *
+cms_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = CMS_SERVICE_ID;
+  service->type         = CMS_SERVICE_TYPE;
+  service->scpd_url     = CMS_URL;
+  service->control_url  = CMS_CONTROL_URL;
+  service->event_url    = CMS_EVENT_URL;
+  service->actions      = cms_service_actions;
+  service->statevar     = cms_service_variables;
+  service->get_description     = cms_get_description;
+  service->init         = NULL;
+  return service;
 };
-

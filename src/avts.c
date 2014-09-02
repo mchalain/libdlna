@@ -1053,14 +1053,20 @@ avts_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
 }
 
-dlna_service_t avts_service = {
-  .id           = AVTS_SERVICE_ID,
-  .type         = AVTS_SERVICE_TYPE,
-  .scpd_url     = AVTS_URL,
-  .control_url  = AVTS_CONTROL_URL,
-  .event_url    = AVTS_EVENT_URL,
-  .actions      = avts_service_actions,
-  .statevar      = avts_service_variables,
-  .get_description     = avts_get_description,
-  .init         = NULL,
+dlna_service_t *
+avts_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = AVTS_SERVICE_ID;
+  service->type         = AVTS_SERVICE_TYPE;
+  service->scpd_url     = AVTS_URL;
+  service->control_url  = AVTS_CONTROL_URL;
+  service->event_url    = AVTS_EVENT_URL;
+  service->actions      = avts_service_actions;
+  service->statevar     = avts_service_variables;
+  service->get_description     = avts_get_description;
+  service->init         = NULL;
+  return service;
 };

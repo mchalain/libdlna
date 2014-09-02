@@ -723,14 +723,20 @@ cds_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
 }
 
-dlna_service_t cds_service = {
-  .id           = CDS_SERVICE_ID,
-  .type         = CDS_SERVICE_TYPE,
-  .scpd_url     = CDS_URL,
-  .control_url  = CDS_CONTROL_URL,
-  .event_url    = CDS_EVENT_URL,
-  .actions      = cds_service_actions,
-  .statevar      = cds_service_variables,
-  .get_description     = cds_get_description,
-  .init         = NULL,
+dlna_service_t *
+cds_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = CDS_SERVICE_ID;
+  service->type         = CDS_SERVICE_TYPE;
+  service->scpd_url     = CDS_URL;
+  service->control_url  = CDS_CONTROL_URL;
+  service->event_url    = CDS_EVENT_URL;
+  service->actions      = cds_service_actions;
+  service->statevar     = cds_service_variables;
+  service->get_description     = cds_get_description;
+  service->init         = NULL;
+  return service;
 };

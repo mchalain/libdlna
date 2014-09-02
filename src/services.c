@@ -147,7 +147,7 @@ dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
   free (item);
 }
 
-const dlna_service_t *
+dlna_service_t *
 dlna_service_find (dlna_device_t *device, char *id)
 {
   dlna_service_list_t *item;
@@ -162,7 +162,7 @@ dlna_service_find (dlna_device_t *device, char *id)
   return NULL;
 }
 
-const dlna_service_t *
+dlna_service_t *
 dlna_service_find_url (dlna_device_t *device, char *url)
 {
   dlna_service_list_t *item;
