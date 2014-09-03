@@ -34,6 +34,7 @@
 
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
+#define AVTS_ERR_NOT_IMPLEMENTED               710
 #define AVTS_ERR_INVALID_INSTANCE              718 
 
 #define AVTS_VAR_STATE                      "TransportState"
@@ -210,7 +211,6 @@ struct avts_instance_s
 {
   uint32_t id;
   dlna_dmp_item_t *playlist;
-  dlna_dmp_item_t *current_item;
   dlna_service_t *service;
   enum {
     E_NO_MEDIA,
@@ -242,7 +242,10 @@ playlist_empty (dlna_dmp_item_t *playlist)
   dlna_dmp_item_t *item;
 
   for (item = playlist; item; item = item->hh.next)
+  {
     HASH_DEL (playlist, item);
+    free (item);
+  }
   return NULL;
 }
 
@@ -261,6 +264,9 @@ playlist_add_item (dlna_dmp_item_t *playlist, dlna_t *dlna, char *uri, char *uri
   {
     /* set id with the id of the last item + 1 */
     item->id = crc32(0, uri, strlen(uri));
+    /* this item will be the first */
+    if (!playlist)
+      item->current = item; /* set the first item as the start of the playlist */
     HASH_ADD_INT (playlist, id, item);
   }
 
@@ -268,17 +274,30 @@ playlist_add_item (dlna_dmp_item_t *playlist, dlna_t *dlna, char *uri, char *uri
 }
 
 static dlna_dmp_item_t *
-playlist_next (dlna_dmp_item_t *playlist, uint32_t id)
+playlist_current (dlna_dmp_item_t *playlist)
 {
-  dlna_dmp_item_t *item = NULL;
   if (!playlist)
     return NULL;
-  if (id)
-  {
-    HASH_FIND_INT (playlist, &id, item);
-    if (item)
-      return item->hh.next;
-  }
+  return playlist->current;
+}
+
+static dlna_dmp_item_t *
+playlist_next (dlna_dmp_item_t *playlist)
+{
+  if (!playlist)
+    return NULL;
+  if (playlist->current)
+    return playlist->current->hh.next;
+  return playlist;
+}
+
+static dlna_dmp_item_t *
+playlist_previous (dlna_dmp_item_t *playlist)
+{
+  if (!playlist)
+    return NULL;
+  if (playlist->current)
+    return playlist->current->hh.prev;
   return playlist;
 }
 
@@ -304,6 +323,21 @@ playlist_index (dlna_dmp_item_t *playlist, dlna_dmp_item_t *item)
   if (playlist)
     return i;
   return 0;
+}
+
+static dlna_dmp_item_t *
+playlist_seek (dlna_dmp_item_t *playlist, int32_t target)
+{
+  dlna_dmp_item_t *item = playlist->current;
+  if (target < 0)
+  {
+    while (target < 0 && ((item = item->hh.prev) != NULL)) target++;
+  }
+  else
+  {
+    while (target > 0 && ((item = item->hh.next) != NULL)) target--;
+  }
+  return item;
 }
 
 static int
@@ -381,23 +415,12 @@ instance_change_state (avts_instance_t *instance, int newstate)
   return instance->state;
 }
 
-static int
-instance_change_current_item (avts_instance_t *instance, dlna_dmp_item_t *newitem)
-{
-  instance->current_item = newitem;
-  return 0;
-}
-
 static void *
 avts_thread_play (void *arg)
 {
   avts_instance_t *instance = (avts_instance_t *) arg;
   dlna_dmp_item_t *next_item;
 
-  instance_change_current_item(instance, playlist_next (instance->playlist, 0));
-  if (!instance->current_item)
-    return NULL;
-  playitem_prepare (instance->current_item->item);
   while (1)
   {
     int play_frame = 0;
@@ -412,7 +435,7 @@ avts_thread_play (void *arg)
       play_frame = 1;
       break;
     case E_TRANSITIONING:
-      next_item = playlist_next (instance->playlist, instance->current_item->id);
+      next_item = playlist_next (instance->playlist);
       if (next_item)
       {
         playitem_prepare (next_item->item);
@@ -428,13 +451,13 @@ avts_thread_play (void *arg)
       }
       break;
     case E_STOPPED:
-      instance_change_current_item(instance, playlist_next (instance->playlist, 0));
-      if (!instance->current_item)
+      if (!instance->playlist)
       {
         instance_change_state (instance, E_NO_MEDIA);
         break;
       }
-      playitem_prepare (instance->current_item->item);
+      instance->playlist->current = instance->playlist;
+      playitem_prepare (instance->playlist->item);
     case E_PAUSING:
       ithread_mutex_lock (&instance->state_mutex);
       ithread_cond_wait (&instance->state_change, &instance->state_mutex);
@@ -443,19 +466,19 @@ avts_thread_play (void *arg)
     }
     if (play_frame)
     {
-      int ret = playitem_decodeframe (instance->current_item->item);
+      int ret = playitem_decodeframe (playlist_current(instance->playlist)->item);
       if (ret == 0 && state == E_PLAYING)
       {
         instance_change_state (instance, E_TRANSITIONING);
       }
       else if (ret < 0 && state == E_PLAYING)
       {
-        next_item = playlist_next (instance->playlist, instance->current_item->id);
+        next_item = playlist_next (instance->playlist);
         if (!next_item)
           instance_change_state (instance, E_STOPPED);
         else
-          playitem_prepare (next_item->item);            
-        instance_change_current_item(instance, next_item);
+          playitem_prepare (next_item->item);
+        instance->playlist->current = next_item;
         next_item = NULL;
       }
       /* in transition, two cases:
@@ -468,7 +491,7 @@ avts_thread_play (void *arg)
           instance_change_state (instance, E_STOPPED);
         else
           instance_change_state (instance, E_PLAYING);
-        instance_change_current_item(instance, next_item);
+        instance->playlist->current = next_item;
         next_item = NULL;
       }
     }
@@ -619,38 +642,38 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  if (instance->current_item)
+  if (playlist_current(instance->playlist))
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
   else
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
-  if (instance->current_item)
-    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  if (playlist_current(instance->playlist))
+    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item)
-    didl_add_short_item (out, instance->current_item);
+  if (playlist_current(instance->playlist))
+    didl_add_short_item (out, playlist_current(instance->playlist));
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item && instance->current_item->hh.next)
+  if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    dlna_dmp_item_t *item = playlist_next(instance->playlist);
     buffer_appendf (out, "%s", item->item->filename);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item && instance->current_item->hh.next)
+  if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    dlna_dmp_item_t *item = playlist_next(instance->playlist);
     didl_add_short_item (out, item);
   }
   else
@@ -702,29 +725,29 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  if (instance->current_item)
+  if (playlist_current(instance->playlist))
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
   else
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
-  if (instance->current_item)
-    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  if (playlist_current(instance->playlist))
+    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item)
-    didl_add_short_item (out, instance->current_item);
+  if (playlist_current(instance->playlist))
+    didl_add_short_item (out, playlist_current(instance->playlist));
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item && instance->current_item->hh.next)
+  if (playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    dlna_dmp_item_t *item = playlist_next(instance->playlist);
     buffer_appendf (out, "%s", item->item->filename);
   }
   else
@@ -733,9 +756,9 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item && instance->current_item->hh.next)
+  if (playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = instance->current_item->hh.next;
+    dlna_dmp_item_t *item = playlist_next(instance->playlist);
     didl_add_short_item (out, item);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
@@ -817,31 +840,31 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   out = buffer_new ();
-  if (instance->current_item)
-    index = playlist_index (instance->playlist, instance->current_item);
+  if (playlist_current(instance->playlist))
+    index = playlist_index (instance->playlist, playlist_current(instance->playlist));
   buffer_appendf (out, "%u", index);
   upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item && instance->current_item->item->properties)
-    buffer_appendf (out, "%s", instance->current_item->item->properties->duration);
+  if (playlist_current(instance->playlist) && playlist_current(instance->playlist)->item->properties)
+    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->properties->duration);
   else
     buffer_appendf (out, "%s", AVTS_VAR_TRACK_DURATION_VAL_ZERO);
   upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item)
-    didl_add_short_item (out, instance->current_item);
+  if (playlist_current(instance->playlist))
+    didl_add_short_item (out, playlist_current(instance->playlist));
   else
-    buffer_appendf (out, "");
+    buffer_appendf (out, "%s", "");
   upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item)
-    buffer_appendf (out, "%s", instance->current_item->item->filename);
+  if (playlist_current(instance->playlist))
+    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
@@ -1048,6 +1071,50 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static int
+avts_seek (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  char *unit;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (instances, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+  unit   = upnp_get_string (ev->ar, AVTS_ARG_SEEK_UNIT);
+  if (!strncmp (unit, "TRACK_NR", 0))
+  {
+    int32_t nbtrack;
+    nbtrack = upnp_get_ui4 (ev->ar, AVTS_ARG_SEEK_TARGET);
+    playlist_seek (instance->playlist, nbtrack);
+  }
+  else
+  {
+    ev->ar->ErrCode = AVTS_ERR_NOT_IMPLEMENTED;
+    return 0;
+  }
+  return ev->status;
+}
+
+static int
 avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
@@ -1114,6 +1181,8 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
+  instance->playlist->current = playlist_previous (instance->playlist);
+  if (instance_change_state(instance, E_TRANSITIONING) != E_TRANSITIONING)
   {
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
@@ -1149,20 +1218,20 @@ avts_get_last_change (dlna_t *dlna)
     buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\">", AVTS_VAR_RECORD_VAL);
     if (instance->playlist)
       buffer_appendf (out, "<NumberOfTracks val=\"%u\">", playlist_count(instance->playlist));
-    if (instance->playlist && instance->current_item)
-      index = playlist_index (instance->playlist, instance->current_item);
+    if (playlist_current(instance->playlist))
+      index = playlist_index (instance->playlist, playlist_current(instance->playlist));
     buffer_appendf (out, "<CurrentTrack val=\"%u\">", index);
     buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\">", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
     buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\">", AVTS_VAR_RECORD_VAL);
     buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    if (instance->current_item )
+    if (playlist_current(instance->playlist) )
       buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", "NOT_IMPLEMENTED");
-    if (instance->current_item && instance->current_item->item->properties)
-      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", instance->current_item->item->properties->duration);
-    if (instance->current_item)
+    if (playlist_current(instance->playlist) && playlist_current(instance->playlist)->item->properties)
+      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", playlist_current(instance->playlist)->item->properties->duration);
+    if (playlist_current(instance->playlist))
     {
       buffer_appendf (out, "<CurrentTrackMetaData val=\"");
-      didl_add_short_item (out, instance->current_item);
+      didl_add_short_item (out, playlist_current(instance->playlist));
       buffer_appendf (out, "\">");
     }
     val = instance_possible_state(instance);
@@ -1192,7 +1261,7 @@ upnp_service_action_t avts_service_actions[] = {
   { AVTS_ACTION_PLAY, AVTS_ACTION_PLAY_ARGS,              avts_play },
   { AVTS_ACTION_PAUSE, AVTS_ACTION_ARG_INSTANCE_ID,             avts_pause },
   { AVTS_ACTION_RECORD, NULL,            NULL },
-  { AVTS_ACTION_SEEK, AVTS_ACTION_SEEK_ARGS,              NULL },
+  { AVTS_ACTION_SEEK, AVTS_ACTION_SEEK_ARGS,              avts_seek },
   { AVTS_ACTION_NEXT, AVTS_ACTION_ARG_INSTANCE_ID,              avts_next },
   { AVTS_ACTION_PREVIOUS, AVTS_ACTION_ARG_INSTANCE_ID,          avts_previous },
   { AVTS_ACTION_SET_PLAY_MODE, NULL,     NULL },

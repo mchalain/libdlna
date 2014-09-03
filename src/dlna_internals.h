@@ -50,6 +50,7 @@ struct dlna_dmp_item_s
 {
   uint32_t id;
   dlna_item_t *item;
+  dlna_dmp_item_t *current;
   UT_hash_handle hh;
 };
 
