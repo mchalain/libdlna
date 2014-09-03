@@ -139,21 +139,22 @@ didl_add_value (buffer_t *out, char *param, off_t value)
 }
 
 void
-didl_add_short_item (buffer_t *out, avts_playlist_t *item)
+didl_add_short_item (buffer_t *out, 
+    uint32_t id, dlna_item_t *item, uint32_t containerid)
 {
   dlna_metadata_t *metadata;
 
   buffer_appendf (out, "<%s", DIDL_ITEM);
-  didl_add_value (out, DIDL_ITEM_ID, item->id);
-  didl_add_value (out, DIDL_ITEM_PARENT_ID, 0);
+  didl_add_value (out, DIDL_ITEM_ID, id);
+  didl_add_value (out, DIDL_ITEM_PARENT_ID, containerid);
   buffer_append (out, ">");
 
-  metadata = item->item->metadata;
+  metadata = item->metadata;
 
   if (metadata && strlen (metadata->title) > 1)
     didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
   else
-    didl_add_tag (out, DIDL_ITEM_TITLE, item->item->filename);
+    didl_add_tag (out, DIDL_ITEM_TITLE, item->filename);
   if (metadata)
   {
     if (strlen ( metadata->author) > 1)

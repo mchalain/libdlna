@@ -679,6 +679,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   avts_instance_t *instance = NULL;
   avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
+  avts_playlist_t *plitem;
 
   if (!dlna || !ev)
   {
@@ -707,39 +708,41 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  if (playlist_current(instance->playlist))
-    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
+  plitem = playlist_current(instance->playlist);
+
+  if (plitem && plitem->item->properties)
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, plitem->item->properties->duration);
   else
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
+  if (plitem)
+    buffer_appendf (out, "%s", plitem->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    didl_add_short_item (out, playlist_current(instance->playlist));
+  
+  if (plitem)
+    didl_add_short_item (out, plitem->id, plitem->item, 0);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
+  plitem = playlist_next(instance->playlist);
+  if (plitem)
   {
-    avts_playlist_t *item = playlist_next(instance->playlist);
-    buffer_appendf (out, "%s", item->item->filename);
+    buffer_appendf (out, "%s", plitem->item->filename);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
+  if (plitem)
   {
-    avts_playlist_t *item = playlist_next(instance->playlist);
-    didl_add_short_item (out, item);
+    didl_add_short_item (out, plitem->id, plitem->item, 0);
   }
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
@@ -760,6 +763,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   avts_instance_t *instance = NULL;
   avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
+  avts_playlist_t *plitem;
 
   if (!dlna || !ev)
   {
@@ -790,30 +794,31 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  if (playlist_current(instance->playlist))
-    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
+  plitem = playlist_current(instance->playlist);
+  if (plitem && plitem->item->properties)
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, plitem->item->properties->duration);
   else
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
+  if (plitem)
+    buffer_appendf (out, "%s", plitem->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    didl_add_short_item (out, playlist_current(instance->playlist));
+  if (plitem)
+    didl_add_short_item (out, plitem->id, plitem->item, 0);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_next(instance->playlist))
+  plitem = playlist_next(instance->playlist);
+  if (plitem)
   {
-    avts_playlist_t *item = playlist_next(instance->playlist);
-    buffer_appendf (out, "%s", item->item->filename);
+    buffer_appendf (out, "%s", plitem->item->filename);
   }
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
@@ -821,10 +826,9 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_next(instance->playlist))
+  if (plitem)
   {
-    avts_playlist_t *item = playlist_next(instance->playlist);
-    didl_add_short_item (out, item);
+    didl_add_short_item (out, plitem->id, plitem->item, 0);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
   buffer_free (out);
@@ -881,6 +885,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
   int index = 0;
+  avts_playlist_t *plitem;
 
   if (!dlna || !ev)
   {
@@ -904,32 +909,33 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
+  plitem = playlist_current(instance->playlist);
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    index = playlist_index (instance->playlist, playlist_current(instance->playlist));
+  if (plitem)
+    index = playlist_index (instance->playlist, plitem);
   buffer_appendf (out, "%u", index);
   upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist) && playlist_current(instance->playlist)->item->properties)
-    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->properties->duration);
+  if (plitem && plitem->item->properties)
+    buffer_appendf (out, "%s", plitem->item->properties->duration);
   else
     buffer_appendf (out, "%s", AVTS_VAR_TRACK_DURATION_VAL_ZERO);
   upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    didl_add_short_item (out, playlist_current(instance->playlist));
+  if (plitem)
+    didl_add_short_item (out, plitem->id, plitem->item, 0);
   else
     buffer_appendf (out, "%s", "");
   upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
   buffer_free (out);
 
   out = buffer_new ();
-  if (playlist_current(instance->playlist))
-    buffer_appendf (out, "%s", playlist_current(instance->playlist)->item->filename);
+  if (plitem)
+    buffer_appendf (out, "%s", plitem->item->filename);
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
@@ -1317,6 +1323,9 @@ avts_get_last_change (dlna_t *dlna)
   {
     int index = 0;
     char *val;
+    avts_playlist_t *plitem;
+
+    plitem = playlist_current(instance->playlist);
 
     buffer_appendf (out, "<InstanceID val=\"%d\">",instance->id);
     buffer_appendf (out, "<TransportState val=\"%s\">",g_TransportState[instance->state]);
@@ -1329,20 +1338,20 @@ avts_get_last_change (dlna_t *dlna)
     buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\">", AVTS_VAR_RECORD_VAL);
     if (instance->playlist)
       buffer_appendf (out, "<NumberOfTracks val=\"%u\">", playlist_count(instance->playlist));
-    if (playlist_current(instance->playlist))
-      index = playlist_index (instance->playlist, playlist_current(instance->playlist));
+    if (plitem)
+      index = playlist_index (instance->playlist, plitem);
     buffer_appendf (out, "<CurrentTrack val=\"%u\">", index);
     buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\">", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
     buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\">", AVTS_VAR_RECORD_VAL);
     buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    if (playlist_current(instance->playlist) )
-      buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", "NOT_IMPLEMENTED");
-    if (playlist_current(instance->playlist) && playlist_current(instance->playlist)->item->properties)
-      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", playlist_current(instance->playlist)->item->properties->duration);
-    if (playlist_current(instance->playlist))
+    if (plitem && plitem->item->properties )
+      buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", plitem->item->properties->duration);
+    if (plitem && plitem->item->properties)
+      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", plitem->item->properties->duration);
+    if (plitem)
     {
       buffer_appendf (out, "<CurrentTrackMetaData val=\"");
-      didl_add_short_item (out, playlist_current(instance->playlist));
+      didl_add_short_item (out, plitem->id, plitem->item, 0);
       buffer_appendf (out, "\">");
     }
     val = instance_possible_state(instance);
