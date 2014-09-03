@@ -67,6 +67,7 @@
 #define AVTS_VAR_ACOUNT                     "AbsoluteCounterPosition"
 #define AVTS_VAR_PLAY_MODE                  "CurrentPlayMode"
 #define AVTS_VAR_REC_QUALITY                "CurrentRecordQualityMode"
+#define AVTS_VAR_ACTIONS                    "CurrentTransportActions"
 
 #define AVTS_VAR_STATUS_VAL                 "OK"
 #define AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL    "UNKNOWN,NETWORK"
@@ -107,6 +108,7 @@
 #define AVTS_ARG_REC_QUALITY           "RecQualityMode"
 #define AVTS_ARG_SEEK_UNIT             "Unit"
 #define AVTS_ARG_SEEK_TARGET           "Target"
+#define AVTS_ARG_ACTIONS               "Actions"
 
 #define AVTS_ACTION_ARG_INSTANCE_ID ACTION_ARG_IN(AVTS_ARG_INSTANCEID,AVTS_VAR_A_ARG_TYPE_INSTANCE_ID)
 
@@ -199,8 +201,12 @@ ACTION_ARG_OUT(AVTS_ARG_REC_QUALITY,AVTS_VAR_REC_QUALITY)
 
 #define AVTS_ACTION_SEEK_ARGS \
 AVTS_ACTION_ARG_INSTANCE_ID \
-ACTION_ARG_OUT(AVTS_ARG_SEEK_UNIT,AVTS_VAR_PLAY_MODE) \
-ACTION_ARG_OUT(AVTS_ARG_SEEK_TARGET,AVTS_VAR_REC_QUALITY)
+ACTION_ARG_IN(AVTS_ARG_SEEK_UNIT,AVTS_VAR_PLAY_MODE) \
+ACTION_ARG_IN(AVTS_ARG_SEEK_TARGET,AVTS_VAR_REC_QUALITY)
+
+#define AVTS_ACTION_GET_ACTIONS_ARGS \
+AVTS_ACTION_ARG_INSTANCE_ID \
+ACTION_ARG_OUT(AVTS_ARG_ACTIONS,AVTS_VAR_ACTIONS)
 
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
@@ -1191,6 +1197,43 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
   return ev->status;
 }
 
+static int
+avts_get_actions (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
+  char *val;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
+  HASH_FIND_INT (instances, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  val = instance_possible_state (instance);
+  upnp_add_response (ev, AVTS_ARG_ACTIONS, val);
+  free (val);
+
+  return ev->status;
+}
+
 static char *
 avts_get_last_change (dlna_t *dlna)
 {
@@ -1266,7 +1309,7 @@ upnp_service_action_t avts_service_actions[] = {
   { AVTS_ACTION_PREVIOUS, AVTS_ACTION_ARG_INSTANCE_ID,          avts_previous },
   { AVTS_ACTION_SET_PLAY_MODE, NULL,     NULL },
   { AVTS_ACTION_SET_REC_MODE, NULL,     NULL },
-  { AVTS_ACTION_GET_ACTIONS, NULL,       NULL },
+  { AVTS_ACTION_GET_ACTIONS, NULL,       avts_get_actions },
   { NULL, NULL,                        NULL }
 };
 
@@ -1297,7 +1340,7 @@ upnp_service_statevar_t avts_service_variables[] = {
   {AVTS_VAR_ATIME,E_STRING,0, NULL},
   {AVTS_VAR_RCOUNT,E_I4,0, NULL},
   {AVTS_VAR_ACOUNT,E_UI4,0, NULL},
-  {"CurrentTransportActions",E_STRING,0, NULL},
+  {AVTS_VAR_ACTIONS,E_STRING,0, NULL},
   {"LastChange",E_STRING,1, avts_get_last_change},
   {"DRMState",E_STRING,0, NULL},
   {"SyncOffset",E_STRING,0, NULL},
