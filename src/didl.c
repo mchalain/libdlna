@@ -135,7 +135,7 @@ didl_add_param (buffer_t *out, char *param, char *value)
 void
 didl_add_value (buffer_t *out, char *param, off_t value)
 {
-  buffer_appendf (out, " %s=\"%lld\"", param, value);
+  buffer_appendf (out, " %s=\"%ld\"", param, value);
 }
 
 void

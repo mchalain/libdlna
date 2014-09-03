@@ -87,8 +87,8 @@ struct upnp_service_statevar_s {
     E_UI4,
     E_URI,
   } type;
-  int eventing;
-  char * (*get) (dlna_t *);
+  uint32_t eventing;
+  char * (*get) (dlna_t *, dlna_service_t *);
 };
 
 /**
@@ -109,6 +109,11 @@ struct dlna_s {
 
   /* Internal HTTP Server */
   dlna_http_callback_t *http_callback;
+
+  /* Eventing mechanism */
+  ithread_mutex_t event_mutex;
+  ithread_cond_t eventing;
+  ithread_t event_thread;
 
   /* Profilers entries */
   dlna_profiler_t *profiler;

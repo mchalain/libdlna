@@ -738,6 +738,7 @@ cds_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = cds_service_variables;
   service->get_description     = cds_get_description;
   service->init         = NULL;
+  service->last_change  = 1;
 
   return service;
 };

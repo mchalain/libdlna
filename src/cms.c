@@ -237,5 +237,7 @@ cms_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = cms_service_variables;
   service->get_description     = cms_get_description;
   service->init         = NULL;
+  service->last_change  = 1;
+
   return service;
 };

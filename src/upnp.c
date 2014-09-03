@@ -39,6 +39,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "upnp_internals.h"
 #include "devices.h"
@@ -48,7 +49,7 @@ static void
 upnp_subscription_request_handler(dlna_t *dlna,
                             struct dlna_Subscription_Request *req)
 {
-  const dlna_service_t *srv;
+  dlna_service_t *srv;
 	int rc;
   IXML_Document *propset = NULL;
 
@@ -63,9 +64,9 @@ upnp_subscription_request_handler(dlna_t *dlna,
     for (i = 0; srv->statevar[i].name; i++)
     {
       char *result = NULL;
-      const char *value = NULL;
+      char *value = NULL;
       if (srv->statevar[i].eventing && srv->statevar[i].get)
-       value = srv->statevar[i].get (dlna);
+       value = srv->statevar[i].get (dlna, srv);
       if (value)
       {
         result = strdup (value);
@@ -81,7 +82,7 @@ upnp_subscription_request_handler(dlna_t *dlna,
     if (rc != DLNA_E_SUCCESS)
     {
       dlna_log (dlna, DLNA_MSG_ERROR,
-        "upnp", "Accept Subscription Error: %s (%d)",
+        "Subscription Error: %s (%d)",
           dlnaGetErrorMessage(rc), rc);
     }
   }
@@ -96,7 +97,7 @@ upnp_find_service_statevar (dlna_t *dlna,
 {
   int a;
   const dlna_service_t *srv;
-  
+
   *service = NULL;
   *statevar = NULL;
 
@@ -104,7 +105,7 @@ upnp_find_service_statevar (dlna_t *dlna,
     return DLNA_ST_ERROR;
 
   dlna_log (dlna, DLNA_MSG_INFO,
-            "ActionRequest: using service %s\n", ar->ServiceID);
+            "StateVariable: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
   srv = dlna_service_find (dlna->device, ar->ServiceID);
@@ -115,10 +116,10 @@ upnp_find_service_statevar (dlna_t *dlna,
   for (a = 0; srv->statevar[a].name; a++)
   {
     /* find the requested one */
-    if (!strcmp (srv->actions[a].name, ar->StateVarName))
+    if (!strcmp (srv->statevar[a].name, ar->StateVarName))
     {
       dlna_log (dlna, DLNA_MSG_INFO,
-                "ActionRequest: using action %s\n", ar->StateVarName);
+                "StateVariable: using action %s\n", ar->StateVarName);
       *service = (dlna_service_t *)srv;
       *statevar = &srv->statevar[a];
       return DLNA_ST_OK;
@@ -133,8 +134,6 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
 {
   dlna_service_t *service = NULL;
   upnp_service_statevar_t *statevar;
-  char val[256];
-  uint32_t ip;
 
   if (!dlna || !ar)
     return;
@@ -146,13 +145,16 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
   if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
-  ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
-  ip = ntohl (ip);
-  sprintf (val, "%d.%d.%d.%d",
-           (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
-
   if (dlna->verbosity == DLNA_MSG_INFO)
   {
+    char val[256];
+    uint32_t ip;
+
+    ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
+    ip = ntohl (ip);
+    sprintf (val, "%d.%d.%d.%d",
+             (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+
     dlna_log (dlna, DLNA_MSG_INFO,
               "***************************************************\n");
     dlna_log (dlna, DLNA_MSG_INFO,
@@ -170,7 +172,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
     const char *value;
 
     if (statevar->get)
-      value = statevar->get (dlna);
+      value = statevar->get (dlna, service);
     if (value)
       result = strdup (value);
     ar->CurrentVal = result;
@@ -225,8 +227,6 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
 {
   dlna_service_t *service = NULL;
   upnp_service_action_t *action;
-  char val[256];
-  uint32_t ip;
 
   if (!dlna || !ar)
     return;
@@ -238,13 +238,16 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
   if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
   
-  ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
-  ip = ntohl (ip);
-  sprintf (val, "%d.%d.%d.%d",
-           (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
-
   if (dlna->verbosity == DLNA_MSG_INFO)
   {
+    char val[256];
+    uint32_t ip;
+
+    ip = ((struct in_addr *)&(ar->CtrlPtIPAddr))->s_addr;
+    ip = ntohl (ip);
+    sprintf (val, "%d.%d.%d.%d",
+             (ip >> 24) & 0xFF, (ip >> 16) & 0xFF, (ip >> 8) & 0xFF, ip & 0xFF);
+
     DOMString str = ixmlPrintDocument (ar->ActionRequest);
     dlna_log (dlna, DLNA_MSG_INFO,
               "***************************************************\n");
@@ -252,6 +255,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
               "**             New Action Request                **\n");
     dlna_log (dlna, DLNA_MSG_INFO,
               "***************************************************\n");
+    dlna_log (dlna, DLNA_MSG_INFO, "Device UDN: %s\n", ar->DevUDN);
     dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", ar->ServiceID);
     dlna_log (dlna, DLNA_MSG_INFO, "ActionName: %s\n", ar->ActionName);
     dlna_log (dlna, DLNA_MSG_INFO, "CtrlPtIP: %s\n", val);
@@ -376,6 +380,101 @@ upnp_service_init (void *cookie, dlna_service_t *service)
   return 0;
 }
 
+static int
+upnp_event_notify (void *cookie, dlna_service_t *service)
+{
+  dlna_t *dlna = (dlna_t *)cookie;
+  IXML_Document *propset = NULL;
+  int rc = DLNA_E_SUCCESS;
+
+  if (!dlna)
+    return -1;
+
+	if (service && service->statevar)
+  {
+    int i;
+    uint32_t last_change = 0;
+
+    for (i = 0; service->statevar[i].name; i++)
+    {
+      char *result = NULL;
+      const char *value = NULL;
+      if (service->statevar[i].eventing && service->statevar[i].get)
+       value = service->statevar[i].get (dlna, service);
+      if (value && (service->last_change < service->statevar[i].eventing))
+      {
+        result = strdup (value);
+        dlnaAddToPropertySet (&propset, service->statevar[i].name, result);
+        free (result);
+        if (last_change < service->statevar[i].eventing)
+          last_change = service->statevar[i].eventing;
+      }
+    }
+
+    if (service->last_change < last_change)
+    {
+      service->last_change = last_change;
+      for (i = 0; service->statevar[i].name; i++)
+      {
+        if (service->statevar[i].eventing && (service->last_change > service->statevar[i].eventing))
+          service->statevar[i].eventing = service->last_change;
+      }
+      if (dlna->verbosity == DLNA_MSG_INFO)
+      {
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "**             New State Var Notification                **\n");
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (dlna, DLNA_MSG_INFO, "DeviceID: %s\n", dlna->device->uuid);
+        dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", service->id);
+      }
+      if (propset)
+      {
+        buffer_t *udn;
+        udn = buffer_new ();
+        buffer_appendf (udn, "uuid:%s",dlna->device->uuid);
+        rc = dlnaNotifyExt(dlna->dev, udn->buf, service->id, propset);
+        buffer_free (udn);
+        ixmlDocument_free (propset);
+      }
+    }
+
+    if (rc != DLNA_E_SUCCESS)
+    {
+       dlna_log (dlna, DLNA_MSG_ERROR,
+        "Event Notify Error: %s (%d)", dlnaGetErrorMessage(rc), rc);
+    }
+  }
+  return rc;
+}
+
+static void *
+dlna_event_thread (void *arg)
+{
+  dlna_t *dlna =(dlna_t *)arg;
+
+  while (1)
+  {
+    int ret;
+    struct timespec abstime = {.tv_sec = 0, .tv_nsec = 200000000,}; /*0.2s*/
+    ithread_mutex_lock (&dlna->event_mutex);
+    do
+    {
+      //ret = ithread_cond_wait (&dlna->eventing, &dlna->event_mutex);
+      ret = ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
+      nanosleep (&abstime, NULL);
+      if (ret == ETIMEDOUT)
+        break;
+    }
+    while (ret);
+    ithread_mutex_unlock (&dlna->event_mutex);
+    dlna_service_foreach (dlna->device, upnp_event_notify, dlna);
+  }
+  return NULL;
+}
+
 int
 dlna_start (dlna_t *dlna)
 {
@@ -463,6 +562,10 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
 
+  ithread_mutex_init (&dlna->event_mutex, NULL);
+  ithread_cond_init (&dlna->eventing, NULL);
+  ithread_create (&dlna->event_thread, NULL, dlna_event_thread, dlna);
+
   dlna_log (dlna, DLNA_MSG_INFO,
             "Sending UPnP advertisement for device ...\n");
   dlnaSendAdvertisement (dlna->dev, 1800);
@@ -486,6 +589,9 @@ dlna_stop (dlna_t *dlna)
     return DLNA_ST_ERROR;
 
   dlna_log (dlna, DLNA_MSG_INFO, "Stopping UPnP A/V Service ...\n");
+  ithread_join (dlna->event_thread, NULL);
+  ithread_mutex_destroy (&dlna->event_mutex);
+  ithread_cond_destroy (&dlna->eventing);
   dlnaUnRegisterRootDevice (dlna->dev);
   dlnaFinish ();
 

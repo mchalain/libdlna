@@ -1441,6 +1441,7 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = avts_service_variables;
   service->get_description     = avts_get_description;
   service->init         = NULL;
+  service->last_change  = 1;
 
   instance = avts_create_instance (service, 0);
   service->cookie = instance;

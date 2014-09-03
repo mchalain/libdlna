@@ -34,6 +34,7 @@
 #define dlnaAcceptSubscriptionExt   UpnpAcceptSubscriptionExt
 #define dlnaAddToPropertySet        UpnpAddToPropertySet
 #define dlnaGetErrorMessage         UpnpGetErrorMessage
+#define dlnaNotifyExt               UpnpNotifyExt
 
 int dlnaSetVirtualDirCallbacks(
     struct dlnaVirtualDirCallbacks *callbacks,

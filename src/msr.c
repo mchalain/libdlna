@@ -23,6 +23,7 @@
 #include <stdio.h>
 
 #include "upnp_internals.h"
+#include "services.h"
 #include "msr.h"
 
 #define MSR_DESCRIPTION \
@@ -198,5 +199,7 @@ msr_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = msr_service_variables;
   service->get_description     = msr_get_description;
   service->init         = NULL;
+  service->last_change  = 1;
+
   return service;
 };

@@ -354,5 +354,7 @@ rcs_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = rcs_service_variables;
   service->get_description     = rcs_get_description;
   service->init         = NULL;
+  service->last_change  = 1;
+
   return service;
 };

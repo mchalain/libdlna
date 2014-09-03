@@ -501,20 +501,6 @@ typedef enum {
   DLNA_SERVICE_RENDERING_CONTROL,
 } dlna_service_type_t;
 
-struct dlna_service_s {
-  char *id;
-  dlna_service_type_t typeid;
-  char *type;
-  char *scpd_url;
-  char *control_url;
-  char *event_url;
-  struct upnp_service_action_s *actions;
-  struct upnp_service_statevar_s *statevar;
-  void *cookie;
-  char *(*get_description) (dlna_t *dlna);
-  int (*init) (dlna_t *dlna);
-};
-
 /**
  * Register a known DLNA/UPnP Service to be used by the device.
  *   This is automatically done for all mandatory services at device init.
