@@ -498,6 +498,7 @@ typedef enum {
   DLNA_SERVICE_CONTENT_DIRECTORY,
   DLNA_SERVICE_AV_TRANSPORT,
   DLNA_SERVICE_MS_REGISTAR,
+  DLNA_SERVICE_RENDERING_CONTROL,
 } dlna_service_type_t;
 
 struct dlna_service_s {

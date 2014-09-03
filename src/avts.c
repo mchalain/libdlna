@@ -66,6 +66,14 @@
 #define AVTS_VAR_PLAY_MODE                  "CurrentPlayMode"
 #define AVTS_VAR_REC_QUALITY                "CurrentRecordQualityMode"
 
+#define AVTS_VAR_STATUS_VAL                 "OK"
+#define AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL    "UNKNOWN,NETWORK"
+#define AVTS_VAR_RECORD_VAL                 "NOT_IMPLEMENTED"
+#define AVTS_VAR_PLAY_SPEED_VAL             "1"
+#define AVTS_VAR_PLAY_MODE_VAL              "NORMAL"
+#define AVTS_VAR_TRACK_DURATION_VAL_ZERO    "00:00:00"
+#define AVTS_VAR_AVT_URI_VAL_EMPTY          "no track uri"
+
 #define AVTS_ARG_INSTANCEID            "InstanceID"
 #define AVTS_ARG_INSTANCEID            "InstanceID"
 #define AVTS_ARG_CURRENT_URI           "CurrentURI"
@@ -202,6 +210,7 @@ struct avts_instance_s
   uint32_t id;
   dlna_dmp_item_t *playlist;
   dlna_dmp_item_t *current_item;
+  dlna_service_t *service;
   enum {
     E_NO_MEDIA,
     E_STOPPED,
@@ -214,6 +223,16 @@ struct avts_instance_s
   ithread_cond_t state_change;
   ithread_t playthread;
   UT_hash_handle hh;
+};
+
+char *g_TransportState[] = 
+{
+  "NO_MEDIA_PRESENT",
+  "STOPPED",
+  "PLAYING",
+  "PAUSED_PLAYBACK",
+  "RECORDING",
+  "RANSITIONING",
 };
 
 static dlna_dmp_item_t *
@@ -296,6 +315,33 @@ static int
 playitem_decodeframe (dlna_item_t *item dlna_unused)
 {
   return 0;
+}
+
+static char *
+instance_possible_state (avts_instance_t *instance)
+{
+  char *val = NULL;
+  
+  ithread_mutex_lock (&instance->state_mutex);
+  switch (instance->state)
+  {
+  case E_NO_MEDIA:
+  case E_RECORDING:
+    val = strdup ("");
+  break;
+  case E_TRANSITIONING:
+  case E_PLAYING:
+    val = strdup ("Stop,Pause,Seek");
+  break;
+  case E_STOPPED:
+    val = strdup ("Play");
+  break;
+  case E_PAUSING:
+    val = strdup ("Stop,Play");
+  break;
+  }
+  ithread_mutex_unlock (&instance->state_mutex);
+  return val;
 }
 
 static int
@@ -439,8 +485,10 @@ avts_create_instance (dlna_service_t *service, uint32_t id)
 
   ithread_mutex_init (&instance->state_mutex, NULL);
   ithread_cond_init (&instance->state_change, NULL);
-  instance->state = E_PAUSING;
+  instance->state = E_NO_MEDIA;
+  instance->playlist = NULL;
   instance->id = id;
+  instance->service = service;
   HASH_ADD_INT (instances, id, instance);
   service->cookie = instances;
   ithread_create (&instance->playthread, NULL, avts_thread_play, instance);
@@ -566,11 +614,16 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
+  if (instance->current_item)
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
+  else
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
   if (instance->current_item)
     buffer_appendf (out, "%s", instance->current_item->item->filename);
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
@@ -595,12 +648,14 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     didl_add_short_item (out, item);
   }
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
   buffer_free (out);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, AVTS_VAR_RECORD_VAL);
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, AVTS_VAR_RECORD_VAL);
 
   return ev->status;
 }
@@ -642,11 +697,16 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NR_TRACKS, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, "1");
+  if (instance->current_item)
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
+  else
+    upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
   out = buffer_new ();
   if (instance->current_item)
     buffer_appendf (out, "%s", instance->current_item->item->filename);
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
@@ -662,6 +722,8 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     buffer_appendf (out, "%s", item->item->filename);
   }
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
@@ -675,8 +737,8 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, AVTS_VAR_RECORD_VAL);
+  upnp_add_response (ev, AVTS_ARG_WRITE_STATUS, AVTS_VAR_RECORD_VAL);
 
 
   return ev->status;
@@ -711,29 +773,9 @@ avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  switch (instance_change_state(instance, -1))
-  {
-  case E_NO_MEDIA:
-    upnp_add_response (ev, AVTS_ARG_STATE, "NO_MEDIA_PRESENT");
-    break;
-  case E_STOPPED:
-    upnp_add_response (ev, AVTS_ARG_STATE, "STOPPED");
-    break;
-  case E_PLAYING:
-    upnp_add_response (ev, AVTS_ARG_STATE, "PLAYING");
-    break;
-  case E_TRANSITIONING:
-    upnp_add_response (ev, AVTS_ARG_STATE, "TRANSITIONING");
-    break;
-  case E_PAUSING:
-    upnp_add_response (ev, AVTS_ARG_STATE, "PAUSED_PLAYBACK");
-    break;
-  case E_RECORDING:
-    upnp_add_response (ev, AVTS_ARG_STATE, "RECORDING");
-    break;
-  }
-  upnp_add_response (ev, AVTS_ARG_STATUS, "OK");
-  upnp_add_response (ev, AVTS_ARG_CURRENT_SPEED, "1");
+  upnp_add_response (ev, AVTS_ARG_STATE, g_TransportState[instance_change_state(instance, -1)]);
+  upnp_add_response (ev, AVTS_ARG_STATUS, AVTS_VAR_STATUS_VAL);
+  upnp_add_response (ev, AVTS_ARG_CURRENT_SPEED, AVTS_VAR_PLAY_SPEED_VAL);
 
   return ev->status;
 }
@@ -775,19 +817,28 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_appendf (out, "%u", index);
   upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
   buffer_free (out);
-  upnp_add_response (ev, AVTS_ARG_TRACK, "");
 
   out = buffer_new ();
   if (instance->current_item && instance->current_item->item->properties)
     buffer_appendf (out, "%s", instance->current_item->item->properties->duration);
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_TRACK_DURATION_VAL_ZERO);
   upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, out->buf);
   buffer_free (out);
 
-  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, "NOT_IMPLEMENTED");
+  out = buffer_new ();
+  if (instance->current_item)
+    didl_add_short_item (out, instance->current_item);
+  else
+    buffer_appendf (out, "");
+  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
+  buffer_free (out);
 
   out = buffer_new ();
   if (instance->current_item)
     buffer_appendf (out, "%s", instance->current_item->item->filename);
+  else
+    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
   upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
   buffer_free (out);
 
@@ -828,9 +879,9 @@ avts_get_dev_caps (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIA, "NETWORK");
-  upnp_add_response (ev, AVTS_ARG_REC_MEDIA, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_REC_QUALITY_MODES, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_PLAY_MEDIA, AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
+  upnp_add_response (ev, AVTS_ARG_REC_MEDIA, AVTS_VAR_RECORD_VAL);
+  upnp_add_response (ev, AVTS_ARG_REC_QUALITY_MODES, AVTS_VAR_RECORD_VAL);
 
   return ev->status;
 }
@@ -864,8 +915,8 @@ avts_get_settings (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, AVTS_ARG_PLAY_MODE, "NORMAL");
-  upnp_add_response (ev, AVTS_ARG_REC_QUALITY, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_PLAY_MODE, AVTS_VAR_PLAY_MODE_VAL);
+  upnp_add_response (ev, AVTS_ARG_REC_QUALITY, AVTS_VAR_RECORD_VAL);
 
   return ev->status;
 }
@@ -1045,6 +1096,62 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
   return ev->status;
 }
 
+static char *
+avts_get_last_change (dlna_t *dlna)
+{
+  char *value = NULL;
+  buffer_t *out;
+  dlna_service_t *service = dlna_service_find_id (dlna->device, DLNA_SERVICE_AV_TRANSPORT);
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)service->cookie;
+
+  out = buffer_new ();
+  buffer_appendf (out, "<Event xmlns=\"urn:schemas-upnp-org:metadata-1-0/AVT/\">");
+  for (instance = instances; instance; instance = instance->hh.next)
+  {
+    int index = 0;
+    char *val;
+
+    buffer_appendf (out, "<InstanceID val=\"%d\">",instance->id);
+    buffer_appendf (out, "<TransportState val=\"%s\">",g_TransportState[instance->state]);
+    buffer_appendf (out, "<TransportStatus val=\"%s\">", AVTS_VAR_STATUS_VAL);
+    buffer_appendf (out, "<PlaybackStorageMedium val=\"UNKNOWN\">");
+    buffer_appendf (out, "<RecordStorageMedium val=\"%s\">",AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<CurrentPlayMode val=\"NORMAL\">");
+    buffer_appendf (out, "<TransportPlaySpeed val=\"%s\">", AVTS_VAR_PLAY_SPEED_VAL);
+    buffer_appendf (out, "<RecordMediumWriteStatus val=\"%s\">", AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\">", AVTS_VAR_RECORD_VAL);
+    if (instance->playlist)
+      buffer_appendf (out, "<NumberOfTracks val=\"%u\">", playlist_count(instance->playlist));
+    if (instance->playlist && instance->current_item)
+      index = playlist_index (instance->playlist, instance->current_item);
+    buffer_appendf (out, "<CurrentTrack val=\"%u\">", index);
+    buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\">", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
+    buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\">", AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\">", AVTS_VAR_RECORD_VAL);
+    if (instance->current_item )
+      buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", "NOT_IMPLEMENTED");
+    if (instance->current_item && instance->current_item->item->properties)
+      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", instance->current_item->item->properties->duration);
+    if (instance->current_item)
+    {
+      buffer_appendf (out, "<CurrentTrackMetaData val=\"");
+      didl_add_short_item (out, instance->current_item);
+      buffer_appendf (out, "\">");
+    }
+    val = instance_possible_state(instance);
+    buffer_appendf (out, "<CurrentTransportActions val=\"%s\">", val);
+    free (val);
+    buffer_appendf (out, "</InstanceID>");
+  }
+  buffer_appendf (out, "</Event>");
+
+  value = strdup (out->buf);
+  buffer_free (out);
+  
+  return value;
+}
+
 /* List of UPnP AVTransport Service actions */
 upnp_service_action_t avts_service_actions[] = {
   { AVTS_ACTION_SET_URI, AVTS_ACTION_SET_URI_ARGS,           avts_set_uri },
@@ -1096,7 +1203,7 @@ upnp_service_statevar_t avts_service_variables[] = {
   {AVTS_VAR_RCOUNT,E_I4,0, NULL},
   {AVTS_VAR_ACOUNT,E_UI4,0, NULL},
   {"CurrentTransportActions",E_STRING,0, NULL},
-  {"LastChange",E_STRING,0, NULL},
+  {"LastChange",E_STRING,1, avts_get_last_change},
   {"DRMState",E_STRING,0, NULL},
   {"SyncOffset",E_STRING,0, NULL},
   {AVTS_VAR_A_ARG_TYPE_SEEK_MODE,E_STRING,0, NULL},
@@ -1119,6 +1226,7 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service = calloc (1, sizeof (dlna_service_t));
   
   service->id           = AVTS_SERVICE_ID;
+  service->typeid       = DLNA_SERVICE_AV_TRANSPORT;
   service->type         = AVTS_SERVICE_TYPE;
   service->scpd_url     = AVTS_URL;
   service->control_url  = AVTS_CONTROL_URL;
