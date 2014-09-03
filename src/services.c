@@ -163,6 +163,18 @@ dlna_service_find (dlna_device_t *device, char *id)
 }
 
 dlna_service_t *
+dlna_service_find_id (dlna_device_t *device, uint32_t id)
+{
+  dlna_service_list_t *item = NULL;
+  if (!device)
+    return NULL;
+  HASH_FIND_INT (device->services, &id, item);
+  if (item)
+    return item->service;
+  return NULL;
+}
+
+dlna_service_t *
 dlna_service_find_url (dlna_device_t *device, char *url)
 {
   dlna_service_list_t *item;

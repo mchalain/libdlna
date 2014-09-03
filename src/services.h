@@ -66,6 +66,7 @@ struct dlna_service_list_s {
 };
 
 dlna_service_t *dlna_service_find (dlna_device_t *device, char *id);
+dlna_service_t *dlna_service_find_id (dlna_device_t *device, uint32_t id);
 dlna_service_t *dlna_service_find_url (dlna_device_t *device, char *url);
 int dlna_service_foreach (dlna_device_t *device, int (*cb)(void *cookie, dlna_service_t *service), void *cookie);
 void dlna_service_unregister_all (dlna_device_t *device);
