@@ -31,12 +31,12 @@
 #define AVTS_CONTROL_URL      "avts_control"
 #define AVTS_EVENT_URL        "avts_event"
 
-typedef struct dlna_dmp_item_s dlna_dmp_item_t;
-struct dlna_dmp_item_s
+typedef struct avts_playlist_s avts_playlist_t;
+struct avts_playlist_s
 {
   uint32_t id;
   dlna_item_t *item;
-  dlna_dmp_item_t *current;
+  struct avts_playlist_s *current;
   UT_hash_handle hh;
 };
 

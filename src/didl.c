@@ -139,7 +139,7 @@ didl_add_value (buffer_t *out, char *param, off_t value)
 }
 
 void
-didl_add_short_item (buffer_t *out, dlna_dmp_item_t *item)
+didl_add_short_item (buffer_t *out, avts_playlist_t *item)
 {
   dlna_metadata_t *metadata;
 

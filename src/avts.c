@@ -219,7 +219,7 @@ typedef struct avts_instance_s avts_instance_t;
 struct avts_instance_s
 {
   uint32_t id;
-  dlna_dmp_item_t *playlist;
+  avts_playlist_t *playlist;
   dlna_service_t *service;
   enum {
     E_NO_MEDIA,
@@ -245,10 +245,10 @@ char *g_TransportState[] =
   "TRANSITIONING",
 };
 
-static dlna_dmp_item_t *
-playlist_empty (dlna_dmp_item_t *playlist)
+static avts_playlist_t *
+playlist_empty (avts_playlist_t *playlist)
 {
-  dlna_dmp_item_t *item;
+  avts_playlist_t *item;
 
   for (item = playlist; item; item = item->hh.next)
   {
@@ -258,12 +258,12 @@ playlist_empty (dlna_dmp_item_t *playlist)
   return NULL;
 }
 
-static dlna_dmp_item_t *
-playlist_add_item (dlna_dmp_item_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata dlna_unused)
+static avts_playlist_t *
+playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata dlna_unused)
 {
-  dlna_dmp_item_t *item;
+  avts_playlist_t *item;
 
-  item = calloc (1, sizeof(dlna_dmp_item_t));
+  item = calloc (1, sizeof(avts_playlist_t));
   item->item = dlna_item_new (dlna, uri);
   if (!item->item)
   {
@@ -282,16 +282,16 @@ playlist_add_item (dlna_dmp_item_t *playlist, dlna_t *dlna, char *uri, char *uri
   return playlist;
 }
 
-static dlna_dmp_item_t *
-playlist_current (dlna_dmp_item_t *playlist)
+static avts_playlist_t *
+playlist_current (avts_playlist_t *playlist)
 {
   if (!playlist)
     return NULL;
   return playlist->current;
 }
 
-static dlna_dmp_item_t *
-playlist_next (dlna_dmp_item_t *playlist)
+static avts_playlist_t *
+playlist_next (avts_playlist_t *playlist)
 {
   if (!playlist)
     return NULL;
@@ -300,8 +300,8 @@ playlist_next (dlna_dmp_item_t *playlist)
   return playlist;
 }
 
-static dlna_dmp_item_t *
-playlist_previous (dlna_dmp_item_t *playlist)
+static avts_playlist_t *
+playlist_previous (avts_playlist_t *playlist)
 {
   if (!playlist)
     return NULL;
@@ -311,7 +311,7 @@ playlist_previous (dlna_dmp_item_t *playlist)
 }
 
 static int
-playlist_count (dlna_dmp_item_t *playlist)
+playlist_count (avts_playlist_t *playlist)
 {
   int i = 0;
   if (!playlist)
@@ -321,7 +321,7 @@ playlist_count (dlna_dmp_item_t *playlist)
 }
 
 static int
-playlist_index (dlna_dmp_item_t *playlist, dlna_dmp_item_t *item)
+playlist_index (avts_playlist_t *playlist, avts_playlist_t *item)
 {
   int i = 0;
   while (playlist && playlist != item)
@@ -334,10 +334,10 @@ playlist_index (dlna_dmp_item_t *playlist, dlna_dmp_item_t *item)
   return 0;
 }
 
-static dlna_dmp_item_t *
-playlist_seek (dlna_dmp_item_t *playlist, int32_t target)
+static avts_playlist_t *
+playlist_seek (avts_playlist_t *playlist, int32_t target)
 {
-  dlna_dmp_item_t *item = playlist->current;
+  avts_playlist_t *item = playlist->current;
   if (target < 0)
   {
     while (target < 0 && ((item = item->hh.prev) != NULL)) target++;
@@ -459,7 +459,7 @@ static void *
 avts_thread_play (void *arg)
 {
   avts_instance_t *instance = (avts_instance_t *) arg;
-  dlna_dmp_item_t *next_item;
+  avts_playlist_t *next_item;
 
   while (1)
   {
@@ -729,7 +729,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = playlist_next(instance->playlist);
+    avts_playlist_t *item = playlist_next(instance->playlist);
     buffer_appendf (out, "%s", item->item->filename);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
@@ -738,7 +738,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (playlist_current(instance->playlist) && playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = playlist_next(instance->playlist);
+    avts_playlist_t *item = playlist_next(instance->playlist);
     didl_add_short_item (out, item);
   }
   else
@@ -812,7 +812,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = playlist_next(instance->playlist);
+    avts_playlist_t *item = playlist_next(instance->playlist);
     buffer_appendf (out, "%s", item->item->filename);
   }
   else
@@ -823,7 +823,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (playlist_next(instance->playlist))
   {
-    dlna_dmp_item_t *item = playlist_next(instance->playlist);
+    avts_playlist_t *item = playlist_next(instance->playlist);
     didl_add_short_item (out, item);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
