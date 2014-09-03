@@ -118,9 +118,9 @@ main (int argc, char **argv)
   dlna_device_set_friendly_name (device, "libdlna DMR template");
   dlna_device_set_uuid (device, "123456780");
 
-  dlna_service_register (device, &cms_service);
-  dlna_service_register (device, &rcs_service);
-  dlna_service_register (device, &avts_service);
+  dlna_service_register (device, cms_service_new(dlna));
+  dlna_service_register (device, rcs_service_new(dlna));
+  dlna_service_register (device, avts_service_new(dlna));
 
   dlna_set_device (dlna, device);
 

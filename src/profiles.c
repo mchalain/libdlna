@@ -174,7 +174,7 @@ upnp_get_media_profile (char *profileid)
 
   for (i = 0; mime_type_list[i].profile.mime; i++)
     if (!strcmp(profileid, mime_type_list[i].extension))
-      return &mime_type_list[i].profile;
+      return (dlna_profile_t *)&mime_type_list[i].profile;
   return NULL;
 }
 
@@ -191,7 +191,7 @@ upnp_guess_media_profile (char *filename, void **cookie)
   
   for (i = 0; mime_type_list[i].extension; i++)
     if (!strcmp (extension, mime_type_list[i].extension))
-      profile = &mime_type_list[i].profile;
+      profile = (dlna_profile_t *)&mime_type_list[i].profile;
 
   return profile;
 }

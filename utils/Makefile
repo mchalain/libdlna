@@ -22,7 +22,7 @@ BINS = \
 	$(DMR_BIN) \
 
 CFLAGS  += -I../src
-LDFLAGS += -L../src -ldlna
+LDFLAGS += -L../src -ldlna -ldl
 
 FFMPEG_PROFILER_CFLAGS := -I../ffmpeg_profiler
 FFMPEG_PROFILER_LDFLAGS := -L../ffmpeg_profiler -lffmpeg_profiler

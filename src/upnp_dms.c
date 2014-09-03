@@ -38,7 +38,7 @@ dms_set_memory (dlna_t *dlna)
   if (!dlna)
     return;
 
-  dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
+  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna_log (dlna, DLNA_MSG_INFO, "Use memory for VFS metadata storage.\n");
 }
 
@@ -49,11 +49,9 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
   if (!dlna)
     return;
 
-  if (type == DLNA_DMS_STORAGE_MEMORY)
-    dms_set_memory (dlna);
-  else if (type == DLNA_DMS_STORAGE_SQL_DB)
+  if (type == DLNA_DMS_STORAGE_DB && !dms_db_open (dlna, data))
   {
-    if (dms_db_open (dlna, data))
+   if (dms_db_open (dlna, data))
     {
       data = NULL;
       dms_set_memory (dlna);
@@ -74,4 +72,6 @@ dlna_dms_set_vfs_storage_type (dlna_t *dlna,
       }
 	}
   }
+  else
+	dms_set_memory (dlna);
 }

@@ -195,6 +195,27 @@ ACTION_ARG_OUT(AVTS_ARG_SEEK_TARGET,AVTS_VAR_REC_QUALITY)
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+/* DLNA Media Player Properties */
+typedef struct avts_instance_s avts_instance_t;
+struct avts_instance_s
+{
+  uint32_t id;
+  dlna_dmp_item_t *playlist;
+  dlna_dmp_item_t *current_item;
+  enum {
+    E_NO_MEDIA,
+    E_STOPPED,
+    E_PLAYING,
+    E_PAUSING,
+    E_RECORDING,
+    E_TRANSITIONING,
+  } state;
+  ithread_mutex_t state_mutex;
+  ithread_cond_t state_change;
+  ithread_t playthread;
+  UT_hash_handle hh;
+};
+
 static dlna_dmp_item_t *
 playlist_empty (dlna_dmp_item_t *playlist)
 {
@@ -274,7 +295,7 @@ playitem_decodeframe (dlna_item_t *item dlna_unused)
 }
 
 static int
-instance_change_state (dlna_dmp_t *instance, int newstate)
+instance_change_state (avts_instance_t *instance, int newstate)
 {
   ithread_mutex_lock (&instance->state_mutex);
   if (instance->state != E_NO_MEDIA && newstate != -1)
@@ -310,7 +331,7 @@ instance_change_state (dlna_dmp_t *instance, int newstate)
 }
 
 static int
-instance_change_current_item (dlna_dmp_t *instance, dlna_dmp_item_t *newitem)
+instance_change_current_item (avts_instance_t *instance, dlna_dmp_item_t *newitem)
 {
   instance->current_item = newitem;
   return 0;
@@ -319,7 +340,7 @@ instance_change_current_item (dlna_dmp_t *instance, dlna_dmp_item_t *newitem)
 static void *
 avts_thread_play (void *arg)
 {
-  dlna_dmp_t *instance = (dlna_dmp_t *) arg;
+  avts_instance_t *instance = (avts_instance_t *) arg;
   dlna_dmp_item_t *next_item;
 
   instance_change_current_item(instance, playlist_next (instance->playlist, 0));
@@ -390,18 +411,20 @@ avts_thread_play (void *arg)
   return NULL;
 }
 
-static dlna_dmp_t *
-avts_set_thread (dlna_t *dlna, uint32_t id)
+static avts_instance_t *
+avts_set_thread (dlna_service_t *service, uint32_t id)
 {
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)service->cookie;
 
-  instance = calloc (1, sizeof(dlna_dmp_t));
+  instance = calloc (1, sizeof(avts_instance_t));
 
   ithread_mutex_init (&instance->state_mutex, NULL);
   ithread_cond_init (&instance->state_change, NULL);
   instance->state = E_PAUSING;
   instance->id = id;
-  HASH_ADD_INT (dlna->dmp, id, instance);
+  HASH_ADD_INT (instances, id, instance);
+  service->cookie = instances;
   ithread_create (&instance->playthread, NULL, avts_thread_play, instance);
   return instance;
 }
@@ -411,7 +434,8 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *uri, *uri_metadata;
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -428,10 +452,10 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
-    instance = avts_set_thread (dlna, instanceID);
+    instance = avts_set_thread (ev->service, instanceID);
   }
   if (instance->state == E_STOPPED)
   {
@@ -453,7 +477,8 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 {
   char *uri, *uri_metadata;
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -473,7 +498,7 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
   uri   = upnp_get_string (ev->ar, AVTS_ARG_NEXT_URI);
   uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_NEXT_URI_METADATA);
 
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -491,7 +516,8 @@ static int
 avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
 
   if (!dlna || !ev)
@@ -509,7 +535,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -564,7 +590,8 @@ static int
 avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
 
   if (!dlna || !ev)
@@ -582,7 +609,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -640,7 +667,8 @@ static int
 avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -657,7 +685,7 @@ avts_get_info (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -695,7 +723,8 @@ static int
 avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
   int index = 0;
 
@@ -714,7 +743,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -755,7 +784,8 @@ static int
 avts_get_dev_caps (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -772,7 +802,7 @@ avts_get_dev_caps (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -790,7 +820,8 @@ static int
 avts_get_settings (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -807,7 +838,7 @@ avts_get_settings (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -825,7 +856,8 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
 {
   int speed;
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -842,7 +874,7 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -859,7 +891,8 @@ static int
 avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -876,7 +909,7 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT ((avts_instance_t *)ev->service->cookie, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -885,7 +918,7 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 
   instance_change_state(instance, E_STOPPED);
   ithread_join (instance->playthread, NULL);
-  HASH_DEL (dlna->dmp, instance);
+  HASH_DEL (instances, instance);
 
   return ev->status;
 }
@@ -894,7 +927,8 @@ static int
 avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -911,7 +945,7 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -927,7 +961,8 @@ static int
 avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -944,7 +979,7 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -960,7 +995,8 @@ static int
 avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 {
   uint32_t instanceID;
-  dlna_dmp_t *instance = NULL;
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
 
   if (!dlna || !ev)
   {
@@ -977,7 +1013,7 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT (dlna->dmp, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -1053,13 +1089,22 @@ avts_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
 }
 
-dlna_service_t avts_service = {
-  .id           = AVTS_SERVICE_ID,
-  .type         = AVTS_SERVICE_TYPE,
-  .scpd_url     = AVTS_URL,
-  .control_url  = AVTS_CONTROL_URL,
-  .event_url    = AVTS_EVENT_URL,
-  .actions      = avts_service_actions,
-  .statevar      = avts_service_variables,
-  .get_description     = avts_get_description,
+dlna_service_t *
+avts_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = AVTS_SERVICE_ID;
+  service->type         = AVTS_SERVICE_TYPE;
+  service->scpd_url     = AVTS_URL;
+  service->control_url  = AVTS_CONTROL_URL;
+  service->event_url    = AVTS_EVENT_URL;
+  service->actions      = avts_service_actions;
+  service->statevar     = avts_service_variables;
+  service->get_description     = avts_get_description;
+  service->init         = NULL;
+  service->last_change  = 1;
+
+  return service;
 };

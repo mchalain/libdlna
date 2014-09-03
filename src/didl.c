@@ -135,7 +135,7 @@ didl_add_param (buffer_t *out, char *param, char *value)
 void
 didl_add_value (buffer_t *out, char *param, off_t value)
 {
-  buffer_appendf (out, " %s=\"%lld\"", param, value);
+  buffer_appendf (out, " %s=\"%ld\"", param, value);
 }
 
 void
@@ -246,7 +246,7 @@ didl_add_item (dlna_t *dlna, buffer_t *out, vfs_item_t *item,
       }
 
       buffer_append (out, ">");
-      buffer_appendf (out, "http://%s:%d%s/%d",
+      buffer_appendf (out, "http://%s:%d%s/%lu",
                     dlnaGetServerIpAddress (),
                     dlna->port, VIRTUAL_DIR, item->id);
       buffer_appendf (out, "</%s>", DIDL_RES);

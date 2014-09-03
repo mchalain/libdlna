@@ -31,6 +31,14 @@
 #define AVTS_CONTROL_URL      "avts_control"
 #define AVTS_EVENT_URL        "avts_event"
 
-extern dlna_service_t avts_service;
+typedef struct dlna_dmp_item_s dlna_dmp_item_t;
+struct dlna_dmp_item_s
+{
+  uint32_t id;
+  dlna_item_t *item;
+  UT_hash_handle hh;
+};
+
+extern dlna_service_t *avts_service_new (dlna_t*dlna);
 
 #endif /* AVTS_H */

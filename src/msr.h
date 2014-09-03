@@ -29,6 +29,6 @@
 #define MSR_CONTROL_URL      "msr_control"
 #define MSR_EVENT_URL        "msr_event"
 
-extern dlna_service_t msr_service;
+extern dlna_service_t *msr_service_new (dlna_t*dlna);
 
 #endif /* MSR_H */

@@ -24,6 +24,8 @@
  * http://upnp.org/standardizeddcps/documents/AVTransport1.0.pdf
  * http://www.upnp.org/specs/av/UPnP-av-AVTransport-v2-Service-20060531.pdf
  */
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "upnp_internals.h"
 #include "services.h"
@@ -337,13 +339,22 @@ rcs_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, rcs_service_actions, rcs_service_variables);
 }
 
-dlna_service_t rcs_service = {
-  .id           = RCS_SERVICE_ID,
-  .type         = RCS_SERVICE_TYPE,
-  .scpd_url     = RCS_URL,
-  .control_url  = RCS_CONTROL_URL,
-  .event_url    = RCS_EVENT_URL,
-  .actions      = rcs_service_actions,
-  .statevar      = rcs_service_variables,
-  .get_description     = rcs_get_description,
+dlna_service_t *
+rcs_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = RCS_SERVICE_ID;
+  service->type         = RCS_SERVICE_TYPE;
+  service->scpd_url     = RCS_URL;
+  service->control_url  = RCS_CONTROL_URL;
+  service->event_url    = RCS_EVENT_URL;
+  service->actions      = rcs_service_actions;
+  service->statevar     = rcs_service_variables;
+  service->get_description     = rcs_get_description;
+  service->init         = NULL;
+  service->last_change  = 1;
+
+  return service;
 };

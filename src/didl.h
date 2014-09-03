@@ -22,6 +22,7 @@
 #ifndef DIDL_H
 #define DIDL_H
 
+#include "avts.h"
 
 void
 didl_add_header (struct buffer_s *out);

@@ -58,6 +58,9 @@ SRCS :=  \
 ifeq ($(HAVE_SQLITE),yes)
 SRCS +=  \
   db_sqlite.c
+else
+SRCS +=  \
+  dlna_db.c
 endif
 
 EXTRADIST = \

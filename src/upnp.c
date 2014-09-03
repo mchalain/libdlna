@@ -48,7 +48,7 @@ static void
 upnp_subscription_request_handler(dlna_t *dlna,
                             struct dlna_Subscription_Request *req)
 {
-  const dlna_service_t *srv;
+  dlna_service_t *srv;
 	int rc;
   IXML_Document *propset = NULL;
 
@@ -63,9 +63,9 @@ upnp_subscription_request_handler(dlna_t *dlna,
     for (i = 0; srv->statevar[i].name; i++)
     {
       char *result = NULL;
-      const char *value = NULL;
+      char *value = NULL;
       if (srv->statevar[i].eventing && srv->statevar[i].get)
-       value = srv->statevar[i].get (dlna);
+       value = srv->statevar[i].get (dlna, srv);
       if (value)
       {
         result = strdup (value);
@@ -171,7 +171,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
     const char *value;
 
     if (statevar->get)
-      value = statevar->get (dlna);
+      value = statevar->get (dlna, service);
     if (value)
       result = strdup (value);
     ar->CurrentVal = result;
@@ -268,6 +268,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     event.ar      = ar;
     event.status  = 1;
     event.service = service;
+    event.device = dlna->device;
 
     if (action->cb && action->cb (dlna, &event) && event.status)
     {
@@ -368,6 +369,98 @@ get_iface_address (char *interface)
   return val;
 }
 
+static int
+upnp_service_init (void *cookie, dlna_service_t *service)
+{
+  dlna_t *dlna = (dlna_t *)cookie;
+  if (service->init)
+    return service->init (dlna);
+  return 0;
+}
+
+static int
+upnp_event_notify (void *cookie, dlna_service_t *service)
+{
+  dlna_t *dlna = (dlna_t *)cookie;
+  IXML_Document *propset = NULL;
+  int rc = DLNA_E_SUCCESS;
+
+  if (!dlna)
+    return -1;
+
+	if (service && service->statevar)
+  {
+    int i;
+    int last_change = 0;
+
+    for (i = 0; service->statevar[i].name; i++)
+    {
+      char *result = NULL;
+      const char *value = NULL;
+      if (service->statevar[i].eventing && service->statevar[i].get)
+       value = service->statevar[i].get (dlna, service);
+      if (value && (service->last_change < service->statevar[i].eventing))
+      {
+        result = strdup (value);
+        dlnaAddToPropertySet (&propset, service->statevar[i].name, result);
+        free (result);
+        if (last_change < service->statevar[i].eventing)
+          last_change = service->statevar[i].eventing;
+      }
+    }
+
+    if (service->last_change < last_change)
+    {
+      service->last_change = last_change;
+      for (i = 0; service->statevar[i].name; i++)
+      {
+        if (service->statevar[i].eventing && (service->last_change > service->statevar[i].eventing))
+          service->statevar[i].eventing = service->last_change;
+      }
+      if (dlna->verbosity == DLNA_MSG_INFO)
+      {
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "**             New State Var Notification                **\n");
+        dlna_log (dlna, DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", service->id);
+      }
+      if (propset)
+      {
+        rc = dlnaNotifyExt(dlna->dev, dlna->device->uuid, service->id, propset);
+        ixmlDocument_free (propset);
+      }
+    }
+
+    if (rc != DLNA_E_SUCCESS)
+    {
+       dlna_log (dlna, DLNA_MSG_ERROR,
+        "upnp", "Accept Subscription Error: %s (%d)",
+          dlnaGetErrorMessage(rc), rc);
+    }
+  }
+  return rc;
+}
+
+static void *
+dlna_event_thread (void *arg)
+{
+  dlna_t *dlna =(dlna_t *)arg;
+
+  while (1)
+  {
+    struct timespec abstime = {.tv_sec = 0, .tv_nsec = 200000000,}; /*0.2s*/
+    ithread_mutex_lock (&dlna->event_mutex);
+    //ithread_cond_wait (&dlna->eventing, &dlna->event_mutex);
+    ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
+    ithread_mutex_unlock (&dlna->event_mutex);
+    dlna_service_foreach (dlna->device, upnp_event_notify, dlna);
+  }
+  return NULL;
+}
+
 int
 dlna_start (dlna_t *dlna)
 {
@@ -421,6 +514,7 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
 
+  dlna_service_foreach (dlna->device, upnp_service_init, dlna);
   res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
   if (res != DLNA_E_SUCCESS)
   {
@@ -454,6 +548,10 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
 
+  ithread_mutex_init (&dlna->event_mutex, NULL);
+  ithread_cond_init (&dlna->eventing, NULL);
+  ithread_create (&dlna->event_thread, NULL, dlna_event_thread, dlna);
+
   dlna_log (dlna, DLNA_MSG_INFO,
             "Sending UPnP advertisement for device ...\n");
   dlnaSendAdvertisement (dlna->dev, 1800);
@@ -481,67 +579,6 @@ dlna_stop (dlna_t *dlna)
   dlnaFinish ();
 
   return DLNA_ST_OK;
-}
-
-void
-upnp_event_notify (dlna_t *dlna, char *serviceID)
-{
-  dlna_service_t *service = NULL;
-  IXML_Document *propset = NULL;
-
-  if (!dlna)
-    return;
-
-  if (dlna->verbosity == DLNA_MSG_INFO)
-  {
-    dlna_log (dlna, DLNA_MSG_INFO,
-              "***************************************************\n");
-    dlna_log (dlna, DLNA_MSG_INFO,
-              "**             New State Var Notification                **\n");
-    dlna_log (dlna, DLNA_MSG_INFO,
-              "***************************************************\n");
-    dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", serviceID);
-  }
-
-  service = dlna_service_find (dlna->device, serviceID);
-	if (service && service->statevar)
-  {
-    int i;
-    int rc;
-    int last_change = 0;
-
-    for (i = 0; service->statevar[i].name; i++)
-    {
-      char *result = NULL;
-      const char *value = NULL;
-      if (service->statevar[i].eventing && service->statevar[i].get)
-       value = service->statevar[i].get (dlna);
-      if (value && (service->last_change < service->statevar[i].eventing))
-      {
-        result = strdup (value);
-        dlnaAddToPropertySet (&propset, service->statevar[i].name, result);
-        free (result);
-        if (last_change < service->statevar[i].eventing)
-          last_change = service->statevar[i].eventing;
-      }
-    }
-    service->last_change = last_change;
-    for (i = 0; service->statevar[i].name; i++)
-    {
-      if (service->statevar[i].eventing && (service->last_change > service->statevar[i].eventing))
-        service->statevar[i].eventing = service->last_change;
-    }
-    rc = dlnaNotifyExt(dlna->dev, dlna->device->uuid, serviceID, propset);
-    
-    ixmlDocument_free (propset);
-
-    if (rc != DLNA_E_SUCCESS)
-    {
-      dlna_log (dlna, DLNA_MSG_ERROR,
-        "upnp", "Accept Subscription Error: %s (%d)",
-          dlnaGetErrorMessage(rc), rc);
-    }
-  }
 }
 
 int

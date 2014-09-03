@@ -20,6 +20,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "upnp_internals.h"
 #include "services.h"
@@ -130,7 +131,7 @@
 #define SERVICE_MSR_STATUS_OK                       "1"
 
 char *
-msr_get_description (dlna_t *dlna)
+msr_get_description (dlna_t *dlna dlna_unused)
 {
   return strdup (MSR_DESCRIPTION);
 }
@@ -183,13 +184,22 @@ static upnp_service_action_t msr_service_actions[] = {
   { NULL, NULL,                              NULL }
 };
 
-dlna_service_t msr_service = {
-  .id           = MSR_SERVICE_ID,
-  .type         = MSR_SERVICE_TYPE,
-  .scpd_url     = MSR_URL,
-  .control_url  = MSR_CONTROL_URL,
-  .event_url    = MSR_EVENT_URL,
-  .actions      = msr_service_actions,
-  .statevar     = msr_service_variables,
-  .get_description     = msr_get_description,
+dlna_service_t *
+msr_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = MSR_SERVICE_ID;
+  service->type         = MSR_SERVICE_TYPE;
+  service->scpd_url     = MSR_URL;
+  service->control_url  = MSR_CONTROL_URL;
+  service->event_url    = MSR_EVENT_URL;
+  service->actions      = msr_service_actions;
+  service->statevar     = msr_service_variables;
+  service->get_description     = msr_get_description;
+  service->init         = NULL;
+  service->last_change  = 1;
+
+  return service;
 };

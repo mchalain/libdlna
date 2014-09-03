@@ -45,36 +45,20 @@
 
 typedef struct dlna_item_s dlna_item_t;
 
-/* DLNA Media Player Properties */
-typedef struct dlna_dmp_item_s dlna_dmp_item_t;
-typedef struct dlna_dmp_s dlna_dmp_t;
-struct dlna_dmp_item_s
-{
-  uint32_t id;
-  dlna_item_t *item;
-  UT_hash_handle hh;
-};
-
-struct dlna_dmp_s
-{
-  uint32_t id;
-  dlna_dmp_item_t *playlist;
-  dlna_dmp_item_t *current_item;
-  enum {
-    E_NO_MEDIA,
-    E_STOPPED,
-    E_PLAYING,
-    E_PAUSING,
-    E_RECORDING,
-    E_TRANSITIONING,
-  } state;
-  ithread_mutex_t state_mutex;
-  ithread_cond_t state_change;
-  ithread_t playthread;
-  UT_hash_handle hh;
-};
-
 /* UPnP Service properties */
+typedef struct dlna_vfs_s dlna_vfs_t;
+struct dlna_vfs_s
+{
+  /* VFS for Content Directory */
+  dlna_dms_storage_type_t storage_type;
+  struct vfs_item_s *vfs_root;
+  uint32_t vfs_items;
+#ifdef HAVE_SQLITE
+  void *db;
+#endif /* HAVE_SQLITE */
+};
+
+/* UPnP Services */
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_statevar_s  upnp_service_statevar_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
@@ -83,6 +67,7 @@ struct upnp_action_event_s {
   struct dlna_Action_Request *ar;
   int status;
   dlna_service_t *service;
+  dlna_device_t *device;
 };
 
 struct upnp_service_action_s {
@@ -103,7 +88,7 @@ struct upnp_service_statevar_s {
     E_URI,
   } type;
   int eventing;
-  char * (*get) (dlna_t *);
+  char * (*get) (dlna_t *, dlna_service_t *);
 };
 
 /**
@@ -125,18 +110,17 @@ struct dlna_s {
   /* Internal HTTP Server */
   dlna_http_callback_t *http_callback;
 
+  /* Eventing mechanism */
+  ithread_mutex_t event_mutex;
+  ithread_cond_t eventing;
+  ithread_t event_thread;
+
   /* Profilers entries */
   dlna_profiler_t *profiler;
 
-  /* VFS for Content Directory */
-  dlna_dms_storage_type_t storage_type;
-  struct vfs_item_s *vfs_root;
-  uint32_t vfs_items;
-  void *db;
+  /* DMS Properties */
+  dlna_vfs_t dms;
   
-  /* DMP data */
-  struct dlna_dmp_s *dmp;
- 
   /* UPnP Properties */
   char *interface;
   unsigned short port; /* server port */

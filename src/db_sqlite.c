@@ -92,10 +92,10 @@ int dms_db_open (dlna_t *dlna, char *dbname)
     return -1;
   }
   
-  dlna->storage_type = DLNA_DMS_STORAGE_MEMORY;
+  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna_log (dlna, DLNA_MSG_INFO,
             "Use SQL database for VFS metadata storage.\n");
-  dlna->db = (void*)db;
+  dlna->dms.db = (void*)db;
 
   res = dms_db_check(dlna);
   return 0;
@@ -104,7 +104,7 @@ int dms_db_open (dlna_t *dlna, char *dbname)
 int
 dms_db_check (dlna_t *dlna)
 {
-  sqlite3 *db = (sqlite3 *)dlna->db;
+  sqlite3 *db = (sqlite3 *)dlna->dms.db;
   char* sql = NULL;
   int rc = -1;
 
@@ -120,7 +120,7 @@ dms_db_check (dlna_t *dlna)
 void
 dms_db_close (dlna_t *dlna)
 {
-  sqlite3 *db = (sqlite3 *)dlna->db;
+  sqlite3 *db = (sqlite3 *)dlna->dms.db;
   if (db)
     sqlite3_close (db);
 }
@@ -194,7 +194,7 @@ static int dms_db_properties_callback(void *data, int argc, char **argv, char **
 dlna_item_t *
 dms_db_get (dlna_t *dlna, uint32_t id)
 {
-  sqlite3 *db = (sqlite3 *)dlna->db;
+  sqlite3 *db = (sqlite3 *)dlna->dms.db;
   dlna_item_t *item = NULL;
   char* sql = NULL;
   char *errMsg;
@@ -238,7 +238,7 @@ dms_db_get (dlna_t *dlna, uint32_t id)
 int
 dms_db_create (dlna_t *dlna)
 {
-  sqlite3 *db = (sqlite3 *)dlna->db;
+  sqlite3 *db = (sqlite3 *)dlna->dms.db;
   char* sql_items = DLNA_DB_ITEMS_CREATE_TABLE;
   char* sql_media = DLNA_DB_METADATA_CREATE_TABLE;
   char* sql_properties = DLNA_DB_PROPERTIES_CREATE_TABLE;
@@ -275,7 +275,7 @@ dms_db_create (dlna_t *dlna)
 int
 dms_db_add (dlna_t *dlna, uint32_t id, dlna_item_t *item)
 {
-  sqlite3 *db = (sqlite3 *)dlna->db;
+  sqlite3 *db = (sqlite3 *)dlna->dms.db;
   char* sql = NULL;
   char *errMsg;
   int rc = -1;

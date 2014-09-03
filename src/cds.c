@@ -180,7 +180,7 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   SystemUpdateID = calloc (1, 256);
-  snprintf (SystemUpdateID, 255, "%u", dlna->vfs_root->u.container.updateID);
+  snprintf (SystemUpdateID, 255, "%u", dlna->dms.vfs_root->u.container.updateID);
   upnp_add_response (ev, CDS_ARG_UPDATE_ID,
                      SystemUpdateID);
   free (SystemUpdateID);
@@ -204,7 +204,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
   {
   case DLNA_RESOURCE:
     didl_add_item (dlna, out, item, "false", filter);
-    snprintf (updateID, 255, "%u", dlna->vfs_root->u.container.updateID);
+    snprintf (updateID, 255, "%u", dlna->dms.vfs_root->u.container.updateID);
     break;
 
   case DLNA_CONTAINER:
@@ -723,13 +723,22 @@ cds_get_description (dlna_t *dlna)
   return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
 }
 
-dlna_service_t cds_service = {
-  .id           = CDS_SERVICE_ID,
-  .type         = CDS_SERVICE_TYPE,
-  .scpd_url     = CDS_URL,
-  .control_url  = CDS_CONTROL_URL,
-  .event_url    = CDS_EVENT_URL,
-  .actions      = cds_service_actions,
-  .statevar      = cds_service_variables,
-  .get_description     = cds_get_description,
+dlna_service_t *
+cds_service_new (dlna_t *dlna dlna_unused)
+{
+  dlna_service_t *service = NULL;
+  service = calloc (1, sizeof (dlna_service_t));
+  
+  service->id           = CDS_SERVICE_ID;
+  service->type         = CDS_SERVICE_TYPE;
+  service->scpd_url     = CDS_URL;
+  service->control_url  = CDS_CONTROL_URL;
+  service->event_url    = CDS_EVENT_URL;
+  service->actions      = cds_service_actions;
+  service->statevar     = cds_service_variables;
+  service->get_description     = cds_get_description;
+  service->init         = NULL;
+  service->last_change  = 1;
+
+  return service;
 };

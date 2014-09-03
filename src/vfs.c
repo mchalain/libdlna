@@ -31,13 +31,26 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+int
+dlna_vfs_init (dlna_t *dlna)
+{
+  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
+  dlna->dms.vfs_root = NULL;
+  dlna->dms.vfs_items = 0;
+#ifdef HAVE_SQLITE
+  dlna->dms.db = NULL;
+#endif /* HAVE_SQLITE */
+  dlna_vfs_add_container (dlna, "root", 0, 0);
+  return 0;
+}
+
 void
 vfs_item_free (dlna_t *dlna, vfs_item_t *item)
 {
-  if (!dlna || !dlna->vfs_root || !item)
+  if (!dlna || !dlna->dms.vfs_root || !item)
     return;
 
-  HASH_DEL (dlna->vfs_root, item);
+  HASH_DEL (dlna->dms.vfs_root, item);
   
   if (item->title)
     free (item->title);
@@ -61,7 +74,7 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
   }
   
   item->parent = NULL;
-  dlna->vfs_items--;
+  dlna->dms.vfs_items--;
 }
 
 static dlna_status_code_t
@@ -69,10 +82,10 @@ vfs_is_id_registered (dlna_t *dlna, uint32_t id)
 {
   vfs_item_t *item = NULL;
 
-  if (!dlna || !dlna->vfs_root)
+  if (!dlna || !dlna->dms.vfs_root)
     return DLNA_ST_ERROR;
 
-  HASH_FIND_INT (dlna->vfs_root, &id, item);
+  HASH_FIND_INT (dlna->dms.vfs_root, &id, item);
 
   return item ? DLNA_ST_OK : DLNA_ST_ERROR;
 }
@@ -86,7 +99,7 @@ vfs_provide_next_id (dlna_t *dlna, char *fullpath)
   if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
     start += STARTING_ENTRY_ID_XBOX360;
 
-  if (!dlna->vfs_root)
+  if (!dlna->dms.vfs_root)
     return (start - 1);
   
   for (i = start; i < UINT_MAX; i++)
@@ -105,10 +118,10 @@ vfs_get_item_by_id (dlna_t *dlna, uint32_t id)
 {
   vfs_item_t *item = NULL;
 
-  if (!dlna || !dlna->vfs_root)
+  if (!dlna || !dlna->dms.vfs_root)
     return NULL;
 
-  HASH_FIND_INT (dlna->vfs_root, &id, item);
+  HASH_FIND_INT (dlna->dms.vfs_root, &id, item);
 
   return item;
 }
@@ -118,10 +131,10 @@ vfs_get_item_by_name (dlna_t *dlna, char *name)
 {
   vfs_item_t *item = NULL;
 
-  if (!dlna || !dlna->vfs_root)
+  if (!dlna || !dlna->dms.vfs_root)
     return NULL;
   
-  for (item = dlna->vfs_root; item; item = item->hh.next)
+  for (item = dlna->dms.vfs_root; item; item = item->hh.next)
     if (!strcmp (item->title, name))
       return item;
 
@@ -160,7 +173,7 @@ vfs_item_add_child (dlna_t *dlna, vfs_item_t *item, vfs_item_t *child)
   item->u.container.children[n] = NULL;
   item->u.container.children[n - 1] = child;
   item->u.container.children_count++;
-  dlna->vfs_items++;
+  dlna->dms.vfs_items++;
 }
 
 uint32_t
@@ -184,7 +197,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   else
     item->id = object_id;
 
-  HASH_ADD_INT (dlna->vfs_root, id, item);
+  HASH_ADD_INT (dlna->dms.vfs_root, id, item);
   
   dlna_log (dlna, DLNA_MSG_INFO,
             "New container id (asked for #%u, granted #%u)\n",
@@ -196,13 +209,13 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   *(item->u.container.children) = NULL;
   item->u.container.children_count = 0;
   
-  if (!dlna->vfs_root)
-    dlna->vfs_root = item;
+  if (!dlna->dms.vfs_root)
+    dlna->dms.vfs_root = item;
   
   /* check for a valid parent id */
   item->parent = vfs_get_item_by_id (dlna, container_id);
   if (!item->parent)
-    item->parent = dlna->vfs_root;
+    item->parent = dlna->dms.vfs_root;
   else
     item->parent->u.container.updateID ++;
 
@@ -228,7 +241,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   if (!dlna || !name || !fullpath)
     return 0;
 
-  if (!dlna->vfs_root)
+  if (!dlna->dms.vfs_root)
   {
     dlna_log (dlna, DLNA_MSG_ERROR, "No VFS root found. Add one first\n");
     return 0;
@@ -250,7 +263,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
 
-  HASH_ADD_INT (dlna->vfs_root, id, item);
+  HASH_ADD_INT (dlna->dms.vfs_root, id, item);
   
   if (!item->u.resource.item)
   {
@@ -268,7 +281,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   /* check for a valid parent id */
   item->parent = vfs_get_item_by_id (dlna, container_id);
   if (!item->parent)
-    item->parent = dlna->vfs_root;
+    item->parent = dlna->dms.vfs_root;
   else
     item->parent->u.container.updateID ++;
 

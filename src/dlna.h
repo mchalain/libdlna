@@ -59,7 +59,8 @@ struct dlna_item_s;
 /* Status code for DLNA related functions */
 typedef enum {
   DLNA_ST_OK,
-  DLNA_ST_ERROR
+  DLNA_ST_ERROR,
+  DLNA_ST_VFSEMPTY
 } dlna_status_code_t;
 
 /* Verbosity level: defines which kind of log can be displayed */
@@ -251,7 +252,7 @@ void dlna_set_port (dlna_t *dlna, int port);
  * @param[in] dlna  The DLNA library's controller.
  * @param[in] device  The device.
  */
-void dlna_set_device (dlna_t *dlna, struct dlna_device_s *device);
+void dlna_set_device (dlna_t *dlna, dlna_device_t *device);
 
 /***************************************************************************/
 /*                                                                         */
@@ -365,7 +366,7 @@ dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler);
 
 typedef enum {
   DLNA_DMS_STORAGE_MEMORY,
-  DLNA_DMS_STORAGE_SQL_DB,
+  DLNA_DMS_STORAGE_DB,
 } dlna_dms_storage_type_t;
 
 /**
@@ -375,53 +376,10 @@ typedef enum {
  * @param[in] type  The VFS storage type.
  * @param[in] data  Optional cookie depending on storage type:
  *                   - May be NULL for memory storage.
- *                   - Path to databased file for SQL_DB storage.
- * 
+ *                   - Path to databased file for DB storage.
  */
 void dlna_dms_set_vfs_storage_type (dlna_t *dlna,
                                     dlna_dms_storage_type_t type, char *data);
-
-/***************************************************************************/
-/*                                                                         */
-/* DLNA UPnP Digital Media Renderer (DMR) Management                       */
-/*  Mandatory: Configure the device to act as a Media Renderer.            */
-/*                                                                         */
-/***************************************************************************/
-
-/**
- * Initialize a DLNA Digital Media Renderer compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dmr_init (dlna_t *dlna);
-
-/**
- * Uninitialize a DLNA Digital Media Renderer compliant device.
- *
- * @param[in] dlna  The DLNA library's controller.
- *
-  * @return   DLNA_ST_OK in case of success, DLNA_ST_ERROR otherwise.
- */
-int dlna_dmr_uninit (dlna_t *dlna);
-
-/**
- * Create a valid UPnP device description for Digital Media Renderer (DMR).
- *
- * @param[in] dlna  The DLNA library's controller.
- * 
- * @return                       The DMR device description string.
- */
-char *dlna_dmr_description_get (dlna_t *dlna);
-
-/***************************************************************************/
-/*                                                                         */
-/* DLNA UPnP Digital Media Player (DMP) Management                         */
-/*  Mandatory: Configure the device to act as a Media Player.              */
-/*                                                                         */
-/***************************************************************************/
-
 
 /***************************************************************************/
 /*                                                                         */
@@ -551,11 +509,11 @@ typedef enum {
  */
 void dlna_service_register (dlna_device_t *device, dlna_service_t *srv);
 
-extern dlna_service_t cms_service;
-extern dlna_service_t cds_service;
-extern dlna_service_t rcs_service;
-extern dlna_service_t avts_service;
-extern dlna_service_t msr_service;
+extern dlna_service_t *cms_service_new (dlna_t*dlna);
+extern dlna_service_t *cds_service_new (dlna_t*dlna);
+extern dlna_service_t *rcs_service_new (dlna_t*dlna);
+extern dlna_service_t *avts_service_new (dlna_t*dlna);
+extern dlna_service_t *msr_service_new (dlna_t*dlna);
 /***************************************************************************/
 /*                                                                         */
 /* DLNA UPnP Virtual File System (VFS) Management                          */
