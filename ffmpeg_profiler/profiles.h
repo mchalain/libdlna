@@ -164,4 +164,18 @@ typedef struct ffmpeg_profiler_data_s
   void *first_profile;
 } ffmpeg_profiler_data_t;
 
+typedef struct ffmpeg_stream_s ffmpeg_stream_t;
+struct ffmpeg_stream_s
+{
+  int id;
+  itread_mutex_t mutex;
+  itread_cond_t cond;
+  itread_t thread;
+};
+typedef struct ffmpeg_profile_s ffmpeg_profile_t;
+struct ffmpeg_profile_s
+{
+  AVFormatContext *ctx;
+  struct ffmpeg_stream_s stream[AVMEDIA_TYPE_NB];
+};
 #endif /* PROFILES_H */
