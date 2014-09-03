@@ -35,6 +35,7 @@
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
 #define AVTS_ERR_NOT_IMPLEMENTED               710
+#define AVTS_ERR_SPEED_NOT_SUPPORTED           717
 #define AVTS_ERR_INVALID_INSTANCE              718 
 
 #define AVTS_VAR_STATE                      "TransportState"
@@ -357,33 +358,40 @@ playitem_prepare (dlna_item_t *item dlna_unused)
 static int
 playitem_decodeframe (dlna_item_t *item dlna_unused)
 {
-  return 0;
+  return 1;
 }
 
 static char *
 instance_possible_state (avts_instance_t *instance)
 {
   char *val = NULL;
-  
+  buffer_t *out;
+  out = buffer_new();
   ithread_mutex_lock (&instance->state_mutex);
   switch (instance->state)
   {
   case E_NO_MEDIA:
   case E_RECORDING:
-    val = strdup ("");
+    buffer_appendf (out,"NONE");
   break;
   case E_TRANSITIONING:
   case E_PLAYING:
-    val = strdup ("Stop,Pause,Seek");
+    buffer_appendf (out,"STOP,PAUSE,SEEK");
+    if (playlist_next (instance->playlist))
+      buffer_appendf (out,",NEXT");
+    if (playlist_previous (instance->playlist))
+      buffer_appendf (out,",PREVIOUS");
   break;
   case E_STOPPED:
-    val = strdup ("Play");
+    buffer_appendf (out,"PLAY");
   break;
   case E_PAUSING:
-    val = strdup ("Stop,Play");
+    buffer_appendf (out,"STOP,PLAY");
   break;
   }
   ithread_mutex_unlock (&instance->state_mutex);
+  val =strdup (out->buf);
+  buffer_free (out);
   return val;
 }
 
@@ -391,6 +399,7 @@ static int
 instance_change_state (avts_instance_t *instance, int newstate)
 {
   int changed = 0;
+
   ithread_mutex_lock (&instance->state_mutex);
   if (instance->state != E_NO_MEDIA && newstate != -1)
   {
@@ -436,13 +445,13 @@ instance_change_state (avts_instance_t *instance, int newstate)
 }
 
 void
-avts_request_event (avts_instance_t *instance)
+avts_request_event (dlna_service_t *service)
 {
-  if (instance->service->statevar[LAST_CHANGE_ID].eventing)
-    instance->service->statevar[LAST_CHANGE_ID].eventing++;
-  if (instance->service->statevar[LAST_CHANGE_ID].eventing)
+  if (service->statevar[LAST_CHANGE_ID].eventing)
+    service->statevar[LAST_CHANGE_ID].eventing++;
+  if (!service->statevar[LAST_CHANGE_ID].eventing)
   {
-    instance->service->statevar[LAST_CHANGE_ID].eventing = 1;
+    service->statevar[LAST_CHANGE_ID].eventing = 1;
   }
 }
 
@@ -485,7 +494,7 @@ avts_thread_play (void *arg)
       if (!instance->playlist)
       {
         if (instance_change_state (instance, E_NO_MEDIA))
-          avts_request_event (instance);
+          avts_request_event (instance->service);
         break;
       }
       instance->playlist->current = instance->playlist;
@@ -509,7 +518,7 @@ avts_thread_play (void *arg)
         if (!next_item)
         {
           if (instance_change_state (instance, E_STOPPED))
-            avts_request_event (instance);
+            avts_request_event (instance->service);
         }
         else
           playitem_prepare (next_item->item);
@@ -526,7 +535,7 @@ avts_thread_play (void *arg)
           instance_change_state (instance, E_STOPPED);
         else
           instance_change_state (instance, E_PLAYING);
-        avts_request_event (instance);
+        avts_request_event (instance->service);
         instance->playlist->current = next_item;
         next_item = NULL;
       }
@@ -553,6 +562,26 @@ avts_create_instance (dlna_service_t *service, uint32_t id)
   service->cookie = instances;
   ithread_create (&instance->playthread, NULL, avts_thread_play, instance);
   return instance;
+}
+
+static void
+avts_kill_instance (dlna_service_t *service, uint32_t instanceID)
+{
+  avts_instance_t *instance = NULL;
+  avts_instance_t *instances = (avts_instance_t *)service->cookie;
+
+  HASH_FIND_INT (instances, &instanceID, instance);
+
+  if (instance)
+  {
+    ithread_mutex_destroy (&instance->state_mutex);
+    ithread_cond_destroy (&instance->state_change);
+    playlist_empty (instance->playlist);
+    ithread_join (instance->playthread, NULL);
+    HASH_DEL (instances, instance);
+    free (instance);
+  }
+  return;
 }
 
 static int
@@ -599,7 +628,6 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
 
   free (uri);
   free (uri_metadata);
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s", g_TransportState[instance->state]);
 
   return ev->status;
 }
@@ -640,7 +668,6 @@ avts_set_next_uri (dlna_t *dlna, upnp_action_event_t *ev)
 
   free (uri);
   free (uri_metadata);
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s\n", g_TransportState[instance->state]);
 
   return ev->status;
 }
@@ -1017,14 +1044,18 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
   speed = upnp_get_ui4 (ev->ar, AVTS_ARG_SPEED);
+  if (speed != 1)
+  {
+    ev->ar->ErrCode = AVTS_ERR_SPEED_NOT_SUPPORTED;
+    return 0;
+  }
 
   if (!instance_change_state(instance, E_PLAYING))
   {
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
-  avts_request_event (instance);
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s\n", g_TransportState[instance->state]);
+  avts_request_event (instance->service);
 
   return ev->status;
 }
@@ -1051,7 +1082,7 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* Retrieve input arguments */
   instanceID   = upnp_get_ui4 (ev->ar, AVTS_ARG_INSTANCEID);
-  HASH_FIND_INT ((avts_instance_t *)ev->service->cookie, &instanceID, instance);
+  HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
@@ -1063,13 +1094,11 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
-  avts_request_event (instance);
+  avts_request_event (instance->service);
   if (instanceID > 0)
   {
-    ithread_join (instance->playthread, NULL);
-    HASH_DEL (instances, instance);
+    avts_kill_instance (instance->service, instanceID);
   }
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s\n", g_TransportState[instance->state]);
 
   return ev->status;
 }
@@ -1103,14 +1132,12 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s %d\n", g_TransportState[instance->state], instance->state);
   if (!instance_change_state(instance, E_PAUSING))
   {
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
-  avts_request_event (instance);
-  dlna_log (dlna, DLNA_MSG_CRITICAL, "State : %s %d\n", g_TransportState[instance->state], instance->state);
+  avts_request_event (instance->service);
 
   return ev->status;
 }
@@ -1193,7 +1220,7 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
-  avts_request_event (instance);
+  avts_request_event (instance->service);
 
   return ev->status;
 }
@@ -1233,7 +1260,7 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
-  avts_request_event (instance);
+  avts_request_event (instance->service);
 
   return ev->status;
 }

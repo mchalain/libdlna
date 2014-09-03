@@ -45,15 +45,6 @@
 
 typedef struct dlna_item_s dlna_item_t;
 
-typedef struct dlna_dmp_item_s dlna_dmp_item_t;
-struct dlna_dmp_item_s
-{
-  uint32_t id;
-  dlna_item_t *item;
-  dlna_dmp_item_t *current;
-  UT_hash_handle hh;
-};
-
 /* UPnP Service properties */
 typedef struct dlna_vfs_s dlna_vfs_t;
 struct dlna_vfs_s
