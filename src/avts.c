@@ -223,7 +223,7 @@ playlist_empty (dlna_dmp_item_t *playlist)
 
   for (item = playlist; item; item = item->hh.next)
     HASH_DEL (playlist, item);
-  return playlist;
+  return NULL;
 }
 
 static dlna_dmp_item_t *
@@ -251,6 +251,8 @@ static dlna_dmp_item_t *
 playlist_next (dlna_dmp_item_t *playlist, uint32_t id)
 {
   dlna_dmp_item_t *item = NULL;
+  if (!playlist)
+    return NULL;
   if (id)
   {
     HASH_FIND_INT (playlist, &id, item);
@@ -264,6 +266,8 @@ static int
 playlist_count (dlna_dmp_item_t *playlist)
 {
   int i = 0;
+  if (!playlist)
+    return 0;
   while ((playlist = playlist->hh.next)) i++;
   return i;
 }
@@ -357,8 +361,6 @@ avts_thread_play (void *arg)
     ithread_mutex_unlock (&instance->state_mutex);
     switch (state)
     {
-    case E_STOPPED:
-      return NULL;
     case E_PLAYING:
       play_frame = 1;
       break;
@@ -370,6 +372,22 @@ avts_thread_play (void *arg)
       }
       play_frame = 1;
       break;
+    case E_NO_MEDIA:
+      while (!instance->playlist)
+      {
+        ithread_mutex_lock (&instance->state_mutex);
+        ithread_cond_wait (&instance->state_change, &instance->state_mutex);
+        ithread_mutex_unlock (&instance->state_mutex);
+      }
+      break;
+    case E_STOPPED:
+      instance_change_current_item(instance, playlist_next (instance->playlist, 0));
+      if (!instance->current_item)
+      {
+        instance_change_state (instance, E_NO_MEDIA);
+        break;
+      }
+      playitem_prepare (instance->current_item->item);
     case E_PAUSING:
       ithread_mutex_lock (&instance->state_mutex);
       ithread_cond_wait (&instance->state_change, &instance->state_mutex);
@@ -412,7 +430,7 @@ avts_thread_play (void *arg)
 }
 
 static avts_instance_t *
-avts_set_thread (dlna_service_t *service, uint32_t id)
+avts_create_instance (dlna_service_t *service, uint32_t id)
 {
   avts_instance_t *instance = NULL;
   avts_instance_t *instances = (avts_instance_t *)service->cookie;
@@ -455,7 +473,8 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   HASH_FIND_INT (instances, &instanceID, instance);
   if (!instance)
   {
-    instance = avts_set_thread (ev->service, instanceID);
+    ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
   }
   if (instance->state == E_STOPPED)
   {
@@ -562,7 +581,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item->hh.next)
+  if (instance->current_item && instance->current_item->hh.next)
   {
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     buffer_appendf (out, "%s", item->item->filename);
@@ -571,7 +590,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item->hh.next)
+  if (instance->current_item && instance->current_item->hh.next)
   {
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     didl_add_short_item (out, item);
@@ -638,7 +657,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item->hh.next)
+  if (instance->current_item && instance->current_item->hh.next)
   {
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     buffer_appendf (out, "%s", item->item->filename);
@@ -647,7 +666,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   out = buffer_new ();
-  if (instance->current_item->hh.next)
+  if (instance->current_item && instance->current_item->hh.next)
   {
     dlna_dmp_item_t *item = instance->current_item->hh.next;
     didl_add_short_item (out, item);
@@ -917,8 +936,11 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   instance_change_state(instance, E_STOPPED);
-  ithread_join (instance->playthread, NULL);
-  HASH_DEL (instances, instance);
+  if (instanceID > 0)
+  {
+    ithread_join (instance->playthread, NULL);
+    HASH_DEL (instances, instance);
+  }
 
   return ev->status;
 }
@@ -1092,6 +1114,7 @@ avts_get_description (dlna_t *dlna)
 dlna_service_t *
 avts_service_new (dlna_t *dlna dlna_unused)
 {
+  avts_instance_t *instance = NULL;
   dlna_service_t *service = NULL;
   service = calloc (1, sizeof (dlna_service_t));
   
@@ -1104,6 +1127,9 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = avts_service_variables;
   service->get_description     = avts_get_description;
   service->init         = NULL;
+
+  instance = avts_create_instance (service, 0);
+  service->cookie = instance;
 
   return service;
 };
