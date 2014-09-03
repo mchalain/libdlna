@@ -286,8 +286,8 @@ typedef struct dlna_profile_s {
   struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
   struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);
   void (*free)(struct dlna_item_s *item);
-  int (*prepare_stream) (dlna_item_t *item);
-  int (*read_stream) (dlna_item_t *item);
+  int (*prepare_stream) (struct dlna_item_s *item);
+  int (*read_stream) (struct dlna_item_s *item);
 
 } dlna_profile_t;
 

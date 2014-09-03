@@ -25,6 +25,9 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
+/* UPnP library headers */
+#include <ithread.h>
+
 #include "dlna.h"
 #include "ffmpeg_profiler.h"
 #include "containers.h"
@@ -168,9 +171,9 @@ typedef struct ffmpeg_stream_s ffmpeg_stream_t;
 struct ffmpeg_stream_s
 {
   int id;
-  itread_mutex_t mutex;
-  itread_cond_t cond;
-  itread_t thread;
+  ithread_mutex_t mutex;
+  ithread_cond_t cond;
+  ithread_t thread;
 };
 typedef struct ffmpeg_profile_s ffmpeg_profile_t;
 struct ffmpeg_profile_s

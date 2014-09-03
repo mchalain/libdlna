@@ -352,13 +352,18 @@ playlist_seek (avts_playlist_t *playlist, int32_t target)
 static int
 playitem_prepare (dlna_item_t *item dlna_unused)
 {
+  if (item->profile->prepare_stream)
+    item->profile->prepare_stream (item);
   return 0;
 }
 
 static int
 playitem_decodeframe (dlna_item_t *item dlna_unused)
 {
-  return 1;
+  int ret;
+  if (item->profile->read_stream)
+    ret = item->profile->read_stream (item);
+  return ret;
 }
 
 static char *

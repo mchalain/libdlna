@@ -31,6 +31,8 @@
 
 static dlna_properties_t *item_get_properties (dlna_item_t *item);
 static dlna_metadata_t *item_get_metadata (dlna_item_t *item);
+static int ffmpeg_prepare_stream (dlna_item_t *item);
+static int ffmpeg_read_stream (dlna_item_t *item);
 
 extern registered_profile_t dlna_profile_image_jpeg;
 extern registered_profile_t dlna_profile_image_png;
@@ -56,6 +58,9 @@ ffmpeg_profiler_init ()
 
   /* register all FFMPEG demuxers */
   av_register_all ();
+  //avdevice_register_all();
+  avcodec_register_all();
+  avformat_network_init();
 
   data = calloc( 1, sizeof(ffmpeg_profiler_data_t));
   data->first_profile = NULL;
@@ -394,7 +399,7 @@ dlna_metadata_free (dlna_metadata_t *meta)
 static void
 media_profile_free(dlna_item_t *item)
 {
-  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
 
   dlna_metadata_free (item->metadata);
 
@@ -464,13 +469,17 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
   }
 
   if (!profile)
-    return;
+    return NULL;
 
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;
-  *cookie = calloc (1, sizeof (ffmpeg_profile_t));
-  *cookie->ctx = (void *)ctx;
+  profile->prepare_stream = ffmpeg_prepare_stream;
+  profile->read_stream = ffmpeg_read_stream;
+
+  ffmpeg_profile_t *fprofile = calloc (1, sizeof (ffmpeg_profile_t));
+  fprofile->ctx = ctx;
+  *cookie = fprofile;
   free (codecs);
   return profile;
 }
@@ -478,7 +487,7 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
 static dlna_properties_t *
 item_get_properties (dlna_item_t *item)
 {
-  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
   AVFormatContext *ctx = cookie->ctx;
   dlna_properties_t *prop;
   int duration, hours, min, sec;
@@ -520,7 +529,7 @@ item_get_properties (dlna_item_t *item)
 static dlna_metadata_t *
 item_get_metadata (dlna_item_t *item)
 {
-  ffmpeg_profile_t *cookie = (AVFormatContext *)item->profile_cookie;
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
   AVFormatContext *ctx = cookie->ctx;
   dlna_metadata_t *meta;
   AVDictionary *dict = ctx->metadata;
@@ -663,11 +672,13 @@ static void *
 stream_thread_play (void *arg)
 {
   ffmpeg_stream_t *stream = (ffmpeg_stream_t *)arg;
+  printf ("\n\n start stream \n\n");
   while (1)
   {
-	ithread_mutex_lock (&stream->mutex);
-	ithread_cond_wait (&stream->cond,&stream->mutex);
-	ithread_mutex_unlock (&stream->mutex);
+    ithread_mutex_lock (&stream->mutex);
+    ithread_cond_wait (&stream->cond,&stream->mutex);
+    ithread_mutex_unlock (&stream->mutex);
+    printf ("\n\n new packet \n\n");
   }
   return NULL;
 }
@@ -675,10 +686,10 @@ stream_thread_play (void *arg)
 int
 stream_component_open (ffmpeg_profile_t *cookie, int stream_type)
 {
-  ffmpeg_stream_t *stream = *cookie->stream[stream_type];
+  ffmpeg_stream_t *stream = &(cookie->stream[stream_type]);
   AVCodecContext *avctx;
   AVCodec *codec;
-  AVDictionary *opts;
+  AVDictionary *opts = NULL;
 
   avctx = cookie->ctx->streams[stream->id]->codec;
   codec = avcodec_find_decoder(avctx->codec_id);
@@ -686,7 +697,7 @@ stream_component_open (ffmpeg_profile_t *cookie, int stream_type)
   if (!codec)
     return -1;
   avctx->codec_id = codec->id;
-  if (!av_dict_get(opts, "threads", NULL, 0))
+  if (!opts || !av_dict_get(opts, "threads", NULL, 0))
     av_dict_set(&opts, "threads", "auto", 0);
   if (avctx->codec_type == AVMEDIA_TYPE_VIDEO || avctx->codec_type == AVMEDIA_TYPE_AUDIO)
     av_dict_set(&opts, "refcounted_frames", "1", 0);
@@ -709,44 +720,48 @@ stream_push_packet (ffmpeg_stream_t *stream, AVPacket *pkt)
 
 static int wanted_stream [AVMEDIA_TYPE_NB] = {
     [AVMEDIA_TYPE_AUDIO]    = -1,
-    [AVMEDIA_TYPE_VIDEO]    = -1,stream_push_packet
+    [AVMEDIA_TYPE_VIDEO]    = -1,
     [AVMEDIA_TYPE_SUBTITLE] = -1,
 };
 
-int
+static int
 ffmpeg_prepare_stream (dlna_item_t *item)
 {
   ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
   AVFormatContext *ctx = cookie->ctx;
 
-  cookie->st_index[AVMEDIA_TYPE_VIDEO] =
+  printf ("\n\n prepare frame \n\n");
+  cookie->stream[AVMEDIA_TYPE_VIDEO].id =
         av_find_best_stream(ctx, AVMEDIA_TYPE_VIDEO,
                       wanted_stream[AVMEDIA_TYPE_VIDEO], -1, NULL, 0);
-  cookie->st_index[AVMEDIA_TYPE_AUDIO] =
+  cookie->stream[AVMEDIA_TYPE_AUDIO].id =
         av_find_best_stream(ctx, AVMEDIA_TYPE_AUDIO,
                       wanted_stream[AVMEDIA_TYPE_AUDIO],
-                      cookie->st_index[AVMEDIA_TYPE_VIDEO], NULL, 0);
-  cookie->st_index[AVMEDIA_TYPE_SUBTITLE] =
+                      cookie->stream[AVMEDIA_TYPE_VIDEO].id, NULL, 0);
+  cookie->stream[AVMEDIA_TYPE_SUBTITLE].id =
         av_find_best_stream(ctx, AVMEDIA_TYPE_SUBTITLE,
                       wanted_stream[AVMEDIA_TYPE_SUBTITLE],
-                      (cookie->st_index[AVMEDIA_TYPE_AUDIO] >= 0 ?
-                         cookie->st_index[AVMEDIA_TYPE_AUDIO] :
-                         cookie->st_index[AVMEDIA_TYPE_VIDEO]), NULL, 0);
-  if (cookie->st_index[AVMEDIA_TYPE_AUDIO] >= 0)
+                      (cookie->stream[AVMEDIA_TYPE_AUDIO].id >= 0 ?
+                         cookie->stream[AVMEDIA_TYPE_AUDIO].id :
+                         cookie->stream[AVMEDIA_TYPE_VIDEO].id), NULL, 0);
+  if (cookie->stream[AVMEDIA_TYPE_AUDIO].id >= 0)
   {
     stream_component_open(cookie, AVMEDIA_TYPE_AUDIO);
   }
   return 0;
 }
 
-int
+static int
 ffmpeg_read_stream (dlna_item_t *item)
 {
   ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+  ffmpeg_stream_t *stream;
   AVFormatContext *ctx = cookie->ctx;
   AVPacket pkt1, *pkt = &pkt1;
+  int ret, i;
 
   ret = av_read_frame(ctx, pkt);
+  printf ("\n\n read frame %d \n\n", ret);
   if (ret < 0)
     return -1;
   for (i = 0; i < AVMEDIA_TYPE_NB; i++)
@@ -757,12 +772,12 @@ ffmpeg_read_stream (dlna_item_t *item)
       stream_push_packet (stream, pkt);
     }
   }
+  return ret;
 }
+
 static const dlna_profiler_t s_ffmpeg_profiler = {
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,
   .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,
-  .prepare_stream = ffmpeg_prepare_stream,
-  .read_stream = ffmpeg_read_stream,
 };
 dlna_profiler_t *ffmpeg_profiler = &s_ffmpeg_profiler;

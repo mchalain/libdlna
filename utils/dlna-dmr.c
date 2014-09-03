@@ -30,6 +30,7 @@
 #include <getopt.h>
 
 #include "dlna.h"
+#include "ffmpeg_profiler.h"
 
 static void
 display_usage (char *name)
@@ -108,6 +109,8 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
+  ffmpeg_profiler_register_all_media_profiles ();
+  dlna_set_profiler (dlna, ffmpeg_profiler);
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");

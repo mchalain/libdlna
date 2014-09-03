@@ -151,22 +151,17 @@ didl_add_short_item (buffer_t *out,
 
   metadata = item->metadata;
 
-  if (metadata && strlen (metadata->title) > 1)
+  if (metadata)
     didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
   else
     didl_add_tag (out, DIDL_ITEM_TITLE, item->filename);
   if (metadata)
   {
-    if (strlen ( metadata->author) > 1)
-      didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
-    if (strlen ( metadata->comment) > 1)
-      didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
-    if (strlen ( metadata->album) > 1)
-      didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
-    if (metadata->track)
-      didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
-    if (strlen ( metadata->genre) > 1)
-      didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
+    didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
+    didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
+    didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
+    didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
+    didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
   }
   buffer_appendf (out, "</%s>", DIDL_ITEM);
 }
@@ -199,16 +194,11 @@ didl_add_item (buffer_t *out,
 
     if (item->metadata)
     {
-      didl_add_tag (out, DIDL_ITEM_ARTIST,
-                    item->metadata->author);
-      didl_add_tag (out, DIDL_ITEM_DESCRIPTION,
-                    item->metadata->comment);
-      didl_add_tag (out, DIDL_ITEM_ALBUM,
-                    item->metadata->album);
-      didl_add_value (out, DIDL_ITEM_TRACK,
-                      item->metadata->track);
-      didl_add_tag (out, DIDL_ITEM_GENRE,
-                    item->metadata->genre);
+      didl_add_tag (out, DIDL_ITEM_ARTIST, item->metadata->author);
+      didl_add_tag (out, DIDL_ITEM_DESCRIPTION, item->metadata->comment);
+      didl_add_tag (out, DIDL_ITEM_ALBUM, item->metadata->album);
+      didl_add_value (out, DIDL_ITEM_TRACK, item->metadata->track);
+      didl_add_tag (out, DIDL_ITEM_GENRE, item->metadata->genre);
     }
   
     if (filter_has_val (filter, DIDL_RES) && protocol_info)
