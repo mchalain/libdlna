@@ -39,6 +39,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "upnp_internals.h"
 #include "devices.h"
@@ -81,7 +82,7 @@ upnp_subscription_request_handler(dlna_t *dlna,
     if (rc != DLNA_E_SUCCESS)
     {
       dlna_log (dlna, DLNA_MSG_ERROR,
-        "upnp", "Accept Subscription Error: %s (%d)",
+        "Subscription Error: %s (%d)",
           dlnaGetErrorMessage(rc), rc);
     }
   }
@@ -104,7 +105,7 @@ upnp_find_service_statevar (dlna_t *dlna,
     return DLNA_ST_ERROR;
 
   dlna_log (dlna, DLNA_MSG_INFO,
-            "ActionRequest: using service %s\n", ar->ServiceID);
+            "StateVariable: using service %s\n", ar->ServiceID);
   
   /* find the resquested service in all registered ones */
   srv = dlna_service_find (dlna->device, ar->ServiceID);
@@ -118,7 +119,7 @@ upnp_find_service_statevar (dlna_t *dlna,
     if (!strcmp (srv->statevar[a].name, ar->StateVarName))
     {
       dlna_log (dlna, DLNA_MSG_INFO,
-                "ActionRequest: using action %s\n", ar->StateVarName);
+                "StateVariable: using action %s\n", ar->StateVarName);
       *service = (dlna_service_t *)srv;
       *statevar = &srv->statevar[a];
       return DLNA_ST_OK;
@@ -254,6 +255,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
               "**             New Action Request                **\n");
     dlna_log (dlna, DLNA_MSG_INFO,
               "***************************************************\n");
+    dlna_log (dlna, DLNA_MSG_INFO, "Device UDN: %s\n", ar->DevUDN);
     dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", ar->ServiceID);
     dlna_log (dlna, DLNA_MSG_INFO, "ActionName: %s\n", ar->ActionName);
     dlna_log (dlna, DLNA_MSG_INFO, "CtrlPtIP: %s\n", val);
@@ -391,7 +393,7 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
 	if (service && service->statevar)
   {
     int i;
-    int last_change = 0;
+    uint32_t last_change = 0;
 
     for (i = 0; service->statevar[i].name; i++)
     {
@@ -425,11 +427,16 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
                   "**             New State Var Notification                **\n");
         dlna_log (dlna, DLNA_MSG_INFO,
                   "***************************************************\n");
+        dlna_log (dlna, DLNA_MSG_INFO, "DeviceID: %s\n", dlna->device->uuid);
         dlna_log (dlna, DLNA_MSG_INFO, "ServiceID: %s\n", service->id);
       }
       if (propset)
       {
-        rc = dlnaNotifyExt(dlna->dev, dlna->device->uuid, service->id, propset);
+        buffer_t *udn;
+        udn = buffer_new ();
+        buffer_appendf (udn, "uuid:%s",dlna->device->uuid);
+        rc = dlnaNotifyExt(dlna->dev, udn->buf, service->id, propset);
+        buffer_free (udn);
         ixmlDocument_free (propset);
       }
     }
@@ -437,8 +444,7 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
     if (rc != DLNA_E_SUCCESS)
     {
        dlna_log (dlna, DLNA_MSG_ERROR,
-        "upnp", "Accept Subscription Error: %s (%d)",
-          dlnaGetErrorMessage(rc), rc);
+        "Event Notify Error: %s (%d)", dlnaGetErrorMessage(rc), rc);
     }
   }
   return rc;
@@ -451,10 +457,18 @@ dlna_event_thread (void *arg)
 
   while (1)
   {
+    int ret;
     struct timespec abstime = {.tv_sec = 0, .tv_nsec = 200000000,}; /*0.2s*/
     ithread_mutex_lock (&dlna->event_mutex);
-    //ithread_cond_wait (&dlna->eventing, &dlna->event_mutex);
-    ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
+    do
+    {
+      //ret = ithread_cond_wait (&dlna->eventing, &dlna->event_mutex);
+      ret = ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
+      nanosleep (&abstime, NULL);
+      if (ret == ETIMEDOUT)
+        break;
+    }
+    while (ret);
     ithread_mutex_unlock (&dlna->event_mutex);
     dlna_service_foreach (dlna->device, upnp_event_notify, dlna);
   }
@@ -575,6 +589,9 @@ dlna_stop (dlna_t *dlna)
     return DLNA_ST_ERROR;
 
   dlna_log (dlna, DLNA_MSG_INFO, "Stopping UPnP A/V Service ...\n");
+  ithread_join (dlna->event_thread, NULL);
+  ithread_mutex_destroy (&dlna->event_mutex);
+  ithread_cond_destroy (&dlna->eventing);
   dlnaUnRegisterRootDevice (dlna->dev);
   dlnaFinish ();
 
