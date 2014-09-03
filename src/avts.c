@@ -33,6 +33,7 @@
 #include "avts.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
+#define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
 #define AVTS_ERR_INVALID_INSTANCE              718 
 
 #define AVTS_VAR_STATE                      "TransportState"
@@ -524,10 +525,14 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
     return 0;
   }
+  ithread_mutex_lock (&instance->state_mutex);
+  if (instance->state == E_NO_MEDIA)
+    instance->state = E_STOPPED;
   if (instance->state == E_STOPPED)
   {
     instance->playlist = playlist_empty (instance->playlist);
   }
+  ithread_mutex_unlock (&instance->state_mutex);
   
   uri   = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI);
   uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI_METADATA);
@@ -952,7 +957,11 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
   }
   speed = upnp_get_ui4 (ev->ar, AVTS_ARG_SPEED);
 
-  instance_change_state(instance, E_PLAYING);
+  if (instance_change_state(instance, E_PLAYING) != E_PLAYING)
+  {
+    ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
+    return 0;
+  }
 
   return ev->status;
 }
@@ -986,7 +995,11 @@ avts_stop (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  instance_change_state(instance, E_STOPPED);
+  if (instance_change_state(instance, E_STOPPED) != E_STOPPED)
+  {
+    ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
+    return 0;
+  }
   if (instanceID > 0)
   {
     ithread_join (instance->playthread, NULL);
@@ -1025,7 +1038,11 @@ avts_pause (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  instance_change_state(instance, E_PAUSING);
+  if (instance_change_state(instance, E_PAUSING) != E_PAUSING)
+  {
+    ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
+    return 0;
+  }
 
   return ev->status;
 }
@@ -1059,7 +1076,11 @@ avts_next (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
   
-  instance_change_state (instance, E_TRANSITIONING);
+  if (instance_change_state(instance, E_TRANSITIONING) != E_TRANSITIONING)
+  {
+    ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
+    return 0;
+  }
 
   return ev->status;
 }
@@ -1090,6 +1111,11 @@ avts_previous (dlna_t *dlna, upnp_action_event_t *ev)
   if (!instance)
   {
     ev->ar->ErrCode = AVTS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  {
+    ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
 
