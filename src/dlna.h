@@ -62,9 +62,12 @@ extern "C" {
 #define MIME_VIDEO_3GP                    "video/3gpp"
 #define MIME_VIDEO_ASF                    "video/x-ms-asf"
 #define MIME_VIDEO_MPEG                   "video/mpeg"
+#define MIME_VIDEO_MPEG_2                 "video/mpeg2"
 #define MIME_VIDEO_MPEG_4                 "video/mp4"
 #define MIME_VIDEO_MPEG_TS                "video/vnd.dlna.mpeg-tts"
 #define MIME_VIDEO_WMV                    "video/x-ms-wmv"
+#define MIME_VIDEO_AVI                    "video/avi"
+#define MIME_VIDEO_QT                     "video/quicktime"
 
 /* DLNA Labels */
 #define LABEL_IMAGE_PICTURE               "picture"
