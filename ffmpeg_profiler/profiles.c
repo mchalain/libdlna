@@ -474,8 +474,8 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;
-  profile->prepare_stream = ffmpeg_prepare_stream;
-  profile->read_stream = ffmpeg_read_stream;
+  //profile->prepare_stream = ffmpeg_prepare_stream;
+  //profile->read_stream = ffmpeg_read_stream;
 
   ffmpeg_profile_t *fprofile = calloc (1, sizeof (ffmpeg_profile_t));
   fprofile->ctx = ctx;
@@ -668,6 +668,7 @@ audio_profile_guess (AVCodecContext *ac)
   return AUDIO_PROFILE_INVALID;
 }
 
+/*
 static void *
 stream_thread_play (void *arg)
 {
@@ -704,9 +705,11 @@ stream_component_open (ffmpeg_profile_t *cookie, int stream_type)
   if (avcodec_open2(avctx, codec, &opts) < 0)
     return -1;
 
+  sound_tinyalsa_open (avctx->channels, AV_SAMPLE_FMT_S16, avctx->sample_rate);
   ithread_mutex_init (&stream->mutex, NULL);
   ithread_cond_init (&stream->cond, NULL);
   ithread_create (&stream->thread, NULL, stream_thread_play, stream);
+  stream->type = stream_type;
 
   return 0;
 }
@@ -714,7 +717,9 @@ stream_component_open (ffmpeg_profile_t *cookie, int stream_type)
 int
 stream_push_packet (ffmpeg_stream_t *stream, AVPacket *pkt)
 {
-  ithread_cond_signal (&stream->cond);
+  if (stream->type == AVMEDIA_TYPE_AUDIO)
+  {
+    ret = sound_tinyalsa_write (pkt->
   return 0;
 }
 
@@ -760,21 +765,29 @@ ffmpeg_read_stream (dlna_item_t *item)
   AVPacket pkt1, *pkt = &pkt1;
   int ret, i;
 
+  av_init_packet(&pkt);
+  pkt.data = NULL;
+  pkt.size = 0;
   ret = av_read_frame(ctx, pkt);
-  printf ("\n\n read frame %d \n\n", ret);
+  printf ("\n read frame %d\n", ret);
   if (ret < 0)
     return -1;
+  printf ("index %d ", pkt->stream_index);
   for (i = 0; i < AVMEDIA_TYPE_NB; i++)
   {
     stream = &cookie->stream[i];
+    printf ("id %d ", stream->id);
     if (pkt->stream_index == stream->id)
     {
       stream_push_packet (stream, pkt);
+      break;
     }
   }
+  av_free_packet (pkt);
+  printf ("\n");
   return ret;
 }
-
+*/
 static const dlna_profiler_t s_ffmpeg_profiler = {
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,

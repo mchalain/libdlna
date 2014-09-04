@@ -366,6 +366,14 @@ playitem_decodeframe (dlna_item_t *item dlna_unused)
   return ret;
 }
 
+static int
+playitem_close (dlna_item_t *item)
+{
+  if (item->profile->close_stream)
+    item->profile->close_stream (item);
+  return 0;
+}
+
 static char *
 instance_possible_state (avts_instance_t *instance)
 {
@@ -496,6 +504,7 @@ avts_thread_play (void *arg)
       }
       break;
     case E_STOPPED:
+      playitem_close (instance->playlist->current->item);
       if (!instance->playlist)
       {
         if (instance_change_state (instance, E_NO_MEDIA))
@@ -519,6 +528,7 @@ avts_thread_play (void *arg)
       }
       else if (ret < 0 && state == E_PLAYING)
       {
+        playitem_close (instance->playlist->current->item);
         next_item = playlist_next (instance->playlist);
         if (!next_item)
         {
