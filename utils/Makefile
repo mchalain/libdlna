@@ -27,6 +27,9 @@ LDFLAGS += -L../src -ldlna -ldl
 FFMPEG_PROFILER_CFLAGS := -I../ffmpeg_profiler
 FFMPEG_PROFILER_LDFLAGS := -L../ffmpeg_profiler -lffmpeg_profiler
 
+MPG123_PROFILER_CFLAGS := -I../mpg123_profiler
+MPG123_PROFILER_LDFLAGS := -L../mpg123_profiler -lmpg123_profiler
+
 ifeq ($(BUILD_STATIC),yes)
   LDFLAGS += $(EXTRALIBS)
 endif
@@ -49,8 +52,8 @@ $(DMS_BIN): LDFLAGS+= $(FFMPEG_PROFILER_LDFLAGS)
 $(DMS_BIN): $(DMS_SRCS)
 	$(CC) $? $(OPTFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 
-$(DMR_BIN): CFLAGS+= $(FFMPEG_PROFILER_CFLAGS)
-$(DMR_BIN): LDFLAGS+= $(FFMPEG_PROFILER_LDFLAGS)
+$(DMR_BIN): CFLAGS+= $(MPG123_PROFILER_CFLAGS)
+$(DMR_BIN): LDFLAGS+= $(MPG123_PROFILER_LDFLAGS)
 $(DMR_BIN): $(DMR_SRCS)
 	$(CC) $? $(OPTFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 

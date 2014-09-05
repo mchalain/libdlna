@@ -8,6 +8,7 @@ PKGCONFIG_DIR = $(libdir)/pkgconfig
 PKGCONFIG_FILE = libdlna.pc
 
 PROFILERS= \
+	mpg123_profiler/libmpg123_profiler.so \
 	ffmpeg_profiler/libffmpeg_profiler.so
 
 EXTRADIST = \
