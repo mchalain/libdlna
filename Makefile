@@ -7,7 +7,8 @@ DISTFILE = libdlna-$(VERSION).tar.bz2
 PKGCONFIG_DIR = $(libdir)/pkgconfig
 PKGCONFIG_FILE = libdlna.pc
 
-PROFILERS=ffmpeg_profiler/libffmpeg_profiler.so
+PROFILERS= \
+	ffmpeg_profiler/libffmpeg_profiler.so
 
 EXTRADIST = \
 	AUTHORS \
@@ -25,6 +26,7 @@ all: lib $(PROFILERS) utils
 lib:
 	$(MAKE) -C src
 
+.PHONY: $(PROFILERS)
 $(PROFILERS):
 	make -C $(dir $@)
 
