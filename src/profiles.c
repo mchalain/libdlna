@@ -58,7 +58,7 @@ static const mime_type_t mime_type_list[] = {
   { "m4p",   {.mime = MIME_VIDEO_MPEG_4, .media_class = DLNA_CLASS_AV,.id = "AVC_MP4_MP_SD_AC3",}},
   { "mp4",   {.mime = MIME_VIDEO_MPEG_4, .media_class = DLNA_CLASS_AV,.id = "MPEG4_P2_MP4_SP_AAC",}},
   { "mp4ps", {.mime = "video/x-nerodigital-ps", .media_class = DLNA_CLASS_AV,.id = "MPEG4_P2_MP4_SP_AAC"}},
-  { "ts",    {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,id = "MPEG_TS_SD_EU",}},
+  { "ts",    {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,.id = "MPEG_TS_SD_EU",}},
   { "ogm",   {.mime = MIME_VIDEO_MPEG, .media_class = DLNA_CLASS_AV,}},
   { "mkv",   {.mime = MIME_VIDEO_MPEG, .media_class = DLNA_CLASS_AV,}},
   { "rmvb",  {.mime = MIME_VIDEO_MPEG, .media_class = DLNA_CLASS_AV,}},
