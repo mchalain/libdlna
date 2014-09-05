@@ -261,9 +261,17 @@ playlist_empty (avts_playlist_t *playlist)
 static avts_playlist_t *
 playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata dlna_unused)
 {
-  avts_playlist_t *item;
+  avts_playlist_t *item = NULL;
+  uint32_t id;
+
+  /* set id with the id of the last item + 1 */
+  id = crc32(0, uri, strlen(uri));
+  HASH_FIND_INT (playlist, &id, item);
+  if (item)
+    return playlist;
 
   item = calloc (1, sizeof(avts_playlist_t));
+
   item->item = dlna_item_new (dlna, uri);
   if (!item->item)
   {
@@ -271,8 +279,6 @@ playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri
   }
   else
   {
-    /* set id with the id of the last item + 1 */
-    item->id = crc32(0, uri, strlen(uri));
     /* this item will be the first */
     if (!playlist)
       item->current = item; /* set the first item as the start of the playlist */
@@ -418,6 +424,10 @@ instance_change_state (avts_instance_t *instance, int newstate)
   {
     switch (newstate)
     {
+    case E_NO_MEDIA:
+      instance->state = newstate;
+      changed = 1;
+    break;
     case E_RECORDING:
       /* recording is not allowed */
     break;
@@ -502,9 +512,9 @@ avts_thread_play (void *arg)
         ithread_cond_wait (&instance->state_change, &instance->state_mutex);
         ithread_mutex_unlock (&instance->state_mutex);
       }
+      playitem_prepare (instance->playlist->item);
       break;
     case E_STOPPED:
-      playitem_close (instance->playlist->current->item);
       if (!instance->playlist)
       {
         if (instance_change_state (instance, E_NO_MEDIA))
@@ -522,34 +532,36 @@ avts_thread_play (void *arg)
     if (play_frame)
     {
       int ret = playitem_decodeframe (playlist_current(instance->playlist)->item);
-      if (ret == 0 && state == E_PLAYING)
+      if (state == E_PLAYING)
       {
-        instance_change_state (instance, E_TRANSITIONING);
-      }
-      else if (ret < 0 && state == E_PLAYING)
-      {
-        playitem_close (instance->playlist->current->item);
-        next_item = playlist_next (instance->playlist);
-        if (!next_item)
+        if (ret > 0)
+          continue;
+        if (ret < 0)
         {
-          if (instance_change_state (instance, E_STOPPED))
-            avts_request_event (instance->service);
+          next_item = playlist_next (instance->playlist);
+          if (next_item)
+          {
+            playitem_close (instance->playlist->current->item);
+            instance->playlist->current = next_item;
+            playitem_prepare (next_item->item);
+            next_item = NULL;
+            continue;
+          }
         }
-        else
-          playitem_prepare (next_item->item);
-        instance->playlist->current = next_item;
-        next_item = NULL;
+        instance_change_state (instance, E_TRANSITIONING);
+        avts_request_event (instance->service);
       }
       /* in transition, two cases:
        *   - play_item returns -1 to complete the transition and switch to the next track
        *   - play_item returns 1 to continue but a transition is requested from user
        **/
-      else if (ret != 0 && state == E_TRANSITIONING)
+      else if (ret < 0 && state == E_TRANSITIONING)
       {
         if (!next_item)
           instance_change_state (instance, E_STOPPED);
         else
           instance_change_state (instance, E_PLAYING);
+        playitem_close (instance->playlist->current->item);
         avts_request_event (instance->service);
         instance->playlist->current = next_item;
         next_item = NULL;
@@ -569,7 +581,7 @@ avts_create_instance (dlna_service_t *service, uint32_t id)
 
   ithread_mutex_init (&instance->state_mutex, NULL);
   ithread_cond_init (&instance->state_change, NULL);
-  instance->state = E_NO_MEDIA;
+  instance_change_state  (instance, E_NO_MEDIA);
   instance->playlist = NULL;
   instance->id = id;
   instance->service = service;
