@@ -957,6 +957,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
     didl_add_short_item (out, plitem->id, plitem->item, 0);
   else
     buffer_appendf (out, "%s", "");
+  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
   upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
   buffer_free (out);
 
@@ -1336,11 +1337,10 @@ avts_get_actions (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static char *
-avts_get_last_change (dlna_t *dlna)
+avts_get_last_change (dlna_t *dlna, dlna_service_t *service)
 {
   char *value = NULL;
   buffer_t *out;
-  dlna_service_t *service = dlna_service_find_id (dlna->device, DLNA_SERVICE_AV_TRANSPORT);
   avts_instance_t *instance = NULL;
   avts_instance_t *instances = (avts_instance_t *)service->cookie;
 
@@ -1413,7 +1413,7 @@ upnp_service_action_t avts_service_actions[] = {
   { AVTS_ACTION_PREVIOUS, AVTS_ACTION_ARG_INSTANCE_ID,          avts_previous },
   { AVTS_ACTION_SET_PLAY_MODE, NULL,     NULL },
   { AVTS_ACTION_SET_REC_MODE, NULL,     NULL },
-  { AVTS_ACTION_GET_ACTIONS, NULL,       avts_get_actions },
+  { AVTS_ACTION_GET_ACTIONS, AVTS_ACTION_GET_ACTIONS_ARGS,       avts_get_actions },
   { NULL, NULL,                        NULL }
 };
 
