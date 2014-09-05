@@ -190,16 +190,18 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
 
 static int
 cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
-                     buffer_t *out, vfs_item_t *item, char *filter)
+                     vfs_item_t *item, char *filter)
 {
   int result_count = 0;
   char *updateID;
   char *protocol_info;
+  buffer_t *out = NULL;
 
   if (!item)
     return -1;
 
   updateID = calloc (1, 256);
+  out = buffer_new ();
   didl_add_header (out);
   switch (item->type)
   {
@@ -226,32 +228,36 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
     break;
   }
   didl_add_footer (out);
-  
+  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
+
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, "1");
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, "1");
   upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
                      updateID);
   free (updateID);
+  buffer_free (out);
 
   return result_count;
 }
 
 static int
 cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
-                           buffer_t *out, int index,
-                           int count, vfs_item_t *item, char *filter)
+                           int index, int count, 
+                           vfs_item_t *item, char *filter)
 {
   vfs_item_t **items;
   int s, result_count = 0;
   char tmp[32];
   char *updateID;
   char *protocol_info;
+  buffer_t *out = NULL;
 
   /* browsing direct children only has a sense on containers */
   if (item->type != DLNA_CONTAINER)
     return -1;
   
+  out = buffer_new ();
   didl_add_header (out);
 
   /* go to the child pointed out by index */
@@ -296,6 +302,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   }
 
   didl_add_footer (out);
+  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
 
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   sprintf (tmp, "%d", result_count);
@@ -308,6 +315,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
                      updateID);
   free (updateID);
+  buffer_free (out);
 
   return result_count;
 }
@@ -327,7 +335,6 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   char *flag = NULL, *filter = NULL;
 
   /* output arguments */
-  buffer_t *out = NULL;
   int result_count = 0;
   vfs_item_t *item;
   int meta;
@@ -389,10 +396,9 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     goto browse_err;
   }
 
-  out = buffer_new ();
   result_count = meta ?
-    cds_browse_metadata (dlna, ev, out, item, filter) :
-    cds_browse_directchildren (dlna, ev, out, index, count, item, filter);
+    cds_browse_metadata (dlna, ev, item, filter) :
+    cds_browse_directchildren (dlna, ev, index, count, item, filter);
   
   free (filter);
 
@@ -402,7 +408,6 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     goto browse_err;
   }
 
-  buffer_free (out);
   return ev->status;
 
  browse_err:
@@ -410,8 +415,6 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     free (flag);
   if (filter)
     free (filter);
-  if (out)
-    buffer_free (out);
 
   return 0;
 }
@@ -537,19 +540,21 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
 
 static int
 cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
-                           vfs_item_t *item, buffer_t *out, int index,
+                           vfs_item_t *item, int index,
                            int count, char *filter, char *search_criteria)
 {
   vfs_item_t **items;
   int i, result_count = 0;
   char tmp[32];
-  
+  buffer_t *out = NULL;
+
   index = 0;
 
   /* searching only has a sense on containers */
   if (item->type != DLNA_CONTAINER)
     return -1;
   
+  out = buffer_new ();
   didl_add_header (out);
 
   /* go to the child pointed out by index */
@@ -573,6 +578,7 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
   sprintf (tmp, "%d", result_count);
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
+  buffer_free (out);
 
   return result_count;
 }
@@ -592,7 +598,6 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   char *search_criteria = NULL, *filter = NULL;
 
   /* output arguments */
-  buffer_t *out = NULL;
   vfs_item_t *item;
   int result_count = 0;
   
@@ -635,8 +640,7 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
     goto search_err;
   }
   
-  out = buffer_new ();
-  result_count = cds_search_directchildren (dlna, ev, item, out, index, count,
+  result_count = cds_search_directchildren (dlna, ev, item, index, count,
                                             filter, search_criteria);
 
   if (result_count < 0)
@@ -645,7 +649,6 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
     goto search_err;
   }
   
-  buffer_free (out);
   upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
                      CDS_ROOT_OBJECT_ID);
 
