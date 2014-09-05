@@ -49,6 +49,10 @@ extern "C" {
 /* DLNA MIME types */
 #define MIME_IMAGE_JPEG                   "image/jpeg"
 #define MIME_IMAGE_PNG                    "image/png"
+#define MIME_IMAGE_BMP                    "image/bmp"
+#define MIME_IMAGE_GIF                    "image/gif"
+#define MIME_IMAGE_TIFF                   "image/tiff"
+#define MIME_IMAGE_QT                     "image/x-quicktime"
 
 #define MIME_AUDIO_3GP                    "audio/3gpp"
 #define MIME_AUDIO_ADTS                   "audio/vnd.dlna.adts"
@@ -58,6 +62,14 @@ extern "C" {
 #define MIME_AUDIO_MPEG                   "audio/mpeg"
 #define MIME_AUDIO_MPEG_4                 "audio/mp4"
 #define MIME_AUDIO_WMA                    "audio/x-ms-wma"
+#define MIME_AUDIO_AAC                    "audio/x-aac"
+#define MIME_AUDIO_AC3                    "audio/x-ac3"
+#define MIME_AUDIO_AIF                    "audio/aiff"
+#define MIME_AUDIO_OGG                    "audio/x-ogg"
+#define MIME_AUDIO_WAV                    "audio/wav"
+#define MIME_AUDIO_FLAC                   "audio/x-flac"
+#define MIME_AUDIO_MIDI                   "audio/midi"
+#define MIME_AUDIO_REAL                   "audio/x-pn-realaudio"
 
 #define MIME_VIDEO_3GP                    "video/3gpp"
 #define MIME_VIDEO_ASF                    "video/x-ms-asf"
