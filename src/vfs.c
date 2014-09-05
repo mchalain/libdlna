@@ -99,18 +99,19 @@ vfs_provide_next_id (dlna_t *dlna, char *fullpath)
   if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
     start += STARTING_ENTRY_ID_XBOX360;
 
+
   if (!dlna->dms.vfs_root)
     return (start - 1);
-  
+
   for (i = start; i < UINT_MAX; i++)
   {
     if (fullpath)
       i = crc32(i, fullpath, strlen(fullpath));
     if (vfs_is_id_registered (dlna, i) == DLNA_ST_ERROR)
-      return i;
+      break;
   }
 
-  return (start - 1);
+  return i;
 }
 
 vfs_item_t *
