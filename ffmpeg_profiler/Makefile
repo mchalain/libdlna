@@ -135,14 +135,14 @@ install_shared: lib_shared
 
 install: $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)
-	$(INSTALL) -m 644 dlna.h $(includedir)
+	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
 
 .PHONY: clean depend
 
-dist-all: ixml-dist-all threadutil-dist-all upnp-dist-all
+dist-all:
 	cp $(EXTRADIST) $(SRCS) Makefile $(DIST)
 
 .PHONY: dist-all
