@@ -662,8 +662,6 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
     free (search_criteria);
   if (filter)
     free (filter);
-  if (out)
-    buffer_free (out);
 
   return 0;
 }
