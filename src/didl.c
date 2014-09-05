@@ -38,7 +38,8 @@
 #define DIDL_ITEM_RESTRICTED                  "restricted"
 #define DIDL_ITEM_CLASS                       "upnp:class"
 #define DIDL_ITEM_TITLE                       "dc:title"
-#define DIDL_ITEM_ARTIST                      "dc:artist"
+//#define DIDL_ITEM_ARTIST                      "dc:artist"
+#define DIDL_ITEM_ARTIST                      "upnp:artist"
 #define DIDL_ITEM_DESCRIPTION                 "dc:description"
 #define DIDL_ITEM_ALBUM                       "upnp:album"
 #define DIDL_ITEM_TRACK                       "upnp:originalTrackNumber"
@@ -194,11 +195,26 @@ didl_add_item (buffer_t *out,
 
     if (item->metadata)
     {
-      didl_add_tag (out, DIDL_ITEM_ARTIST, item->metadata->author);
-      didl_add_tag (out, DIDL_ITEM_DESCRIPTION, item->metadata->comment);
-      didl_add_tag (out, DIDL_ITEM_ALBUM, item->metadata->album);
-      didl_add_value (out, DIDL_ITEM_TRACK, item->metadata->track);
-      didl_add_tag (out, DIDL_ITEM_GENRE, item->metadata->genre);
+      if (filter_has_val (filter, DIDL_ITEM_ARTIST) && protocol_info)
+      {
+        didl_add_tag (out, DIDL_ITEM_ARTIST, item->metadata->author);
+      }
+      if (filter_has_val (filter, DIDL_ITEM_DESCRIPTION) && protocol_info)
+      {
+        didl_add_tag (out, DIDL_ITEM_DESCRIPTION, item->metadata->comment);
+      }
+      if (filter_has_val (filter, DIDL_ITEM_ALBUM) && protocol_info)
+      {
+        didl_add_tag (out, DIDL_ITEM_ALBUM, item->metadata->album);
+      }
+      if (filter_has_val (filter, DIDL_ITEM_TRACK) && protocol_info)
+      {
+        didl_add_value (out, DIDL_ITEM_TRACK, item->metadata->track);
+      }
+      if (filter_has_val (filter, DIDL_ITEM_GENRE) && protocol_info)
+      {
+        didl_add_tag (out, DIDL_ITEM_GENRE, item->metadata->genre);
+      }
     }
   
     if (filter_has_val (filter, DIDL_RES) && protocol_info)
