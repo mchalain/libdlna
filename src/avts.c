@@ -272,7 +272,7 @@ playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri
 
   item = calloc (1, sizeof(avts_playlist_t));
 
-  item->item = dlna_item_new (dlna, uri);
+  item->item = dlna_item_new (dlna, dlna->profiler, uri);
   if (!item->item)
   {
     free (item);

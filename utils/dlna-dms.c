@@ -75,7 +75,7 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id)
     else
     {
       dlna_item_t *item;
-      item = dlna_item_new (dlna, fullpath);
+      item = dlna_item_new (dlna, ffmpeg_profiler, fullpath);
       if (item)
         dlna_vfs_add_resource (dlna, basename (fullpath),
                              item, id);
@@ -192,7 +192,6 @@ main (int argc, char **argv)
 
   /* init Media profiler */
   ffmpeg_profiler_register_all_media_profiles ();
-  dlna_set_profiler (dlna, ffmpeg_profiler);
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
@@ -229,7 +228,7 @@ main (int argc, char **argv)
   {
     dlna_item_t *item;
 
-    item =dlna_item_new (dlna, content_dir);
+    item = dlna_item_new (dlna, ffmpeg_profiler, content_dir);
     if (item)
       dlna_vfs_add_resource (dlna, basename (content_dir),
                            item, 0);
