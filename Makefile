@@ -7,8 +7,8 @@ DISTFILE = libdlna-$(VERSION).tar.bz2
 PKGCONFIG_DIR = $(libdir)/pkgconfig
 PKGCONFIG_FILE = libdlna.pc
 
+#	mpg123_profiler/libmpg123_profiler.so \
 PROFILERS= \
-	mpg123_profiler/libmpg123_profiler.so \
 	ffmpeg_profiler/libffmpeg_profiler.so
 
 EXTRADIST = \

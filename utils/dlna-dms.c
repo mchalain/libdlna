@@ -73,8 +73,13 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id)
       add_dir (dlna, fullpath, cid);
     }
     else
-      dlna_vfs_add_resource (dlna, basename (fullpath),
-                             fullpath, id);
+    {
+      dlna_item_t *item;
+      item = dlna_item_new (dlna, fullpath);
+      if (item)
+        dlna_vfs_add_resource (dlna, basename (fullpath),
+                             item, id);
+    }
     
     free (namelist[i]);
     free (fullpath);
@@ -221,8 +226,14 @@ main (int argc, char **argv)
   if (S_ISDIR (st.st_mode))
     add_dir (dlna, content_dir, 0);
   else
-    dlna_vfs_add_resource (dlna, basename (content_dir),
-                           content_dir, 0);
+  {
+    dlna_item_t *item;
+
+    item =dlna_item_new (dlna, content_dir);
+    if (item)
+      dlna_vfs_add_resource (dlna, basename (content_dir),
+                           item, 0);
+  }
   
   printf ("Hit 'q' or 'Q' + Enter to shutdown\n");
   while (1)

@@ -106,6 +106,8 @@ struct dlna_metadata_s;
 struct dlna_properties_s;
 struct dlna_item_s;
 
+typedef struct dlna_item_s dlna_item_t;
+
 /* Status code for DLNA related functions */
 typedef enum {
   DLNA_ST_OK,
@@ -575,6 +577,21 @@ extern dlna_service_t *msr_service_new (dlna_t*dlna);
 /*  Optional: Routines to add/remove element from VFS.                     */
 /*                                                                         */
 /***************************************************************************/
+/**
+ * Create a new DLNA media object item.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] filename The input file to be added.
+ * @return A new DLNA object item if compatible, NULL otherwise.
+ */
+dlna_item_t *dlna_item_new (dlna_t *dlna, const char *filename);
+
+/**
+ * Free an existing DLNA media object item.
+ *
+ * @param[in] item     The DLNA object item to be freed.
+ */
+void dlna_item_free (dlna_item_t *item);
 
 /**
  * Add a new container to the VFS layer.
@@ -593,12 +610,12 @@ uint32_t dlna_vfs_add_container (dlna_t *dlna, char *name,
  *
  * @param[in] dlna         The DLNA library's controller.
  * @param[in] name         Displayed name of the resource.
- * @param[in] fullname     Full path to the specified resource.
+ * @param[in] dlna_item    The resource created by dlna_new_item ().
  * @param[in] container_id UPnP object ID of its parent.
  * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
  */
 uint32_t dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                                char *fullpath, uint32_t container_id);
+                                dlna_item_t *dlna_item, uint32_t container_id);
 
 /**
  * Remove an existing item (and all its children) from VFS layer by ID.

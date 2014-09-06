@@ -43,8 +43,6 @@
 
 #include "uthash.h"
 
-typedef struct dlna_item_s dlna_item_t;
-
 /* UPnP Service properties */
 typedef struct dlna_vfs_s dlna_vfs_t;
 struct dlna_vfs_s
@@ -173,22 +171,6 @@ struct dlna_item_s {
   dlna_profile_t *profile;
   void *profile_cookie;
 };
-
-/**
- * Create a new DLNA media object item.
- *
- * @param[in] dlna     The DLNA library's controller.
- * @param[in] filename The input file to be added.
- * @return A new DLNA object item if compatible, NULL otherwise.
- */
-dlna_item_t *dlna_item_new (dlna_t *dlna, const char *filename);
-
-/**
- * Free an existing DLNA media object item.
- *
- * @param[in] item     The DLNA object item to be freed.
- */
-void dlna_item_free (dlna_item_t *item);
 
 /**
  * Return the DLNA media object item.

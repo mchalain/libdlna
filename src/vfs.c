@@ -234,12 +234,11 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
 
 uint32_t
 dlna_vfs_add_resource (dlna_t *dlna, char *name,
-                       char *fullpath, uint32_t container_id)
+                       dlna_item_t *dlna_item, uint32_t container_id)
 {
   vfs_item_t *item;
-  dlna_item_t *dlna_item;
   
-  if (!dlna || !name || !fullpath)
+  if (!dlna || !name || !dlna_item)
     return 0;
 
   if (!dlna->dms.vfs_root)
@@ -252,29 +251,14 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
 
   item->type = DLNA_RESOURCE;
   
-  item->id = vfs_provide_next_id (dlna, fullpath);
+  item->id = vfs_provide_next_id (dlna, dlna_item->filename);
   item->title = strdup (name);
 
-  dlna_item = dlna_item_get(dlna, item);
-  if (dlna_item == NULL)
-  {
-	  dlna_item = dlna_item_new (dlna, fullpath);
-	  dms_db_add(dlna, item->id, dlna_item);
-  }
   item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
 
   HASH_ADD_INT (dlna->dms.vfs_root, id, item);
   
-  if (!item->u.resource.item)
-  {
-    dlna_log (dlna, DLNA_MSG_WARNING,
-              "Specified resource is not DLNA compliant. "
-              "Transcoding is needed (but not yet supported)\n");
-    vfs_item_free (dlna, item);
-    return 0;
-  }
-
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%u (%s)\n",
             item->id, item->title);
   item->u.resource.fd = -1;
