@@ -147,16 +147,21 @@ dlna_list_add (char **list, char *element)
   return l;
 }
 
-static char *
-get_file_extension (const char *filename)
+void
+dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime)
 {
-  char *str = NULL;
-
-  str = strrchr (filename, '.');
-  if (str)
-    str++;
-
-  return str;
+  if (sink)
+  {
+    if (dlna->cms.sinkmimes)
+      dlna->cms.sinkmimes = malloc (sizeof (char*));
+    dlna->cms.sinkmimes = dlna_list_add (dlna->cms.sinkmimes, mime);
+  }
+  else
+  {
+    if (dlna->cms.sinkmimes)
+      dlna->cms.sourcemimes = malloc (sizeof (char*));
+    dlna->cms.sourcemimes = dlna_list_add (dlna->cms.sourcemimes, mime);
+  }
 }
 
 static char **
@@ -167,6 +172,18 @@ upnp_get_supported_mime_types ( char **mimes)
   for (i = 0; mime_type_list[i].profile.mime; i++)
     mimes = dlna_list_add (mimes, (char *) mime_type_list[i].profile.mime);
   return mimes;
+}
+
+static char *
+get_file_extension (const char *filename)
+{
+  char *str = NULL;
+
+  str = strrchr (filename, '.');
+  if (str)
+    str++;
+
+  return str;
 }
 
 static dlna_profile_t *

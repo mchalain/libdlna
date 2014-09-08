@@ -118,7 +118,12 @@ struct dlna_s {
 
   /* DMS Properties */
   dlna_vfs_t dms;
-  
+
+  /* cms Service data */
+  struct {
+    char **sourcemimes;
+    char **sinkmimes;
+  } cms;
   /* UPnP Properties */
   char *interface;
   unsigned short port; /* server port */
@@ -188,6 +193,9 @@ void dlna_log (dlna_t *dlna,
 char **dlna_get_supported_mime_types (dlna_t *dlna);
 
 dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
+
+void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
+
 
 extern dlna_profiler_t upnpav_profiler;
 

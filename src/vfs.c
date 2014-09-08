@@ -262,7 +262,11 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%u (%s)\n",
             item->id, item->title);
   item->u.resource.fd = -1;
-  
+
+  /* add the mime to cms source protocol info */
+  dlna_append_supported_mime_types (dlna, 0, 
+                                (char *)dlna_item->profile->mime);
+
   /* check for a valid parent id */
   item->parent = vfs_get_item_by_id (dlna, container_id);
   if (!item->parent)

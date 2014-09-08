@@ -101,24 +101,23 @@ ACTION_ARG_OUT(CMS_ARG_STATUS,"A_ARG_TYPE_ConnectionStatus") \
 static int
 cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char **mimes, **tmp;
+  char **mimes;
   buffer_t *source;
   
   if (!dlna || !ev)
     return 0;
 
   source = buffer_new ();
-  mimes = dlna_get_supported_mime_types (dlna);
-  tmp = mimes;
+  mimes = dlna->cms.sourcemimes;
 
-  while (*tmp)
+  while (*mimes)
   {
     /* we do only support HTTP right now */
     /* format for protocol info is:
      *  <protocol>:<network>:<contentFormat>:<additionalInfo>
      */
-    buffer_appendf (source, "http-get:*:%s:*", *tmp++);
-    if (*tmp)
+    buffer_appendf (source, "http-get:*:%s:*", *mimes++);
+    if (*mimes)
       buffer_append (source, ",");
   }
 
@@ -126,17 +125,16 @@ cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (source);
 
   source = buffer_new ();
-  mimes = dlna_get_supported_mime_types (dlna);
-  tmp = mimes;
+  mimes = dlna->cms.sinkmimes;
 
-  while (*tmp)
+  while (*mimes)
   {
     /* we do only support HTTP right now */
     /* format for protocol info is:
      *  <protocol>:<network>:<contentFormat>:<additionalInfo>
      */
-    buffer_appendf (source, "http-get:*:%s:*", *tmp++);
-    if (*tmp)
+    buffer_appendf (source, "http-get:*:%s:*", *mimes++);
+    if (*mimes)
       buffer_append (source, ",");
   }
 
@@ -161,7 +159,7 @@ cms_get_current_connection_ids (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char **mimes, **tmp;
+  char **mimes;
   
   if (!dlna || !ev)
     return 0;
@@ -171,18 +169,17 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, CMS_ARG_RCS_ID, CMS_UNKNOW_ID);
   upnp_add_response (ev, CMS_ARG_TRANSPORT_ID, CMS_UNKNOW_ID);
 
-  mimes = dlna_get_supported_mime_types (dlna);
-  tmp = mimes;
+  mimes = dlna->cms.sourcemimes;
 
-  while (*tmp)
+  while (*mimes)
   {
     char protocol[512];
 
     memset (protocol, '\0', sizeof (protocol));
-    snprintf (protocol, sizeof (protocol), "http-get:*:%s:*", *tmp++);
+    snprintf (protocol, sizeof (protocol), "http-get:*:%s:*", *mimes++);
     upnp_add_response (ev, CMS_ARG_PROT_INFO, protocol);
   }
-  
+
   upnp_add_response (ev, CMS_ARG_PEER_CON_MANAGER, "");
   upnp_add_response (ev, CMS_ARG_PEER_CON_ID, CMS_UNKNOW_ID);
   upnp_add_response (ev, CMS_ARG_DIRECTION, CMS_OUTPUT);
