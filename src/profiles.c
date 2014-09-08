@@ -152,13 +152,13 @@ dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime)
 {
   if (sink)
   {
-    if (dlna->cms.sinkmimes)
+    if (!dlna->cms.sinkmimes)
       dlna->cms.sinkmimes = malloc (sizeof (char*));
     dlna->cms.sinkmimes = dlna_list_add (dlna->cms.sinkmimes, mime);
   }
   else
   {
-    if (dlna->cms.sinkmimes)
+    if (!dlna->cms.sinkmimes)
       dlna->cms.sourcemimes = malloc (sizeof (char*));
     dlna->cms.sourcemimes = dlna_list_add (dlna->cms.sourcemimes, mime);
   }

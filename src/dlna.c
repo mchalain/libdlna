@@ -61,6 +61,20 @@ dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler)
   if (dlna->profiler && dlna->profiler->free)
     dlna->profiler->free ();
   dlna->profiler = profiler;
+  if (dlna->cms.sourcemimes)
+  {
+    free (dlna->cms.sourcemimes);
+    dlna->cms.sourcemimes = NULL;
+  }
+  if (dlna->cms.sinkmimes)
+  {
+    free (dlna->cms.sinkmimes);
+    dlna->cms.sinkmimes = NULL;
+  }
+  dlna->cms.sourcemimes = malloc (sizeof (char*));
+  dlna->cms.sourcemimes = dlna->profiler->get_supported_mime_types (dlna->cms.sourcemimes);
+  dlna->cms.sinkmimes = malloc (sizeof (char*));
+  dlna->cms.sinkmimes = dlna->profiler->get_supported_mime_types (dlna->cms.sinkmimes);
 }
 
 static void
