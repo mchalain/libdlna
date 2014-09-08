@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "upnp_internals.h"
 #include "services.h"
@@ -317,7 +318,7 @@ playlist_count (avts_playlist_t *playlist)
   if (!playlist)
     return 0;
   while ((playlist = playlist->hh.next)) i++;
-  return i;
+  return i + 1;
 }
 
 static int
@@ -442,6 +443,16 @@ instance_change_state (avts_instance_t *instance, int newstate)
   }
   ithread_mutex_unlock (&instance->state_mutex);
   return changed;
+}
+
+int
+instance_get_state (avts_instance_t *instance)
+{
+  int state;
+  ithread_mutex_lock (&instance->state_mutex);
+  state = instance->state;
+  ithread_mutex_unlock (&instance->state_mutex);
+  return state;
 }
 
 void
@@ -885,7 +896,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   avts_instance_t *instances = (avts_instance_t *)ev->service->cookie;
   buffer_t *out;
   int index = 0;
-  avts_playlist_t *plitem;
+  avts_playlist_t *plitem = NULL;
 
   if (!dlna || !ev)
   {
@@ -909,10 +920,11 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  plitem = playlist_current(instance->playlist);
+  if (instance->state != E_STOPPED)
+    plitem = playlist_current(instance->playlist);
   out = buffer_new ();
   if (plitem)
-    index = playlist_index (instance->playlist, plitem);
+    index = playlist_index (instance->playlist, plitem) + 1;
   buffer_appendf (out, "%u", index);
   upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
   buffer_free (out);
@@ -933,18 +945,15 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
   buffer_free (out);
 
-  out = buffer_new ();
   if (plitem)
-    buffer_appendf (out, "%s", plitem->item->filename);
+    upnp_add_response (ev, AVTS_ARG_TRACK_URI, plitem->item->filename);
   else
-    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
-  upnp_add_response (ev, AVTS_ARG_TRACK_URI, out->buf);
-  buffer_free (out);
+    upnp_add_response (ev, AVTS_ARG_TRACK_URI, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
   upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
   upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_RCOUNT, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_ACOUNT, "NOT_IMPLEMENTED");
+  upnp_add_response (ev, AVTS_ARG_RCOUNT, "2147483647");
+  upnp_add_response (ev, AVTS_ARG_ACOUNT, "2147483647");
 
   return ev->status;
 }
@@ -1328,35 +1337,51 @@ avts_get_last_change (dlna_t *dlna)
     plitem = playlist_current(instance->playlist);
 
     buffer_appendf (out, "<InstanceID val=\"%d\">",instance->id);
-    buffer_appendf (out, "<TransportState val=\"%s\">",g_TransportState[instance->state]);
-    buffer_appendf (out, "<TransportStatus val=\"%s\">", AVTS_VAR_STATUS_VAL);
-    buffer_appendf (out, "<PlaybackStorageMedium val=\"UNKNOWN\">");
-    buffer_appendf (out, "<RecordStorageMedium val=\"%s\">",AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<CurrentPlayMode val=\"NORMAL\">");
-    buffer_appendf (out, "<TransportPlaySpeed val=\"%s\">", AVTS_VAR_PLAY_SPEED_VAL);
-    buffer_appendf (out, "<RecordMediumWriteStatus val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    if (instance->playlist)
-      buffer_appendf (out, "<NumberOfTracks val=\"%u\">", playlist_count(instance->playlist));
-    if (plitem)
-      index = playlist_index (instance->playlist, plitem);
-    buffer_appendf (out, "<CurrentTrack val=\"%u\">", index);
-    buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\">", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
-    buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\">", AVTS_VAR_RECORD_VAL);
-    if (plitem && plitem->item->properties )
-      buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", plitem->item->properties->duration);
-    if (plitem && plitem->item->properties)
-      buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", plitem->item->properties->duration);
+    buffer_appendf (out, "<TransportState val=\"%s\"/>",g_TransportState[instance->state]);
+    buffer_appendf (out, "<TransportStatus val=\"%s\"/>", AVTS_VAR_STATUS_VAL);
+
+    val = instance_possible_state(instance);
+    buffer_appendf (out, "<CurrentTransportActions val=\"%s\"/>", val);
+    free (val);
+
     if (plitem)
     {
-      buffer_appendf (out, "<CurrentTrackMetaData val=\"");
-      didl_add_short_item (out, plitem->id, plitem->item, 0);
-      buffer_appendf (out, "\">");
+      buffer_appendf (out, "<AVTransportURI val=\"%s\"/>", plitem->item->filename);
+      buffer_appendf (out, "<AVTransportURMetaData val=\"");
+      //didl_add_short_item (out, plitem->id, plitem->item, 0);
+      buffer_appendf (out, "\"/>");
     }
-    val = instance_possible_state(instance);
-    buffer_appendf (out, "<CurrentTransportActions val=\"%s\">", val);
-    free (val);
+
+    if (instance->playlist)
+      buffer_appendf (out, "<NumberOfTracks val=\"%u\"/>", playlist_count(instance->playlist));
+    if (instance_get_state (instance) == E_PLAYING)
+    {
+      index = playlist_index (instance->playlist, plitem) + 1;
+      if (plitem)
+      {
+        buffer_appendf (out, "<CurrentTrackURI val=\"%s\"/>", plitem->item->filename);
+        buffer_appendf (out, "<CurrentTrackMetaData val=\"");
+        //didl_add_short_item (out, plitem->id, plitem->item, 0);
+        buffer_appendf (out, "\"/>");
+      }
+/*
+      if (plitem && plitem->item->properties )
+        buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", plitem->item->properties->duration);
+      if (plitem && plitem->item->properties)
+        buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", plitem->item->properties->duration);
+*/
+    }
+    buffer_appendf (out, "<CurrentTrack val=\"%u\"/>", index);
+
+    buffer_appendf (out, "<PlaybackStorageMedium val=\"UNKNOWN\"/>");
+    buffer_appendf (out, "<RecordStorageMedium val=\"%s\"/>",AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<CurrentPlayMode val=\"NORMAL\"/>");
+    buffer_appendf (out, "<TransportPlaySpeed val=\"%s\"/>", AVTS_VAR_PLAY_SPEED_VAL);
+    buffer_appendf (out, "<RecordMediumWriteStatus val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\"/>", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
+    buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
+    buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
     buffer_appendf (out, "</InstanceID>");
   }
   buffer_appendf (out, "</Event>");
