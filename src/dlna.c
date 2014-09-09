@@ -107,6 +107,8 @@ dlna_init (void)
   dlna->port = 0;
   
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
+  dlna->cms.sourcemimes = NULL;
+  dlna->cms.sinkmimes = NULL;
 
   dlna_vfs_init (dlna);
 
