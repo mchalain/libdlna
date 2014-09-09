@@ -37,6 +37,7 @@ struct avts_playlist_s
   uint32_t id;
   dlna_item_t *item;
   struct avts_playlist_s *current;
+  struct avts_playlist_s *next;
   UT_hash_handle hh;
 };
 
