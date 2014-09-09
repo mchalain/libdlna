@@ -53,7 +53,7 @@ main (int argc, char **argv)
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   ffmpeg_profiler_register_all_media_profiles ();
 
-  item = dlna_item_new (dlna, ffmpeg_profiler, argv[1]);
+  item = dlna_item_new (dlna, &ffmpeg_profiler, argv[1]);
   if (item)
   {
     if (item->properties)
@@ -79,7 +79,7 @@ main (int argc, char **argv)
     dlna_item_free (item);
   }
   
-  p = ffmpeg_profiler->guess_media_profile (argv[1], &cookie);
+  p = ffmpeg_profiler.guess_media_profile (argv[1], &cookie);
   if (p)
   {
     char *protocol_info;

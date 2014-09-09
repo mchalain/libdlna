@@ -187,7 +187,7 @@ sound_tinyalsa_write(char *buffer, ssize_t size)
         //~ pthread_mutex_unlock (&g.mutex);
         //~ if (!g.fifo)
                 //~ return -1;
-        pcm_write(g.pcm, buffer, size);
+        size = pcm_write(g.pcm, buffer, size);
 	return size;
 }
 

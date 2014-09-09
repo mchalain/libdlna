@@ -30,10 +30,16 @@
 #include <getopt.h>
 
 #include "dlna.h"
+#ifdef MPG123
+extern const dlna_profiler_t mpg123_profiler;
+extern int mpg123_profiler_init ();
+#endif
+#ifdef FFMPEG
 #include "ffmpeg_profiler.h"
+#endif
 
 static void
-add_dir (dlna_t *dlna, char *dir, uint32_t id)
+add_dir (dlna_t *dlna, char *dir, uint32_t id, dlna_profiler_t *profiler)
 {
   struct dirent **namelist;
   int n, i;
@@ -70,12 +76,12 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id)
     {
       uint32_t cid;
       cid = dlna_vfs_add_container (dlna, basename (fullpath), 0, id);
-      add_dir (dlna, fullpath, cid);
+      add_dir (dlna, fullpath, cid, profiler);
     }
     else
     {
       dlna_item_t *item;
-      item = dlna_item_new (dlna, ffmpeg_profiler, fullpath);
+      item = dlna_item_new (dlna, profiler, fullpath);
       if (item)
         dlna_vfs_add_resource (dlna, basename (fullpath),
                              item, id);
@@ -106,6 +112,7 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
+  dlna_profiler_t *profiler;
   int c, index;
   char *content_dir = NULL;
   struct stat st;
@@ -191,7 +198,14 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
+#ifdef MPG123
+  profiler = &mpg123_profiler;
+  mpg123_profiler_init ();
+#endif
+#ifdef FFMPEG
+  profiler = &ffmpeg_profiler;
   ffmpeg_profiler_register_all_media_profiles ();
+#endif
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
@@ -223,12 +237,12 @@ main (int argc, char **argv)
     return -1;
   }
   if (S_ISDIR (st.st_mode))
-    add_dir (dlna, content_dir, 0);
+    add_dir (dlna, content_dir, 0, profiler);
   else
   {
     dlna_item_t *item;
 
-    item = dlna_item_new (dlna, ffmpeg_profiler, content_dir);
+    item = dlna_item_new (dlna, profiler, content_dir);
     if (item)
       dlna_vfs_add_resource (dlna, basename (content_dir),
                            item, 0);

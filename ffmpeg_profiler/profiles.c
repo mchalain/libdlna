@@ -788,9 +788,8 @@ ffmpeg_read_stream (dlna_item_t *item)
   return ret;
 }
 */
-static const dlna_profiler_t s_ffmpeg_profiler = {
+const dlna_profiler_t ffmpeg_profiler = {
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,
   .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,
 };
-dlna_profiler_t *ffmpeg_profiler = &s_ffmpeg_profiler;

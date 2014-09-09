@@ -30,8 +30,13 @@
 #include <getopt.h>
 
 #include "dlna.h"
+#ifdef MPG123
 extern const dlna_profiler_t mpg123_profiler;
 extern int mpg123_profiler_init ();
+#endif
+#ifdef FFMPEG
+#include "ffmpeg_profiler.h"
+#endif
 
 static void
 display_usage (char *name)
@@ -50,6 +55,7 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
+  dlna_profiler_t *profiler;
   int c, index;
   char short_options[] = "dhu";
   struct option long_options [] = {
@@ -110,8 +116,15 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
+#ifdef MPG123
+  profiler = &mpg123_profiler;
   mpg123_profiler_init ();
-  dlna_set_profiler (dlna, &mpg123_profiler);
+#endif
+#ifdef FFMPEG
+  profiler = &ffmpeg_profiler;
+  ffmpeg_profiler_register_all_media_profiles ();
+#endif
+  dlna_set_profiler (dlna, profiler);
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");

@@ -45,6 +45,6 @@ void ffmpeg_profiler_register_all_media_profiles ();
 void
 ffmpeg_profiler_register_media_profile (ffmpeg_profiler_media_profile_t profile);
 
-extern dlna_profiler_t *ffmpeg_profiler;
+extern const dlna_profiler_t ffmpeg_profiler;
 
 #endif
