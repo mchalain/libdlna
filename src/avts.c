@@ -534,7 +534,9 @@ avts_thread_play (void *arg)
       while (instance->state == E_STOPPED)
         ithread_cond_wait (&instance->state_change, &instance->state_mutex);
       ithread_mutex_unlock (&instance->state_mutex);
-      playitem_prepare (instance->playlist->item);
+      instance->playlist->current = instance->playlist;
+      instance->playlist->next = playlist_next (instance->playlist);
+      playitem_prepare (instance->playlist->current->item);
       instance->counter = 0;
       break;
     case E_PAUSING:
@@ -559,10 +561,12 @@ avts_thread_play (void *arg)
           if (!instance->playlist->next)
             instance_change_state (instance, E_STOPPED);
           else
+          {
+            instance->playlist->current = instance->playlist->next;
+            instance->playlist->next = playlist_next (instance->playlist);
             instance_change_state (instance, E_PLAYING);
+          }
           avts_request_event (instance->service);
-          instance->playlist->current = instance->playlist->next;
-          instance->playlist->next = playlist_next (instance->playlist);
         }
       }
       else if (ret == 0)
@@ -585,6 +589,11 @@ avts_thread_play (void *arg)
             instance->counter = 0;
             instance->playlist->next = playlist_next (instance->playlist);
           }
+          else
+          {
+            instance_change_state (instance, E_STOPPED);
+            avts_request_event (instance->service);
+          }
         }
         if (state == E_TRANSITIONING)
         {
@@ -595,10 +604,12 @@ avts_thread_play (void *arg)
           if (!instance->playlist->next)
             instance_change_state (instance, E_STOPPED);
           else
+          {
+            instance->playlist->current = instance->playlist->next;
+            instance->playlist->next = playlist_next (instance->playlist);
             instance_change_state (instance, E_PLAYING);
+          }
           avts_request_event (instance->service);
-          instance->playlist->current = instance->playlist->next;
-          instance->playlist->next = playlist_next (instance->playlist);
         }
       }
     }
