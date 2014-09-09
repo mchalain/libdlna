@@ -36,6 +36,7 @@
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
 #define AVTS_ERR_NOT_IMPLEMENTED               710
+#define AVTS_ERR_ILLEGAL_MIME                  714
 #define AVTS_ERR_SPEED_NOT_SUPPORTED           717
 #define AVTS_ERR_INVALID_INSTANCE              718 
 
@@ -686,6 +687,11 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
   uri   = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI);
   uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI_METADATA);
   instance->playlist = playlist_add_item (instance->playlist, dlna, uri, uri_metadata);
+  if (!instance->playlist)
+  {
+    ev->ar->ErrCode = AVTS_ERR_ILLEGAL_MIME;
+    return 0;
+  }
   if (instance->state == E_STOPPED)
     instance->playlist->current = instance->playlist;
   instance->playlist->next = playlist_next (instance->playlist);
