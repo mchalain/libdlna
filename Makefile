@@ -7,10 +7,6 @@ DISTFILE = libdlna-$(VERSION).tar.bz2
 PKGCONFIG_DIR = $(libdir)/pkgconfig
 PKGCONFIG_FILE = libdlna.pc
 
-#	mpg123_profiler/libmpg123_profiler.so \
-PROFILERS= \
-	ffmpeg_profiler/libffmpeg_profiler.so
-
 EXTRADIST = \
 	AUTHORS \
 	ChangeLog \
@@ -21,22 +17,23 @@ EXTRADIST = \
 SUBDIRS = \
 	src \
 	utils \
+	$(PROFILERS)
 
 all: lib $(PROFILERS) utils
 
 lib:
 	$(MAKE) -C src
 
-.PHONY: $(PROFILERS)
+.PHONY:$(PROFILERS)
 $(PROFILERS):
-	make -C $(dir $@)
+	make -C $@
 
 utils: lib
 	$(MAKE) -C utils
 
 clean:
 	$(MAKE) -C src clean
-	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(dir $(profiler)) clean;)
+	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(profiler) clean;)
 	$(MAKE) -C utils clean
 	-$(RM) -f IUpnpErrFile.txt IUpnpInfoFile.txt
 
@@ -47,6 +44,7 @@ distclean: clean
 
 install: install-pkgconfig
 	$(MAKE) -C src install
+	$(foreach profiler,$(PROFILERS),$(MAKE) -C $(profiler) install;)
 
 install-pkgconfig: $(PKGCONFIG_FILE)
 	$(INSTALL) -d "$(PKGCONFIG_DIR)"

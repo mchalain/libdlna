@@ -34,7 +34,7 @@ ifeq ($(BUILD_STATIC),yes)
   LDFLAGS += $(EXTRALIBS)
 endif
 
-all: banner $(PROFILER_BIN) $(DMS_BIN) $(DMR_BIN)
+all: banner $(UTILS)
 
 banner:
 	@echo 

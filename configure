@@ -38,6 +38,8 @@ show_help(){
   echo "  --enable-sqlite             enable SQLite database [default=auto]"
   echo "  --disable-sqlite            disable SQLite database"
   echo "  --disable-libupnp           disable external libupnp (use internal code)"
+  echo "  --disable-ffmpeg            disable ffmpeg profiler"
+  echo "  --disable-mpg123            disable mpg123 profiler"
   echo ""
   echo "Search paths:"
   echo "  --with-lavf=PATH            specify prefix directory for libavformat package.
@@ -372,6 +374,11 @@ static="no"
 shared="yes"
 sqlite="auto"
 libupnp="auto"
+libavcodec="auto"
+libavformat="auto"
+libmpg123="auto"
+profilers=
+utils=
 cc="gcc"
 host_cc="gcc"
 ar="ar"
@@ -418,6 +425,11 @@ for opt do
   --disable-sqlite) sqlite="no"
   ;;
   --disable-libupnp) libupnp="internal"
+  ;;
+  --disable-libupnp) libmpg123="no"
+  ;;
+  --disable-ffmpeg) libavcodec="no"
+  libavformat="no"
   ;;
   --arch=*) arch="$optval"
   ;;
@@ -708,6 +720,7 @@ check_lib ifaddrs.h getifaddrs "" && add_cflags -DHAVE_IFADDRS_H
 #################################################
 #   check for ffmpeg libavformat
 #################################################
+if [ "$libavformat" = auto -o "$libavformat" = yes ]; then
 if [ -n "$lavfdir" ]; then
   check_cflags -I${lavfdir}/include
   check_ldflags -L${lavfdir}/lib
@@ -722,12 +735,15 @@ if [ -z  "$lavfdir" -a -z "$lavfincdir" -a -z "$lavflibdir" ]; then
   add_pkgconfig_deps libavformat
 fi
 
+libavformat=yes
 echolog "Checking for libavformat ..."
-check_lib libavformat/avformat.h av_register_all -lavformat || die "Error, can't find libavformat !"
+check_lib libavformat/avformat.h av_register_all -lavformat || set_all no libavformat
+fi
 
 #################################################
 #   check for ffmpeg libavcodec
 #################################################
+if [ "$libavcodec" = auto -o "$libavcodec" = yes ]; then
 if [ -n "$lavcdir" ]; then
   check_cflags -I${lavcdir}/include
   check_ldflags -L${lavcdir}/lib
@@ -743,8 +759,29 @@ if [ -z  "$lavcdir" -a -z "$lavcincdir" -a -z "$lavclibdir" ]; then
   add_pkgconfig_deps libavcodec
 fi
 
+libavcodec=yes
 echolog "Checking for libavcodec ..."
-check_lib libavcodec/avcodec.h avcodec_register_all -lavcodec || die "Error, can't find libavcodec !"
+check_lib libavcodec/avcodec.h avcodec_register_all -lavcodec || set_all no libavcodec
+fi
+if [ "$libavcodec" = yes -a "$libavcodec" = yes ]; then
+  add_cflags -DFFMPEG
+  profilers+="$profilers ffmpeg_profiler"
+  utils="$utils dlna-profiler"
+fi
+
+#################################################
+#   check for ffmpeg libavformat
+#################################################
+if [ "$libmpg123" = auto -o "$libmpg123" = yes ]; then
+libmpg123=yes
+echolog "Checking for libmpg123 ..."
+check_lib mpg123.h mpg123_init -lmpg123 || set_all no libmpg123
+fi
+if [ "$libmpg123" = yes ]; then
+  add_cflags -DMPG123
+  profilers+="$profilers mpg123_profiler"
+  utils="$utils dlna-dmr dlna-dms"
+fi
 
 #################################################
 #   check for Portable UPnP
@@ -809,6 +846,8 @@ echolog "  static             ${static}"
 echolog "  shared             ${shared}"
 echolog "  SQLite3            ${sqlite}"
 echolog "  libupnp            ${libupnp}"
+echolog "  ffmpeg             ${libavformat}"
+echolog "  mpg123             ${libmpg123}"
 echolog ""
 echolog "  CFLAGS             $CFLAGS"
 echolog "  LDFLAGS            $LDFLAGS"
@@ -859,6 +898,8 @@ fi
 append_config "DEBUG=$debug"
 append_config "HAVE_SQLITE=$sqlite"
 append_config "HAVE_EXTERNAL_LIBUPNP=$libupnp"
+append_config "PROFILERS=$profilers"
+append_config "UTILS=$utils"
 
 #################################################
 #   make pkg-config files
