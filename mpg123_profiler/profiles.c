@@ -55,6 +55,11 @@ struct
     .channels = MPG123_STEREO,
   },
   {
+    .version = MPG123_2_5,
+    .layer = 3,
+    .channels = MPG123_STEREO,
+  },
+  {
     .version = MPG123_1_0,
     .layer = 3,
     .channels = MPG123_MONO,
@@ -67,7 +72,12 @@ static dlna_profile_t *default_profiles[] = {
     .label = LABEL_AUDIO_2CH,
   },
   & (dlna_profile_t) {
-    .id = "MP3",
+    .id = "MP3X",
+    .mime = MIME_AUDIO_MPEG,
+    .label = LABEL_AUDIO_2CH,
+  },
+  & (dlna_profile_t) {
+    .id = "MP3X",
     .mime = MIME_AUDIO_MPEG,
     .label = LABEL_AUDIO_2CH,
   },
