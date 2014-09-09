@@ -97,6 +97,7 @@ struct profile_data_s
 {
   mpg123_profiler_data_t *profiler;
   dlna_properties_t *prop;
+  dlna_metadata_t *meta;
   int fd;
   ssize_t buffsize;
   void *buffer;
@@ -272,20 +273,32 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
 	return 0;
 }
 
+static char*
+dup_mpg123_string (mpg123_string *string)
+{
+  char *ret = NULL;
+  if (string && string->fill)
+    ret = strndup (string->p,string->size);
+  return ret;
+}
+
 dlna_profile_t *
 mpg123_profiler_guess_media_profile (char *filename, void **cookie)
 {
   dlna_profile_t *profile;
   dlna_properties_t *prop;
+  dlna_metadata_t *meta;
   profile_data_t *data;
   mpg123_profiler_data_t *profiler;
   int  channels = 2, encoding = MPG123_ENC_SIGNED_32;
   long rate = 44100;
-  int fd;
+  int fd, ret;
   uint32_t time, time_s, time_m, time_h;
   uint32_t len;
   struct http_info file_info;
   struct mpg123_frameinfo mpg_info;
+  mpg123_id3v1 *v1 = NULL;
+  mpg123_id3v2 *v2 = NULL;
 
   
   fd = open_url (filename, O_RDONLY, &file_info);
@@ -334,6 +347,29 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   snprintf(prop->duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
   data->prop = prop;
   
+  /* metadata setup */
+  ret = mpg123_meta_check(profiler->handle);
+  if(ret & MPG123_ID3 && mpg123_id3(profiler->handle, &v1, &v2) == MPG123_OK)
+  {
+    meta = calloc (1, sizeof (dlna_metadata_t));
+    meta->title = dup_mpg123_string (v2->title);
+    if (!meta->title)
+      meta->title = strndup (v1->title,sizeof(v1->title));
+    meta->author = dup_mpg123_string (v2->artist);
+    if (!meta->author)
+      meta->author = strndup (v1->artist,sizeof(v1->artist));
+    meta->album = dup_mpg123_string (v2->album);
+    if (!meta->album)
+      meta->album = strndup (v1->album,sizeof(v1->album));
+    meta->comment = dup_mpg123_string (v2->comment);
+    if (!meta->comment)
+      meta->comment = strndup (v1->comment,sizeof(v1->comment));
+    meta->genre = dup_mpg123_string (v2->genre);
+    if (!meta->genre)
+      meta->genre = strdup ("default");
+    mpg123_meta_free (profiler->handle);
+    data->meta = meta;
+  }
 
   *cookie = data;
   mpg123_close(profiler->handle);
@@ -373,9 +409,7 @@ static dlna_metadata_t *
 item_get_metadata (dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
-  dlna_metadata_t *meta;
-
-  return NULL;
+  return cookie->meta;
 }
 
 static int
