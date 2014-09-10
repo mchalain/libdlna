@@ -406,13 +406,13 @@ typedef struct dlna_profiler_s {
 } dlna_profiler_t;
 
 /**
- * Set the profiler
+ * add a profiler to a list
  * 
  * @param[in] dlna     The DLNA library's controller.
  * @param[in] profiler The Media file profiler.
  **/
 void
-dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler);
+dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler);
 
 /***************************************************************************/
 /*                                                                         */
@@ -585,7 +585,9 @@ extern dlna_service_t *msr_service_new (dlna_t*dlna);
  * @param[in] filename The input file to be added.
  * @return A new DLNA object item if compatible, NULL otherwise.
  */
-dlna_item_t *dlna_item_new (dlna_t *dlna, dlna_profiler_t *profiler, const char *filename);
+dlna_item_t *dlna_item_new (dlna_t *dlna, 
+            const dlna_profiler_t *profiler, 
+            const char *filename);
 
 /**
  * Free an existing DLNA media object item.

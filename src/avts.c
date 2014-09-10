@@ -265,6 +265,7 @@ playlist_empty (avts_playlist_t *playlist)
 static avts_playlist_t *
 playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata dlna_unused)
 {
+  dlna_profiler_list_t *profilerit;
   avts_playlist_t *item = NULL;
   uint32_t id;
 
@@ -276,7 +277,12 @@ playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri
 
   item = calloc (1, sizeof(avts_playlist_t));
 
-  item->item = dlna_item_new (dlna, dlna->profiler, uri);
+  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+  {
+    item->item = dlna_item_new (dlna, profilerit->profiler, uri);
+    if (item->item)
+      break;
+  }
   if (!item->item)
   {
     free (item);

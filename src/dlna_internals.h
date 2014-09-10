@@ -90,6 +90,19 @@ struct upnp_service_statevar_s {
   char * (*get) (dlna_t *, dlna_service_t *);
 };
 
+typedef struct dlna_profiler_list_s dlna_profiler_list_t;
+struct dlna_profiler_list_s
+{
+/**
+ * pointer to the profiler object
+ **/
+  const dlna_profiler_t *profiler;
+/**
+ * pointer to the next profiler in the list
+ **/
+  struct dlna_profiler_list_s *next;
+};
+
 /**
  * DLNA Library's controller.
  * This controls the whole library.
@@ -115,7 +128,7 @@ struct dlna_s {
   ithread_t event_thread;
 
   /* Profilers entries */
-  dlna_profiler_t *profiler;
+  dlna_profiler_list_t *profilers;
 
   /* DMS Properties */
   dlna_vfs_t dms;

@@ -258,6 +258,7 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
 char **
 dlna_get_supported_mime_types (dlna_t *dlna)
 {
+  dlna_profiler_list_t *profilerit;
   char **mimes;
  
   if (!dlna)
@@ -266,7 +267,8 @@ dlna_get_supported_mime_types (dlna_t *dlna)
   mimes = malloc (sizeof (char *));
   *mimes = NULL;
 
-  mimes    = dlna->profiler->get_supported_mime_types (mimes);
+  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+    mimes = profilerit->profiler->get_supported_mime_types (mimes);
   mimes = dlna_list_add (mimes, NULL);
   return mimes;
 }
@@ -274,16 +276,22 @@ dlna_get_supported_mime_types (dlna_t *dlna)
 dlna_profile_t *
 dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
+  dlna_profiler_list_t *profilerit;
   dlna_profile_t *profile;
 
   if (!profileid)
-	return NULL;
-  profile    = dlna->profiler->get_media_profile (profileid);
+    return NULL;
+  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+  {
+    profile = profilerit->profiler->get_media_profile (profileid);
+    if (profile)
+    break;
+  }
   return profile;
 }
 
 dlna_item_t *
-dlna_item_new (dlna_t *dlna, dlna_profiler_t *profiler, const char *filename)
+dlna_item_new (dlna_t *dlna, const dlna_profiler_t *profiler, const char *filename)
 {
   dlna_item_t *item;
   struct stat st;
@@ -295,7 +303,7 @@ dlna_item_new (dlna_t *dlna, dlna_profiler_t *profiler, const char *filename)
     dlna = dlna_init ();
 
   if (!profiler)
-    profiler = dlna->profiler;
+    profiler = dlna->profilers->profiler;
 
   item = calloc (1, sizeof (dlna_item_t));
 

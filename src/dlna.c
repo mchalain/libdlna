@@ -54,39 +54,51 @@
 #include "devices.h"
 #include "vfs.h"
 
+
 void
-dlna_set_profiler (dlna_t *dlna, dlna_profiler_t *profiler)
+dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
 {
   if (!dlna)
     return;
-  if (dlna->profiler && dlna->profiler->free)
-    dlna->profiler->free ();
-  dlna->profiler = profiler;
-  if (dlna->cms.sourcemimes)
+  
+  if (!dlna->profilers)
   {
-    free (dlna->cms.sourcemimes);
-    dlna->cms.sourcemimes = NULL;
+    dlna->profilers = calloc (1, sizeof (dlna_profiler_list_t));
+    dlna->profilers->profiler = profiler;
   }
-  if (dlna->cms.sinkmimes)
+  else
   {
-    free (dlna->cms.sinkmimes);
-    dlna->cms.sinkmimes = NULL;
+    dlna_profiler_list_t *profilers_list;
+
+	for (profilers_list = dlna->profilers;
+			profilers_list->next;
+			profilers_list = profilers_list->next);
+	profilers_list->next = calloc (1, sizeof (dlna_profiler_list_t));
+	profilers_list = profilers_list->next;
+    profilers_list->profiler = profiler;
   }
-  dlna->cms.sourcemimes = malloc (sizeof (char*));
-  dlna->cms.sourcemimes = dlna->profiler->get_supported_mime_types (dlna->cms.sourcemimes);
-  dlna->cms.sinkmimes = malloc (sizeof (char*));
-  dlna->cms.sinkmimes = dlna->profiler->get_supported_mime_types (dlna->cms.sinkmimes);
+  if (!dlna->cms.sourcemimes)
+  {
+    dlna->cms.sourcemimes = malloc (sizeof (char*));
+  }
+  if (!dlna->cms.sinkmimes)
+  {
+    dlna->cms.sinkmimes = malloc (sizeof (char*));
+  }
+  dlna->cms.sourcemimes = profiler->get_supported_mime_types (dlna->cms.sourcemimes);
+  dlna->cms.sinkmimes = profiler->get_supported_mime_types (dlna->cms.sinkmimes);
 }
 
 static void
 dlna_profiler_init (dlna_t *dlna)
 {
-  dlna_profiler_t **profiler;
+  dlna_profiler_t *profiler;
   profiler = dlsym (RTLD_DEFAULT, "ffmpeg_profiler");
+  dlna->profilers = NULL;
   if (profiler)
-    dlna->profiler = *profiler;
+    dlna_add_profiler (dlna, profiler);
   else
-    dlna->profiler = &upnpav_profiler;
+    dlna_add_profiler (dlna, &upnpav_profiler);
 }
 
 dlna_t *

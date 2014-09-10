@@ -52,7 +52,7 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
-  dlna_profiler_t *profiler;
+  const dlna_profiler_t *profiler;
   int c, index;
   char short_options[] = "dhu";
   struct option long_options [] = {
@@ -116,8 +116,8 @@ main (int argc, char **argv)
 #ifdef MPG123
   profiler = &mpg123_profiler;
   mpg123_profiler_init ();
+  dlna_add_profiler (dlna, profiler);
 #endif
-  dlna_set_profiler (dlna, profiler);
 
   /* define NIC to be used */
   dlna_set_interface (dlna, "eth0");
