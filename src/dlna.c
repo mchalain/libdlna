@@ -89,18 +89,6 @@ dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
   dlna->cms.sinkmimes = profiler->get_supported_mime_types (dlna->cms.sinkmimes);
 }
 
-static void
-dlna_profiler_init (dlna_t *dlna)
-{
-  dlna_profiler_t *profiler;
-  profiler = dlsym (RTLD_DEFAULT, "ffmpeg_profiler");
-  dlna->profilers = NULL;
-  if (profiler)
-    dlna_add_profiler (dlna, profiler);
-  else
-    dlna_add_profiler (dlna, &upnpav_profiler);
-}
-
 dlna_t *
 dlna_init (void)
 {
@@ -125,7 +113,7 @@ dlna_init (void)
 
   dlna_vfs_init (dlna);
 
-  dlna_profiler_init (dlna);
+  dlna_add_profiler (dlna, &upnpav_profiler);
   return dlna;
 }
 
