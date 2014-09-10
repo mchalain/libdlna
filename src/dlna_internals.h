@@ -60,6 +60,7 @@ struct dlna_vfs_s
 /* UPnP Services */
 typedef struct upnp_action_event_s    upnp_action_event_t;
 typedef struct upnp_service_statevar_s  upnp_service_statevar_t;
+typedef struct upnp_service_action_arg_s  upnp_service_action_arg_t;
 typedef struct upnp_service_action_s  upnp_service_action_t;
 
 struct upnp_action_event_s {
@@ -69,9 +70,19 @@ struct upnp_action_event_s {
   dlna_device_t *device;
 };
 
+struct upnp_service_action_arg_s {
+  char *name;
+  enum {
+    E_INPUT,
+    E_OUTPUT,
+  } dir;
+  upnp_service_statevar_t *relation;
+};
+
 struct upnp_service_action_s {
   char *name;
   char *args;
+  upnp_service_action_arg_t *args_s;
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 

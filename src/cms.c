@@ -191,12 +191,30 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
 
 /* List of UPnP ConnectionManager Service actions */
 static upnp_service_action_t cms_service_actions[] = {
-  { CMS_ACTION_PROT_INFO, CMS_ACTION_PROT_INFO_ARGS,    cms_get_protocol_info },
-  { CMS_ACTION_PREPARE, NULL,      NULL },
-  { CMS_ACTION_CON_COMPLETE, NULL,  NULL },
-  { CMS_ACTION_CON_ID, CMS_ACTION_CON_ID_ARGS,        cms_get_current_connection_ids },
-  { CMS_ACTION_CON_INFO, CMS_ACTION_CON_INFO_ARGS,      cms_get_current_connection_info },
-  { NULL, NULL,                            NULL }
+  { .name = CMS_ACTION_PROT_INFO,
+    .args = CMS_ACTION_PROT_INFO_ARGS,
+    .args_s = NULL,
+    .cb = cms_get_protocol_info },
+  { .name = CMS_ACTION_PREPARE,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CMS_ACTION_CON_COMPLETE,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CMS_ACTION_CON_ID,
+    .args = CMS_ACTION_CON_ID_ARGS,
+    .args_s = NULL,
+    .cb = cms_get_current_connection_ids },
+  { .name = CMS_ACTION_CON_INFO,
+    .args = CMS_ACTION_CON_INFO_ARGS,
+    .args_s = NULL,
+    .cb = cms_get_current_connection_info },
+  { .name = NULL,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL }
 };
 
 upnp_service_statevar_t cms_service_variables[] = {

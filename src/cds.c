@@ -670,17 +670,20 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {
   /* CDS Required Actions */
-  { CDS_ACTION_SEARCH_CAPS, 
-    ACTION_ARG_OUT(CDS_ARG_SEARCH_CAPS,"SearchCapabilities") ,
-    cds_get_search_capabilities },
-  { CDS_ACTION_SORT_CAPS,
-    ACTION_ARG_OUT(CDS_ARG_SORT_CAPS,"SortCapabilities") ,
-    cds_get_sort_capabilities },
-  { CDS_ACTION_UPDATE_ID,
-    ACTION_ARG_OUT(CDS_ARG_ID,"SystemUpdateID"),
-    cds_get_system_update_id },
-  { CDS_ACTION_BROWSE,
-    ACTION_ARG_IN(CDS_ARG_OBJECT_ID,"A_ARG_TYPE_ObjectID") \
+  { .name = CDS_ACTION_SEARCH_CAPS, 
+    .args = ACTION_ARG_OUT(CDS_ARG_SEARCH_CAPS,"SearchCapabilities") ,
+    .args_s = NULL,
+    .cb = cds_get_search_capabilities },
+  { .name = CDS_ACTION_SORT_CAPS,
+    .args = ACTION_ARG_OUT(CDS_ARG_SORT_CAPS,"SortCapabilities") ,
+    .args_s = NULL,
+    .cb = cds_get_sort_capabilities },
+  { .name = CDS_ACTION_UPDATE_ID,
+    .args = ACTION_ARG_OUT(CDS_ARG_ID,"SystemUpdateID"),
+    .args_s = NULL,
+    .cb = cds_get_system_update_id },
+  { .name = CDS_ACTION_BROWSE,
+    .args = ACTION_ARG_IN(CDS_ARG_OBJECT_ID,"A_ARG_TYPE_ObjectID") \
     ACTION_ARG_IN(CDS_ARG_BROWSE_FLAG,"A_ARG_TYPE_BrowseFlag") \
     ACTION_ARG_IN(CDS_ARG_FILTER,"A_ARG_TYPE_Filter") \
     ACTION_ARG_IN(CDS_ARG_START_INDEX,"A_ARG_TYPE_Index") \
@@ -690,11 +693,12 @@ upnp_service_action_t cds_service_actions[] = {
     ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID"),
-    cds_browse },
+    .args_s = NULL,
+    .cb = cds_browse },
 
   /* CDS Optional Actions */
-  { CDS_ACTION_SEARCH,
-    ACTION_ARG_IN(CDS_ARG_CONTAINER_ID,"A_ARG_TYPE_ObjectID") \
+  { .name = CDS_ACTION_SEARCH,
+    .args = ACTION_ARG_IN(CDS_ARG_CONTAINER_ID,"A_ARG_TYPE_ObjectID") \
     ACTION_ARG_IN(CDS_ARG_SEARCH_CRIT,"A_ARG_TYPE_SearchCriteria") \
     ACTION_ARG_IN(CDS_ARG_FILTER,"A_ARG_TYPE_Filter") \
     ACTION_ARG_IN(CDS_ARG_START_INDEX,"A_ARG_TYPE_Index") \
@@ -704,19 +708,47 @@ upnp_service_action_t cds_service_actions[] = {
     ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID") ,
-    cds_search },
-  { CDS_ACTION_CREATE_OBJ, NULL,     NULL },
-  { CDS_ACTION_DESTROY_OBJ, NULL,    NULL },
-  { CDS_ACTION_UPDATE_OBJ, NULL,     NULL },
-  { CDS_ACTION_IMPORT_RES, NULL,     NULL },
-  { CDS_ACTION_EXPORT_RES, NULL,     NULL },
-  { CDS_ACTION_STOP_TRANSFER, NULL,  NULL },
-  { CDS_ACTION_GET_PROGRESS, NULL,   NULL },
-  { CDS_ACTION_DELETE_RES, NULL,     NULL },
-  { CDS_ACTION_CREATE_REF, NULL,     NULL },
+    .args_s = NULL,
+    .cb = cds_search },
+  { .name = CDS_ACTION_CREATE_OBJ,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_DESTROY_OBJ,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_UPDATE_OBJ,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_IMPORT_RES,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_EXPORT_RES,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_STOP_TRANSFER,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_GET_PROGRESS,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_DELETE_RES,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
+  { .name = CDS_ACTION_CREATE_REF,
+    .args = NULL,
+    .args_s = NULL,
+    .cb = NULL },
 
   /* CDS Vendor-specific Actions */ 
-  { NULL, NULL,                              NULL }
+  { NULL, NULL, NULL, NULL }
 };
 
 upnp_service_statevar_t cds_service_variables[] = {
