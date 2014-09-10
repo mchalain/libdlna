@@ -195,7 +195,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   
   /* is requested 'object_id' available ? */
   if (object_id == 0 || vfs_is_id_registered (dlna, object_id) == DLNA_ST_OK)
-    item->id = vfs_provide_next_id (dlna, NULL);
+    item->id = vfs_provide_next_id (dlna, name);
   else
     item->id = object_id;
 
