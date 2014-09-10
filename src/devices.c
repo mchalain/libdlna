@@ -46,9 +46,9 @@ dlna_device_new ()
   device->manufacturer_url = strdup ("http://libdlna.geexbox.org/");
   device->model_description = strdup ("libdlna device");
   device->model_name = strdup ("libdlna");
-  device->model_number = strdup ("libdlna-001");
+  device->model_number = strdup ("libdlna-003");
   device->model_url = strdup ("http://libdlna.geexbox.org/");
-  device->serial_number = strdup ("libdlna-001");
+  device->serial_number = strdup ("libdlna-003");
   device->uuid = strdup ("01:23:45:67:89");
   device->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
 
