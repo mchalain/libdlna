@@ -205,8 +205,8 @@ ACTION_ARG_OUT(AVTS_ARG_REC_QUALITY,AVTS_VAR_REC_QUALITY)
 
 #define AVTS_ACTION_SEEK_ARGS \
 AVTS_ACTION_ARG_INSTANCE_ID \
-ACTION_ARG_IN(AVTS_ARG_SEEK_UNIT,AVTS_VAR_PLAY_MODE) \
-ACTION_ARG_IN(AVTS_ARG_SEEK_TARGET,AVTS_VAR_REC_QUALITY)
+ACTION_ARG_IN(AVTS_ARG_SEEK_UNIT,AVTS_VAR_A_ARG_TYPE_SEEK_MODE) \
+ACTION_ARG_IN(AVTS_ARG_SEEK_TARGET,AVTS_VAR_A_ARG_TYPE_SEEK_TARGET)
 
 #define AVTS_ACTION_GET_ACTIONS_ARGS \
 AVTS_ACTION_ARG_INSTANCE_ID \
@@ -347,7 +347,10 @@ playlist_index (avts_playlist_t *playlist, avts_playlist_t *item)
 static avts_playlist_t *
 playlist_seek (avts_playlist_t *playlist, int32_t target)
 {
-  avts_playlist_t *item = playlist->current;
+  avts_playlist_t *item;
+  if  (!playlist)
+    return NULL;
+  item = playlist->current;
   if (target < 0)
   {
     while (target < 0 && ((item = item->hh.prev) != NULL)) target++;
@@ -496,7 +499,6 @@ static void *
 avts_thread_play (void *arg)
 {
   avts_instance_t *instance = (avts_instance_t *) arg;
-  avts_playlist_t *next_item;
 
   while (1)
   {
@@ -1530,15 +1532,23 @@ upnp_service_action_t avts_service_actions[] = {
     .cb = NULL }
 };
 
+char *AVTS_VAR_STATE_allowed[] =
+{"STOPPED","PLAYING","TRANSITIONING","PAUSED_PLAYBACK","PAUSED_RECORDING","RECORDING","NO_MEDIA_PRESENT",NULL};
+char *AVTS_VAR_PLAY_MODE_allowed[] =
+{"NORMAL","SHUFFLE","REPEAT_ONE","REPEAT_ALL","RANDOM","DIRECT_1","INTRO",NULL};
+char *AVTS_VAR_A_ARG_TYPE_SEEK_MODE_allowed[] =
+{"TRACK_NR",NULL};
+
+
 upnp_service_statevar_t avts_service_variables[] = {
-  {AVTS_VAR_STATE,E_STRING,0, NULL, NULL},
+  {AVTS_VAR_STATE,E_STRING,0, AVTS_VAR_STATE_allowed, NULL},
   {AVTS_VAR_STATUS,E_STRING,0, NULL, NULL},
   {AVTS_VAR_MEDIA_CATEGORY,E_STRING,0, NULL, NULL},
   {AVTS_VAR_PLAY_MEDIUM,E_STRING,0, NULL, NULL},
   {AVTS_VAR_REC_MEDIUM,E_STRING,0, NULL, NULL},
   {AVTS_VAR_POSSIBLE_PLAY_MEDIA,E_STRING,0, NULL, NULL},
   {AVTS_VAR_POSSIBLE_REC_MEDIA,E_STRING,0, NULL, NULL},
-  {AVTS_VAR_PLAY_MODE,E_STRING,0, NULL, NULL},
+  {AVTS_VAR_PLAY_MODE,E_STRING,0, AVTS_VAR_PLAY_MODE_allowed, NULL},
   {AVTS_VAR_PLAY_SPEED,E_STRING,0, NULL, NULL},
   {AVTS_VAR_REC_WRITE_STATUS,E_STRING,0, NULL, NULL},
   {AVTS_VAR_REC_QUALITY,E_STRING,0, NULL, NULL},
@@ -1561,7 +1571,7 @@ upnp_service_statevar_t avts_service_variables[] = {
   {"LastChange",E_STRING,1, NULL, avts_get_last_change},
   {"DRMState",E_STRING,0, NULL, NULL},
   {"SyncOffset",E_STRING,0, NULL, NULL},
-  {AVTS_VAR_A_ARG_TYPE_SEEK_MODE,E_STRING,0, NULL, NULL},
+  {AVTS_VAR_A_ARG_TYPE_SEEK_MODE,E_STRING,0, AVTS_VAR_A_ARG_TYPE_SEEK_MODE_allowed, NULL},
   {AVTS_VAR_A_ARG_TYPE_SEEK_TARGET,E_STRING,0, NULL, NULL},
   {AVTS_VAR_A_ARG_TYPE_INSTANCE_ID,E_UI4,0, NULL, NULL},
   { NULL, 0, 0, NULL, NULL},

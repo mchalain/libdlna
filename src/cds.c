@@ -819,6 +819,8 @@ upnp_service_action_t cds_service_actions[] = {
 
 char *A_ARG_TYPE_BrowseFlag_allowed[] =
 {"BrowseMetadata","BrowseDirectChildren",NULL};
+char *A_ARG_TYPE_TransferStatus_allowed[] =
+{"COMPLETED","ERROR","IN_PROGRESS","STOPPED",NULL};
 
 upnp_service_statevar_t cds_service_variables[] = {
   [SearchCapabilities] = { "SearchCapabilities", E_STRING, 0, NULL, NULL},
@@ -840,7 +842,7 @@ upnp_service_statevar_t cds_service_variables[] = {
   [A_ARG_TYPE_Count] = { "A_ARG_TYPE_Count", E_UI4, 0, NULL, NULL},
   [A_ARG_TYPE_UpdateID] = { "A_ARG_TYPE_UpdateID", E_UI4, 0, NULL, NULL},
   [A_ARG_TYPE_TransferID] = { "A_ARG_TYPE_TransferID", E_UI4, 0, NULL, NULL},
-  [A_ARG_TYPE_TransferStatus] = { "A_ARG_TYPE_TransferStatus", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_TransferStatus] = { "A_ARG_TYPE_TransferStatus", E_STRING, 0, A_ARG_TYPE_TransferStatus_allowed, NULL},
   [A_ARG_TYPE_TransferLength] = { "A_ARG_TYPE_TransferLength", E_STRING, 0, NULL, NULL},
   [A_ARG_TYPE_TransferTotal] = { "A_ARG_TYPE_TransferTotal", E_STRING, 0, NULL, NULL},
   [A_ARG_TYPE_TagValueList] = { "A_ARG_TYPE_TagValueList", E_STRING, 0, NULL, NULL},
