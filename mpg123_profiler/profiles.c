@@ -69,21 +69,25 @@ static dlna_profile_t *default_profiles[] = {
     .id = "MP3",
     .mime = MIME_AUDIO_MPEG,
     .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_AUDIO,
   },
   & (dlna_profile_t) {
     .id = "MP3X",
     .mime = MIME_AUDIO_MPEG,
     .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_AUDIO,
   },
   & (dlna_profile_t) {
     .id = "MP3X",
     .mime = MIME_AUDIO_MPEG,
     .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_AUDIO,
   },
   & (dlna_profile_t) {
     .id = "MP3",
     .mime = MIME_AUDIO_MPEG,
     .label = LABEL_AUDIO_MONO,
+    .media_class = DLNA_CLASS_AUDIO,
   },
 	NULL
 };
