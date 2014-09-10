@@ -294,6 +294,9 @@ dlna_item_new (dlna_t *dlna, dlna_profiler_t *profiler, const char *filename)
   if (!dlna->inited)
     dlna = dlna_init ();
 
+  if (!profiler)
+    profiler = dlna->profiler;
+
   item = calloc (1, sizeof (dlna_item_t));
 
   item->filename   = strdup (filename);
