@@ -87,6 +87,7 @@ struct upnp_service_statevar_s {
     E_URI,
   } type;
   uint32_t eventing;
+  char **allowed;
   char * (*get) (dlna_t *, dlna_service_t *);
 };
 

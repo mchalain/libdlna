@@ -174,7 +174,7 @@ msr_is_validated (dlna_t *dlna, upnp_action_event_t *ev)
 
 /* List of UPnP Microsoft Registrar Service State Variables */
 static upnp_service_statevar_t msr_service_variables[] = {
-  { NULL, 0, 0, NULL},
+  { NULL, 0, 0, NULL, NULL},
 };
 
 /* List of UPnP Microsoft Registrar Service actions */

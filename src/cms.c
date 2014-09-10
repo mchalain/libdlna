@@ -200,18 +200,18 @@ static upnp_service_action_t cms_service_actions[] = {
 };
 
 upnp_service_statevar_t cms_service_variables[] = {
-  { "SourceProtocolInfo", E_STRING, 1, NULL},
-  { "SinkProtocolInfo", E_STRING, 1, NULL},
-  { "CurrentConnectionIDs", E_STRING, 1, NULL},
-  { "FeatureList", E_STRING, 0, NULL},
-  { "A_ARG_TYPE_ConnectionStatus", E_STRING, 0, NULL},
-  { "A_ARG_TYPE_ConnectionManager", E_STRING, 0, NULL},
-  { "A_ARG_TYPE_Direction", E_STRING, 0, NULL},
-  { "A_ARG_TYPE_ProtocolInfo", E_STRING, 0, NULL},
-  { "A_ARG_TYPE_ConnectionID", E_I4, 0, NULL},
-  { "A_ARG_TYPE_AVTransportID", E_I4, 0, NULL},
-  { "A_ARG_TYPE_RcsID", E_I4, 0, NULL},
-  { NULL, 0, 0, NULL},
+  { "SourceProtocolInfo", E_STRING, 1, NULL, NULL},
+  { "SinkProtocolInfo", E_STRING, 1, NULL, NULL},
+  { "CurrentConnectionIDs", E_STRING, 1, NULL, NULL},
+  { "FeatureList", E_STRING, 0, NULL, NULL},
+  { "A_ARG_TYPE_ConnectionStatus", E_STRING, 0, NULL, NULL},
+  { "A_ARG_TYPE_ConnectionManager", E_STRING, 0, NULL, NULL},
+  { "A_ARG_TYPE_Direction", E_STRING, 0, NULL, NULL},
+  { "A_ARG_TYPE_ProtocolInfo", E_STRING, 0, NULL, NULL},
+  { "A_ARG_TYPE_ConnectionID", E_I4, 0, NULL, NULL},
+  { "A_ARG_TYPE_AVTransportID", E_I4, 0, NULL, NULL},
+  { "A_ARG_TYPE_RcsID", E_I4, 0, NULL, NULL},
+  { NULL, 0, 0, NULL, NULL},
 };
 
 static char *
