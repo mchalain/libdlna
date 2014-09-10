@@ -291,8 +291,9 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
 }
 
 dlna_item_t *
-dlna_item_new (dlna_t *dlna, const dlna_profiler_t *profiler, const char *filename)
+dlna_item_new (dlna_t *dlna, const char *filename)
 {
+  dlna_profiler_list_t *profilerit;
   dlna_item_t *item;
   struct stat st;
 
@@ -302,9 +303,6 @@ dlna_item_new (dlna_t *dlna, const dlna_profiler_t *profiler, const char *filena
   if (!dlna->inited)
     dlna = dlna_init ();
 
-  if (!profiler)
-    profiler = dlna->profilers->profiler;
-
   item = calloc (1, sizeof (dlna_item_t));
 
   item->filename   = strdup (filename);
@@ -313,7 +311,12 @@ dlna_item_new (dlna_t *dlna, const dlna_profiler_t *profiler, const char *filena
   else
     item->filesize	 = -1;
 
-  item->profile    = profiler->guess_media_profile ((char *)item->filename, &item->profile_cookie);
+  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+  {
+	item->profile    = profilerit->profiler->guess_media_profile ((char *)item->filename, &item->profile_cookie);
+	if (item->profile)
+		break;
+  }
   if (!item->profile) /* not DLNA compliant */
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);

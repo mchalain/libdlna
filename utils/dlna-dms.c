@@ -39,7 +39,7 @@ extern int mpg123_profiler_init ();
 #endif
 
 static void
-add_dir (dlna_t *dlna, char *dir, uint32_t id, dlna_profiler_t *profiler)
+add_dir (dlna_t *dlna, char *dir, uint32_t id)
 {
   struct dirent **namelist;
   int n, i;
@@ -76,12 +76,12 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id, dlna_profiler_t *profiler)
     {
       uint32_t cid;
       cid = dlna_vfs_add_container (dlna, basename (fullpath), 0, id);
-      add_dir (dlna, fullpath, cid, profiler);
+      add_dir (dlna, fullpath, cid);
     }
     else
     {
       dlna_item_t *item;
-      item = dlna_item_new (dlna, profiler, fullpath);
+      item = dlna_item_new (dlna, fullpath);
       if (item)
         dlna_vfs_add_resource (dlna, basename (fullpath),
                              item, id);
@@ -112,7 +112,7 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
-  dlna_profiler_t *profiler;
+  const dlna_profiler_t *profiler;
   int c, index;
   char *content_dir = NULL;
   struct stat st;
@@ -201,10 +201,12 @@ main (int argc, char **argv)
 #ifdef MPG123
   profiler = &mpg123_profiler;
   mpg123_profiler_init ();
+  dlna_add_profiler (dlna, profiler);
 #endif
 #ifdef FFMPEG
   profiler = &ffmpeg_profiler;
   ffmpeg_profiler_register_all_media_profiles ();
+  dlna_add_profiler (dlna, profiler);
 #endif
 
   /* define NIC to be used */
@@ -237,12 +239,12 @@ main (int argc, char **argv)
     return -1;
   }
   if (S_ISDIR (st.st_mode))
-    add_dir (dlna, content_dir, 0, profiler);
+    add_dir (dlna, content_dir, 0);
   else
   {
     dlna_item_t *item;
 
-    item = dlna_item_new (dlna, profiler, content_dir);
+    item = dlna_item_new (dlna, content_dir);
     if (item)
       dlna_vfs_add_resource (dlna, basename (content_dir),
                            item, 0);

@@ -52,8 +52,9 @@ main (int argc, char **argv)
   dlna_set_org_flags (dlna, flags);
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   ffmpeg_profiler_register_all_media_profiles ();
+  dlna_add_profiler (dlna, &ffmpeg_profiler);
 
-  item = dlna_item_new (dlna, &ffmpeg_profiler, argv[1]);
+  item = dlna_item_new (dlna, argv[1]);
   if (item)
   {
     if (item->properties)
