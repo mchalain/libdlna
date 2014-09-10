@@ -65,17 +65,16 @@ dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
   {
     dlna->profilers = calloc (1, sizeof (dlna_profiler_list_t));
     dlna->profilers->profiler = profiler;
+    dlna->profilers->next = NULL;
   }
   else
   {
     dlna_profiler_list_t *profilers_list;
 
-	for (profilers_list = dlna->profilers;
-			profilers_list->next;
-			profilers_list = profilers_list->next);
-	profilers_list->next = calloc (1, sizeof (dlna_profiler_list_t));
-	profilers_list = profilers_list->next;
+    profilers_list = calloc (1, sizeof (dlna_profiler_list_t));
     profilers_list->profiler = profiler;
+    profilers_list->next = dlna->profilers;
+    dlna->profilers = profilers_list;
   }
   if (!dlna->cms.sourcemimes)
   {
