@@ -38,6 +38,8 @@ show_help(){
   echo "  --enable-sqlite             enable SQLite database [default=auto]"
   echo "  --disable-sqlite            disable SQLite database"
   echo "  --disable-libupnp           disable external libupnp (use internal code)"
+  echo ""
+  echo "Profilers options:"
   echo "  --disable-ffmpeg            disable ffmpeg profiler"
   echo "  --disable-mpg123            disable mpg123 profiler"
   echo ""
@@ -721,65 +723,81 @@ check_lib ifaddrs.h getifaddrs "" && add_cflags -DHAVE_IFADDRS_H
 #   check for ffmpeg libavformat
 #################################################
 if [ "$libavformat" = auto -o "$libavformat" = yes ]; then
-if [ -n "$lavfdir" ]; then
-  check_cflags -I${lavfdir}/include
-  check_ldflags -L${lavfdir}/lib
-fi
-if [ -n "$lavfincdir" ]; then
-  check_cflags -I${lavfincdir}
-fi
-if [ -n "$lavflibdir" ]; then
-  check_cflags -L${lavflibdir}
-fi
-if [ -z  "$lavfdir" -a -z "$lavfincdir" -a -z "$lavflibdir" ]; then
-  add_pkgconfig_deps libavformat
-fi
+  if [ "$libavformat" = auto ]; then
+    libavformat=yes
+    falsereturn="set_all no libavformat"
+  else
+    falsereturn="die \"Error, can't find libavformat !\""
+  fi
+  if [ -n "$lavfdir" ]; then
+    check_cflags -I${lavfdir}/include
+    check_ldflags -L${lavfdir}/lib
+  fi
+  if [ -n "$lavfincdir" ]; then
+    check_cflags -I${lavfincdir}
+  fi
+  if [ -n "$lavflibdir" ]; then
+    check_cflags -L${lavflibdir}
+  fi
+  if [ -z  "$lavfdir" -a -z "$lavfincdir" -a -z "$lavflibdir" ]; then
+    add_pkgconfig_deps libavformat
+  fi
 
-libavformat=yes
-echolog "Checking for libavformat ..."
-check_lib libavformat/avformat.h av_register_all -lavformat || set_all no libavformat
+  libavformat=yes
+  echolog "Checking for libavformat ..."
+  check_lib libavformat/avformat.h av_register_all -lavformat || ${falsereturn}
 fi
 
 #################################################
 #   check for ffmpeg libavcodec
 #################################################
 if [ "$libavcodec" = auto -o "$libavcodec" = yes ]; then
-if [ -n "$lavcdir" ]; then
-  check_cflags -I${lavcdir}/include
-  check_ldflags -L${lavcdir}/lib
-fi
-if [ -n "$lavcincdir" ]; then
-  check_cflags -I${lavcincdir}
-fi
-if [ -n "$lavclibdir" ]; then
-  check_cflags -L${lavclibdir}
-fi
+  if [ "$libavcodec" = auto ]; then
+    libavcodec=yes
+    falsereturn="set_all no libavcodec"
+  else
+    falsereturn="die \"Error, can't find libavcodec !\""
+  fi
+  if [ -n "$lavcdir" ]; then
+    check_cflags -I${lavcdir}/include
+    check_ldflags -L${lavcdir}/lib
+  fi
+  if [ -n "$lavcincdir" ]; then
+    check_cflags -I${lavcincdir}
+  fi
+  if [ -n "$lavclibdir" ]; then
+    check_cflags -L${lavclibdir}
+  fi
 
-if [ -z  "$lavcdir" -a -z "$lavcincdir" -a -z "$lavclibdir" ]; then
-  add_pkgconfig_deps libavcodec
-fi
+  if [ -z  "$lavcdir" -a -z "$lavcincdir" -a -z "$lavclibdir" ]; then
+    add_pkgconfig_deps libavcodec
+  fi
 
-libavcodec=yes
-echolog "Checking for libavcodec ..."
-check_lib libavcodec/avcodec.h avcodec_register_all -lavcodec || set_all no libavcodec
+  echolog "Checking for libavcodec ..."
+  check_lib libavcodec/avcodec.h avcodec_register_all -lavcodec || ${falsereturn}
 fi
 if [ "$libavcodec" = yes -a "$libavcodec" = yes ]; then
   add_cflags -DFFMPEG
-  profilers+="$profilers ffmpeg_profiler"
-  utils="$utils dlna-profiler"
+  profilers="$profilers ffmpeg_profiler"
+  utils="$utils dlna-profiler dlna-dms"
 fi
 
 #################################################
 #   check for ffmpeg libavformat
 #################################################
 if [ "$libmpg123" = auto -o "$libmpg123" = yes ]; then
-libmpg123=yes
-echolog "Checking for libmpg123 ..."
-check_lib mpg123.h mpg123_init -lmpg123 || set_all no libmpg123
+  if [ "$libmpg123" = auto ]; then
+    libmpg123=yes
+    falsereturn="set_all no libmpg123"
+  else
+    falsereturn="die \"Error, can't find libmpg123 !\""
+  fi
+  echolog "Checking for libmpg123 ..."
+  check_lib mpg123.h mpg123_init -lmpg123 || ${falsereturn}
 fi
 if [ "$libmpg123" = yes ]; then
   add_cflags -DMPG123
-  profilers+="$profilers mpg123_profiler"
+  profilers="$profilers mpg123_profiler"
   utils="$utils dlna-dmr dlna-dms"
 fi
 
@@ -800,10 +818,18 @@ fi
 #   check for SQLite
 #################################################
 if [ "$sqlite" = auto -o "$sqlite" = yes ]; then
+  if [ "$sqlite" = auto ]; then
+    sqlite=yes
+    falsereturn="set_all no sqlite"
+  else
+    falsereturn="die \"Error, can't find libsqlite3 !\""
+  fi
   echolog "Checking for SQLite3 ..."
   add_pkgconfig_deps sqlite3
-  check_lib sqlite3.h sqlite3_finalize -lsqlite3 || die "Error, can't find libsqlite3 !"
   sqlite=yes
+  check_lib sqlite3.h sqlite3_finalize -lsqlite3 || ${falsereturn}
+fi
+if [ "$sqlite" = yes ]; then
   add_cflags -DHAVE_SQLITE
 fi
 

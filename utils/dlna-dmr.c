@@ -34,9 +34,6 @@
 extern const dlna_profiler_t mpg123_profiler;
 extern int mpg123_profiler_init ();
 #endif
-#ifdef FFMPEG
-#include "ffmpeg_profiler.h"
-#endif
 
 static void
 display_usage (char *name)
@@ -119,10 +116,6 @@ main (int argc, char **argv)
 #ifdef MPG123
   profiler = &mpg123_profiler;
   mpg123_profiler_init ();
-#endif
-#ifdef FFMPEG
-  profiler = &ffmpeg_profiler;
-  ffmpeg_profiler_register_all_media_profiles ();
 #endif
   dlna_set_profiler (dlna, profiler);
 
