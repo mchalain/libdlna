@@ -49,6 +49,24 @@
 #define SERVICE_ACTIONLIST_FOOTER \
 "  </actionList>"
 
+#define SERVICE_ACTION_HEADER \
+"    <action>" \
+"      <name>%s</name>" \
+"      <argumentList>"
+
+#define SERVICE_ACTION_FOOTER \
+"      </argumentList>" \
+"    </action>"
+
+#define SERVICE_ACTION_ARG_HEADER \
+"        <argument>" \
+"          <name>%s</name>" \
+"          <direction>%s</direction>" \
+"          <relatedStateVariable>%s</relatedStateVariable>" \
+
+#define SERVICE_ACTION_ARG_FOOTER \
+"        </argument>"
+
 #define SERVICE_ACTION_DEF \
 "    <action>" \
 "      <name>%s</name>" \
@@ -62,10 +80,17 @@
 #define SERVICE_STATETABLE_FOOTER \
 "  </serviceStateTable>"
 
-#define SERVICE_STATEVARIABLE_DEF \
+#define SERVICE_STATEVARIABLE_HEADER \
 "    <stateVariable sendEvents=\"%s\">" \
 "      <name>%s</name>" \
 "      <dataType>%s</dataType>" \
+"      <allowedValueList>" \
+
+#define SERVICE_STATEVARIABLE_ALLOWED_DEF \
+"        <allowedValue>%s</allowedValue>" \
+
+#define SERVICE_STATEVARIABLE_FOOTER \
+"      </allowedValueList>" \
 "    </stateVariable>"
 
 char *SERVICE_STATE_EVENTING[] = {
@@ -97,7 +122,23 @@ dlna_service_get_description (dlna_t *dlna dlna_unused, upnp_service_action_t *a
     while (actions->name)
     {
       if (actions->cb)
-        buffer_appendf (b, SERVICE_ACTION_DEF, actions->name, actions->args?actions->args:"");
+      {
+        if (actions->args_s)
+        {
+          upnp_service_action_arg_t *args = actions->args_s;
+
+          buffer_appendf (b, SERVICE_ACTION_HEADER, actions->name);
+          while (args->name)
+          {
+            buffer_appendf (b, SERVICE_ACTION_ARG_HEADER, args->name, (args->dir == E_INPUT)?"in":"out",args->relation->name);
+            buffer_appendf (b, SERVICE_ACTION_ARG_FOOTER);
+            args++;
+          }
+          buffer_appendf (b, SERVICE_ACTION_FOOTER);
+        }
+        else
+          buffer_appendf (b, SERVICE_ACTION_DEF, actions->name, actions->args?actions->args:"");
+      }
       actions++;
     }
     buffer_appendf (b, SERVICE_ACTIONLIST_FOOTER);
@@ -109,7 +150,17 @@ dlna_service_get_description (dlna_t *dlna dlna_unused, upnp_service_action_t *a
     {
       char *eventing = SERVICE_STATE_EVENTING[variables->eventing];
       char *type = SERVICE_STATE_TYPES[variables->type];
-      buffer_appendf (b, SERVICE_STATEVARIABLE_DEF, eventing, variables->name, type);
+      buffer_appendf (b, SERVICE_STATEVARIABLE_HEADER, eventing, variables->name, type);
+      if (variables->allowed)
+      {
+        char **allowed = variables->allowed;
+        while (*allowed)
+        {
+          buffer_appendf (b, SERVICE_STATEVARIABLE_ALLOWED_DEF, *allowed);
+          allowed ++;
+        }
+      }
+      buffer_appendf (b, SERVICE_STATEVARIABLE_FOOTER);
       variables++;
     }
     buffer_appendf (b, SERVICE_STATETABLE_FOOTER);

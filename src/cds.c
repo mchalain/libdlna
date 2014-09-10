@@ -667,6 +667,72 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   return 0;
 }
 
+enum
+{
+SearchCapabilities,
+SortCapabilities,
+SystemUpdateID,
+ContainerUpdateIDs,
+ServiceResetToken,
+LastChange,
+TransferIDs,
+FeatureList,
+DeviceMode,
+A_ARG_TYPE_ObjectID,
+A_ARG_TYPE_Result,
+A_ARG_TYPE_SearchCriteria,
+A_ARG_TYPE_BrowseFlag,
+A_ARG_TYPE_Filter,
+A_ARG_TYPE_SortCriteria,
+A_ARG_TYPE_Index,
+A_ARG_TYPE_Count,
+A_ARG_TYPE_UpdateID,
+A_ARG_TYPE_TransferID,
+A_ARG_TYPE_TransferStatus,
+A_ARG_TYPE_TransferLength,
+A_ARG_TYPE_TransferTotal,
+A_ARG_TYPE_TagValueList,
+A_ARG_TYPE_URI,
+};
+upnp_service_statevar_t cds_service_variables[];
+
+upnp_service_action_arg_t browse_args[] =
+{
+  {.name = CDS_ARG_OBJECT_ID,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_ObjectID]},
+  {.name = CDS_ARG_BROWSE_FLAG,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_BrowseFlag]},
+  {.name = CDS_ARG_FILTER,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Filter]},
+  {.name = CDS_ARG_START_INDEX,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Index]},
+  {.name = CDS_ARG_REQUEST_COUNT,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Count]},
+  {.name = CDS_ARG_SORT_CRIT,
+   .dir = E_INPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_SortCriteria]},
+  {.name = CDS_ARG_RESULT,
+   .dir = E_OUTPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Result]},
+  {.name = CDS_ARG_NUM_RETURNED,
+   .dir = E_OUTPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Count]},
+  {.name = CDS_ARG_TOTAL_MATCHES,
+   .dir = E_OUTPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_Count]},
+  {.name = CDS_ARG_UPDATE_ID,
+   .dir = E_OUTPUT,
+   .relation = &cds_service_variables[A_ARG_TYPE_UpdateID]},
+  {
+    .name = NULL,
+  },
+};
+
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {
   /* CDS Required Actions */
@@ -693,7 +759,7 @@ upnp_service_action_t cds_service_actions[] = {
     ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
     ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID"),
-    .args_s = NULL,
+    .args_s = browse_args,
     .cb = cds_browse },
 
   /* CDS Optional Actions */
@@ -751,31 +817,34 @@ upnp_service_action_t cds_service_actions[] = {
   { NULL, NULL, NULL, NULL }
 };
 
+char *A_ARG_TYPE_BrowseFlag_allowed[] =
+{"BrowseMetadata","BrowseDirectChildren",NULL};
+
 upnp_service_statevar_t cds_service_variables[] = {
-  { "SearchCapabilities", E_STRING, 0, NULL, NULL},
-  { "SortCapabilities", E_STRING, 0, NULL, NULL},
-  { "SystemUpdateID", E_UI4, 1, NULL, NULL},
-  { "ContainerUpdateIDs", E_UI4, 1, NULL, NULL},
-  { "ServiceResetToken", E_STRING, 0, NULL, NULL},
-  { "LastChange", E_STRING, 1, NULL, NULL},
-  { "TransferIDs", E_STRING, 1, NULL, NULL},
-  { "FeatureList", E_STRING, 0, NULL, NULL},
-  { "DeviceMode", E_STRING, 1, NULL, NULL},
-  { "A_ARG_TYPE_ObjectID", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_Result", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_SearchCriteria", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_BrowseFlag", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_Filter", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_SortCriteria", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_Index", E_UI4, 0, NULL, NULL},
-  { "A_ARG_TYPE_Count", E_UI4, 0, NULL, NULL},
-  { "A_ARG_TYPE_UpdateID", E_UI4, 0, NULL, NULL},
-  { "A_ARG_TYPE_TransferID", E_UI4, 0, NULL, NULL},
-  { "A_ARG_TYPE_TransferStatus", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_TransferLength", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_TransferTotal", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_TagValueList", E_STRING, 0, NULL, NULL},
-  { "A_ARG_TYPE_URI", E_URI, 0, NULL, NULL},
+  [SearchCapabilities] = { "SearchCapabilities", E_STRING, 0, NULL, NULL},
+  [SortCapabilities] = { "SortCapabilities", E_STRING, 0, NULL, NULL},
+  [SystemUpdateID] = { "SystemUpdateID", E_UI4, 1, NULL, NULL},
+  [ContainerUpdateIDs] = { "ContainerUpdateIDs", E_UI4, 1, NULL, NULL},
+  [ServiceResetToken] = { "ServiceResetToken", E_STRING, 0, NULL, NULL},
+  [LastChange] = { "LastChange", E_STRING, 1, NULL, NULL},
+  [TransferIDs] = { "TransferIDs", E_STRING, 1, NULL, NULL},
+  [FeatureList] = { "FeatureList", E_STRING, 0, NULL, NULL},
+  [DeviceMode] = { "DeviceMode", E_STRING, 1, NULL, NULL},
+  [A_ARG_TYPE_ObjectID] = { "A_ARG_TYPE_ObjectID", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_Result] = { "A_ARG_TYPE_Result", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_SearchCriteria] = { "A_ARG_TYPE_SearchCriteria", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_BrowseFlag] = { "A_ARG_TYPE_BrowseFlag", E_STRING, 0, A_ARG_TYPE_BrowseFlag_allowed, NULL},
+  [A_ARG_TYPE_Filter] = { "A_ARG_TYPE_Filter", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_SortCriteria] = { "A_ARG_TYPE_SortCriteria", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_Index] = { "A_ARG_TYPE_Index", E_UI4, 0, NULL, NULL},
+  [A_ARG_TYPE_Count] = { "A_ARG_TYPE_Count", E_UI4, 0, NULL, NULL},
+  [A_ARG_TYPE_UpdateID] = { "A_ARG_TYPE_UpdateID", E_UI4, 0, NULL, NULL},
+  [A_ARG_TYPE_TransferID] = { "A_ARG_TYPE_TransferID", E_UI4, 0, NULL, NULL},
+  [A_ARG_TYPE_TransferStatus] = { "A_ARG_TYPE_TransferStatus", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_TransferLength] = { "A_ARG_TYPE_TransferLength", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_TransferTotal] = { "A_ARG_TYPE_TransferTotal", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_TagValueList] = { "A_ARG_TYPE_TagValueList", E_STRING, 0, NULL, NULL},
+  [A_ARG_TYPE_URI] = { "A_ARG_TYPE_URI", E_URI, 0, NULL, NULL},
   { NULL, 0, 0, NULL, NULL},
 };
 
