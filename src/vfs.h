@@ -25,7 +25,6 @@
 
 typedef struct vfs_item_s {
   uint32_t id;
-  char *title;
 
   enum {
     DLNA_RESOURCE,
@@ -41,6 +40,7 @@ typedef struct vfs_item_s {
       int fd;
     } resource;
     struct {
+      char *title;
       struct vfs_item_s **children;
       uint32_t children_count;
       uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/

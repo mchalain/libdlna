@@ -156,7 +156,7 @@ didl_add_short_item (buffer_t *out,
   if (metadata)
     didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
   else
-    didl_add_tag (out, DIDL_ITEM_TITLE, item->filename);
+    didl_add_tag (out, DIDL_ITEM_TITLE, basename(item->filename));
   if (metadata)
   {
     didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
@@ -190,7 +190,7 @@ didl_add_item (buffer_t *out,
     if (item->metadata)
       add_item_name = didl_add_tag (out, DIDL_ITEM_TITLE, item->metadata->title);
     if (add_item_name)
-      didl_add_tag (out, DIDL_ITEM_TITLE, item->filename);
+      didl_add_tag (out, DIDL_ITEM_TITLE, basename (item->filename));
   
     didl_add_tag (out, DIDL_ITEM_CLASS, class);
 
@@ -269,7 +269,7 @@ didl_add_container (buffer_t *out, vfs_item_t *item,
   buffer_append (out, ">");
 
   didl_add_tag (out, DIDL_CONTAINER_CLASS, class);
-  didl_add_tag (out, DIDL_CONTAINER_TITLE, item->title);
+  didl_add_tag (out, DIDL_CONTAINER_TITLE, item->u.container.title);
 
   buffer_appendf (out, "</%s>", DIDL_CONTAINER);
 }

@@ -53,9 +53,6 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
 
   HASH_DEL (dlna->dms.vfs_root, item);
   
-  if (item->title)
-    free (item->title);
-
   switch (item->type)
   {
   case DLNA_RESOURCE:
@@ -66,6 +63,8 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
     break;
   case DLNA_CONTAINER:
   {
+    if (item->u.container.title)
+      free (item->u.container.title);
     vfs_item_t **children;
     for (children = item->u.container.children; *children; children++)
       vfs_item_free (dlna, *children);
@@ -137,9 +136,22 @@ vfs_get_item_by_name (dlna_t *dlna, char *name)
     return NULL;
   
   for (item = dlna->dms.vfs_root; item; item = item->hh.next)
-    if (!strcmp (item->title, name))
-      return item;
-
+  {
+    switch (item->type)
+    {
+    case DLNA_CONTAINER:
+      if (!strcmp (item->u.container.title, name))
+        return item;
+      break;
+    case DLNA_RESOURCE:
+      if ((!item->u.resource.item->metadata || !item->u.resource.item->metadata->title) &&
+          !strcmp (basename (item->u.resource.item->filename), name))
+        return item;
+      else if (!strcmp (item->u.resource.item->metadata->title, name))
+        return item;
+      break;
+    }
+  }
   return NULL;
 }
 
@@ -205,8 +217,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
             "New container id (asked for #%u, granted #%u)\n",
             object_id, item->id);
 
-  item->title = strdup (name);
-
+  item->u.container.title = strdup (name);
   item->u.container.children = calloc (1, sizeof (vfs_item_t *));
   *(item->u.container.children) = NULL;
   item->u.container.children_count = 0;
@@ -228,7 +239,7 @@ dlna_vfs_add_container (dlna_t *dlna, char *name,
   item->u.container.updateID = 0;
 
   dlna_log (dlna, DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
-            item->parent->id, item->parent->title);
+            item->parent->id, item->parent->u.container.title);
   
   return item->id;
 }
@@ -253,7 +264,12 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   item->type = DLNA_RESOURCE;
   
   item->id = vfs_provide_next_id (dlna, dlna_item->filename);
-  item->title = strdup (name);
+  if (!dlna_item->metadata)
+  {
+    dlna_item->metadata = calloc (1, sizeof (dlna_metadata_t));
+  }
+  if (!dlna_item->metadata->title)
+    dlna_item->metadata->title = strdup (name);
 
   item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
@@ -261,7 +277,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
   HASH_ADD_INT (dlna->dms.vfs_root, id, item);
   
   dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%u (%s)\n",
-            item->id, item->title);
+            item->id, dlna_item->metadata->title);
   item->u.resource.fd = -1;
 
   /* add the mime to cms source protocol info */
@@ -276,7 +292,7 @@ dlna_vfs_add_resource (dlna_t *dlna, char *name,
     item->parent->u.container.updateID ++;
 
   dlna_log (dlna, DLNA_MSG_INFO,
-            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->title);
+            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->u.container.title);
 
   /* add new child to parent */
   vfs_item_add_child (dlna, item->parent, item);
@@ -293,9 +309,12 @@ dlna_vfs_remove_item_by_id (dlna_t *dlna, uint32_t id)
     return;
   
   item = vfs_get_item_by_id (dlna, id);
-  dlna_log (dlna, DLNA_MSG_INFO,
-            "Removing item #%u (%s)\n", item->id, item->title);
-  vfs_item_free (dlna, item);
+  if (item)
+  {
+    dlna_log (dlna, DLNA_MSG_INFO,
+              "Removing item #%u\n", item->id);
+    vfs_item_free (dlna, item);
+  }
 }
 
 void
@@ -307,7 +326,10 @@ dlna_vfs_remove_item_by_title (dlna_t *dlna, char *name)
     return;
 
   item = vfs_get_item_by_name (dlna, name);
-  dlna_log (dlna, DLNA_MSG_INFO,
-            "Removing item #%u (%s)\n", item->id, item->title);
-  vfs_item_free (dlna, item);
+  if (item)
+  {
+    dlna_log (dlna, DLNA_MSG_INFO,
+              "Removing item #%u (%s)\n", item->id, name);
+    vfs_item_free (dlna, item);
+  }
 }
