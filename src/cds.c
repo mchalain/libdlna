@@ -851,9 +851,9 @@ upnp_service_statevar_t cds_service_variables[] = {
 };
 
 static char *
-cds_get_description (dlna_t *dlna)
+cds_get_description (dlna_service_t *service dlna_unused)
 {
-  return dlna_service_get_description (dlna, cds_service_actions, cds_service_variables);
+  return dlna_service_get_description (cds_service_actions, cds_service_variables);
 }
 
 dlna_service_t *

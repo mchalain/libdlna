@@ -71,8 +71,9 @@ struct dlna_service_s {
   struct upnp_service_statevar_s *statevar;
   uint32_t last_change;
   void *cookie;
-  char *(*get_description) (dlna_t *dlna);
-  int (*init) (dlna_t *dlna);
+  char *(*get_description) (struct dlna_service_s *service);
+  int (*init) (struct dlna_service_s *service);
+  void (*free) (struct dlna_service_s *service);
 };
 
 struct dlna_service_list_s {
@@ -88,6 +89,6 @@ int dlna_service_foreach (dlna_device_t *device, int (*cb)(void *cookie, dlna_se
 void dlna_service_unregister_all (dlna_device_t *device);
 
 char *
-dlna_service_get_description (dlna_t *dlna, upnp_service_action_t *actions, upnp_service_statevar_t *variables);
+dlna_service_get_description (upnp_service_action_t *actions, upnp_service_statevar_t *variables);
 
 #endif

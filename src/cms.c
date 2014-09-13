@@ -233,9 +233,9 @@ upnp_service_statevar_t cms_service_variables[] = {
 };
 
 static char *
-cms_get_description (dlna_t *dlna)
+cms_get_description (dlna_service_t *service dlna_unused)
 {
-  return dlna_service_get_description (dlna, cms_service_actions, cms_service_variables);
+  return dlna_service_get_description (cms_service_actions, cms_service_variables);
 }
 
 dlna_service_t *

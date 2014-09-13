@@ -1578,9 +1578,21 @@ upnp_service_statevar_t avts_service_variables[] = {
 };
 
 static char *
-avts_get_description (dlna_t *dlna)
+avts_get_description (dlna_service_t *service dlna_unused)
 {
-  return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
+  return dlna_service_get_description (avts_service_actions, avts_service_variables);
+}
+
+static void
+avts_free (dlna_service_t *service)
+{
+  avts_instance_t *instance;
+  avts_instance_t *instances = (avts_instance_t *)service->cookie;
+
+  for (instance = instances; instance; instance = instance->hh.next)
+  {
+    avts_kill_instance (service, instance->id);
+  }
 }
 
 dlna_service_t *
@@ -1600,6 +1612,7 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = avts_service_variables;
   service->get_description     = avts_get_description;
   service->init         = NULL;
+  service->free         = avts_free;
   service->last_change  = 1;
 
   instance = avts_create_instance (service, 0);

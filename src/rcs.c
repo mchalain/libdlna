@@ -251,6 +251,45 @@ RCS_ACTION_ARG_INSTANCE_ID \
 "          <relatedStateVariable>"RCS_VAR_ALLOWED_TRANSFORM_SETTINGS"</relatedStateVariable>" \
 "        </argument>"
 
+typedef struct rcs_instance_s rcs_instance_t;
+struct rcs_instance_s
+{
+  uint32_t id;
+  dlna_service_t *service;
+  UT_hash_handle hh;
+};
+
+static rcs_instance_t *
+rcs_create_instance (dlna_service_t *service, uint32_t id)
+{
+  rcs_instance_t *instance = NULL;
+  rcs_instance_t *instances = (rcs_instance_t *)service->cookie;
+
+  instance = calloc (1, sizeof(rcs_instance_t));
+
+  instance->id = id;
+  instance->service = service;
+  HASH_ADD_INT (instances, id, instance);
+  service->cookie = instances;
+  return instance;
+}
+
+static void
+rcs_kill_instance (dlna_service_t *service, uint32_t instanceID)
+{
+  rcs_instance_t *instance = NULL;
+  rcs_instance_t *instances = (rcs_instance_t *)service->cookie;
+
+  HASH_FIND_INT (instances, &instanceID, instance);
+
+  if (instance)
+  {
+    HASH_DEL (instances, instance);
+    free (instance);
+  }
+  return;
+}
+
 /* List of UPnP Rendering Control Service actions */
 upnp_service_action_t rcs_service_actions[] = {
   { RCS_ACTION_LIST_PRESETS,
@@ -424,14 +463,27 @@ upnp_service_statevar_t rcs_service_variables[] = {
 };
 
 static char *
-rcs_get_description (dlna_t *dlna)
+rcs_get_description (dlna_service_t *service dlna_unused)
 {
-  return dlna_service_get_description (dlna, rcs_service_actions, rcs_service_variables);
+  return dlna_service_get_description (rcs_service_actions, rcs_service_variables);
+}
+
+static void
+rcs_free (dlna_service_t *service)
+{
+  rcs_instance_t *instance;
+  rcs_instance_t *instances = (rcs_instance_t *)service->cookie;
+
+  for (instance = instances; instance; instance = instance->hh.next)
+  {
+    rcs_kill_instance (service, instance->id);
+  }
 }
 
 dlna_service_t *
 rcs_service_new (dlna_t *dlna dlna_unused)
 {
+  rcs_instance_t *instance;
   dlna_service_t *service = NULL;
   service = calloc (1, sizeof (dlna_service_t));
   
@@ -444,7 +496,11 @@ rcs_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = rcs_service_variables;
   service->get_description     = rcs_get_description;
   service->init         = NULL;
+  service->free         = rcs_free;
   service->last_change  = 1;
+
+  instance = rcs_create_instance (service, 0);
+  service->cookie = instance;
 
   return service;
 };
