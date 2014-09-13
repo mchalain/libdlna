@@ -82,7 +82,6 @@
 #define AVTS_VAR_AVT_URI_VAL_EMPTY          "no track uri"
 
 #define AVTS_ARG_INSTANCEID            "InstanceID"
-#define AVTS_ARG_INSTANCEID            "InstanceID"
 #define AVTS_ARG_CURRENT_URI           "CurrentURI"
 #define AVTS_ARG_NEXT_URI              "NextURI"
 #define AVTS_ARG_CURRENT_URI_METADATA  "CurrentURIMetaData"
@@ -1393,7 +1392,7 @@ avts_get_actions (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static char *
-avts_get_last_change (dlna_t *dlna, dlna_service_t *service)
+avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
 {
   char *value = NULL;
   buffer_t *out;

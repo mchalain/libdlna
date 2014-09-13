@@ -32,6 +32,9 @@
 #include "services.h"
 #include "rcs.h"
 
+#define RCS_ERR_ACTION_FAILED                 501
+#define RCS_ERR_INVALID_INSTANCE              718 
+
 #define RCS_VAR_LAST_CHANGE "LastChange"
 #define RCS_VAR_PRESET_NAME_LIST "PresetNameList"
 #define RCS_VAR_BRIGHTNESS "Brightness"
@@ -62,6 +65,9 @@
 #define RCS_VAR_A_ARG_TYPE_SERVICE_ID "A_ARG_TYPE_ServiceID"
 #define RCS_VAR_A_ARG_TYPE_STATE_VARIABLE_VALUE_PAIRS "A_ARG_TYPE_StateVariableValuePairs"
 #define RCS_VAR_A_ARG_TYPE_STATE_VARIABLE_LIST "A_ARG_TYPE_StateVariableList"
+
+#define RCS_ARG_INSTANCEID            "InstanceID"
+#define RCS_ARG_CUR_PRESET_NAME_LIST  "Current"RCS_VAR_PRESET_NAME_LIST
 
 #define RCS_ACTION_ARG_INSTANCE_ID \
 "        <argument>" \
@@ -290,14 +296,79 @@ rcs_kill_instance (dlna_service_t *service, uint32_t instanceID)
   return;
 }
 
+static int
+rcs_list_presets (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  rcs_instance_t *instance = NULL;
+  rcs_instance_t *instances = (rcs_instance_t *)ev->service->cookie;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = RCS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = RCS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, RCS_ARG_INSTANCEID);
+  HASH_FIND_INT (instances, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = RCS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+  upnp_add_response (ev, RCS_ARG_CUR_PRESET_NAME_LIST, "default");
+
+  return ev->status;
+}
+
+static int
+rcs_select_preset (dlna_t *dlna, upnp_action_event_t *ev)
+{
+  uint32_t instanceID;
+  rcs_instance_t *instance = NULL;
+  rcs_instance_t *instances = (rcs_instance_t *)ev->service->cookie;
+
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = RCS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Check for status */
+  if (!ev->status)
+  {
+    ev->ar->ErrCode = RCS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  /* Retrieve input arguments */
+  instanceID   = upnp_get_ui4 (ev->ar, RCS_ARG_INSTANCEID);
+  HASH_FIND_INT (instances, &instanceID, instance);
+  if (!instance)
+  {
+    ev->ar->ErrCode = RCS_ERR_INVALID_INSTANCE;
+    return 0;
+  }
+
+  return ev->status;
+}
+
 /* List of UPnP Rendering Control Service actions */
 upnp_service_action_t rcs_service_actions[] = {
   { RCS_ACTION_LIST_PRESETS,
     .args = RCS_ACTION_LIST_PRESETS_ARGS,
-    .cb = NULL },
+    .cb = rcs_list_presets },
   { RCS_ACTION_SELECT_PRESET,
     .args = RCS_ACTION_SELECT_PRESET_ARGS,
-    .cb = NULL },
+    .cb = rcs_select_preset },
   { RCS_ACTION_GET_BRIGHTNESS,
     .args = ACTION_GET_ARGS(RCS_VAR_BRIGHTNESS),
     .cb = NULL },
