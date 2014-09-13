@@ -1262,7 +1262,7 @@ avts_seek (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
   unit   = upnp_get_string (ev->ar, AVTS_ARG_SEEK_UNIT);
-  if (!strncmp (unit, "TRACK_NR", 0))
+  if (!strncmp (unit, "TRACK_NR", 8))
   {
     int32_t nbtrack;
     nbtrack = upnp_get_ui4 (ev->ar, AVTS_ARG_SEEK_TARGET);
