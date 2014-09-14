@@ -147,6 +147,7 @@ open_url (char *url, int mode, struct http_info *info)
   return fd;
 }
 
+#define ONLY_ONE
 int
 mpg123_profiler_init ()
 {
@@ -170,6 +171,7 @@ mpg123_profiler_init ()
       if (ret)
       {
         free (profiler);
+        profiler = NULL;
         break;
       }
       mpg123_param(profiler->handle, MPG123_RESYNC_LIMIT, -1, 0);
@@ -190,6 +192,10 @@ mpg123_profiler_init ()
       }
       previous = profiler;
     }
+#ifdef ONLY_ONE
+    if (profiler)
+      break;
+#endif
     decoderslist ++;
   }
 	return ret;
@@ -270,7 +276,7 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
 	if(mpg123_open_fd(profiler->handle, fdin) != MPG123_OK)
 	{
     printf ("%s: %s\n", __FUNCTION__, mpg123_strerror (profiler->handle));
-		return -1;
+		return -2;
 	}
 
   if (info)
@@ -280,7 +286,7 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
 //    if (mpg123_scan(profiler->handle) != MPG123_OK)
 //      return -1;
     if (mpg123_info (profiler->handle, info) != MPG123_OK)
-      return -1;
+      return -2;
     channels = (info->mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
 
     if (info->version != profiler->version || info->layer != profiler->layer || channels != profiler->channels)
@@ -320,12 +326,12 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   fd = open_url (filename, O_RDONLY, &file_info);
   
   profiler = g_profiler;
-  while (mpg123_openstream (profiler, fd, &mpg_info))
+  while (profiler && (ret = mpg123_openstream (profiler, fd, &mpg_info)) == -1)
   {
     profiler = profiler->next;
-    if (!profiler)
-      return NULL;
   }
+  if (!profiler || ret == -2)
+    return NULL;
   mpg123_set_filesize (profiler->handle, file_info.length);
 
   profile = profiler->profile;
