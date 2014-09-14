@@ -162,7 +162,7 @@ mpg123_profiler_init ()
   {
     int i;
 
-    printf ("try %s\n", *decoderslist);
+//    printf ("try %s\n", *decoderslist);
     for (i = 0; default_profiles[i]; i++)
     {
       profiler = calloc (1, sizeof (mpg123_profiler_data_t));
@@ -277,7 +277,10 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
   {
     enum mpg123_channelcount channels;
 
-    mpg123_info (profiler->handle, info);
+//    if (mpg123_scan(profiler->handle) != MPG123_OK)
+//      return -1;
+    if (mpg123_info (profiler->handle, info) != MPG123_OK)
+      return -1;
     channels = (info->mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
 
     if (info->version != profiler->version || info->layer != profiler->layer || channels != profiler->channels)
@@ -313,7 +316,7 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   mpg123_id3v1 *v1 = NULL;
   mpg123_id3v2 *v2 = NULL;
 
-  
+//  printf("file %s\n", filename);
   fd = open_url (filename, O_RDONLY, &file_info);
   
   profiler = g_profiler;
@@ -366,16 +369,16 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   {
     meta = calloc (1, sizeof (dlna_metadata_t));
     meta->title = dup_mpg123_string (v2->title);
-    if (!meta->title)
+    if (!meta->title && v1->title)
       meta->title = strndup (v1->title,sizeof(v1->title));
     meta->author = dup_mpg123_string (v2->artist);
-    if (!meta->author)
+    if (!meta->author && v1->artist)
       meta->author = strndup (v1->artist,sizeof(v1->artist));
     meta->album = dup_mpg123_string (v2->album);
-    if (!meta->album)
+    if (!meta->album && v1->album)
       meta->album = strndup (v1->album,sizeof(v1->album));
     meta->comment = dup_mpg123_string (v2->comment);
-    if (!meta->comment)
+    if (!meta->comment && v1->comment)
       meta->comment = strndup (v1->comment,sizeof(v1->comment));
     meta->genre = dup_mpg123_string (v2->genre);
     if (!meta->genre)
