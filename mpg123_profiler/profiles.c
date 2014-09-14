@@ -152,7 +152,7 @@ mpg123_profiler_init ()
 {
   int ret = 0;
   mpg123_profiler_data_t *profiler = NULL;
-  mpg123_profiler_data_t *previous;
+  mpg123_profiler_data_t *previous = NULL;
   const char **decoderslist;
 
   mpg123_init ();
@@ -162,26 +162,14 @@ mpg123_profiler_init ()
   {
     int i;
 
+    printf ("try %s\n", *decoderslist);
     for (i = 0; default_profiles[i]; i++)
     {
-      if (!g_profiler)
-      {
-        profiler = calloc (1, sizeof (mpg123_profiler_data_t));
-        g_profiler = profiler;
-      }
-      else if (profiler)
-      {
-        profiler->next = calloc (1, sizeof (mpg123_profiler_data_t));
-        previous = profiler;
-        profiler = profiler->next;
-        profiler->previous = previous;
-      }
-      printf ("try %s\n", *decoderslist);
+      profiler = calloc (1, sizeof (mpg123_profiler_data_t));
       profiler->handle = mpg123_new(*decoderslist, &ret);
       if (ret)
       {
         free (profiler);
-        previous->next = NULL;
         break;
       }
       mpg123_param(profiler->handle, MPG123_RESYNC_LIMIT, -1, 0);
@@ -190,6 +178,17 @@ mpg123_profiler_init ()
       profiler->layer = default_profiles_info[i].layer;
       profiler->channels = default_profiles_info[i].channels;
       profiler->sound = sound_module_get();
+
+      if (!g_profiler)
+      {
+        g_profiler = profiler;
+      }
+      else if (profiler)
+      {
+        previous->next = profiler;
+        profiler->previous = previous;
+      }
+      previous = profiler;
     }
     decoderslist ++;
   }
