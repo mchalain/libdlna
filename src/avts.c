@@ -224,7 +224,8 @@ struct avts_instance_s
   avts_playlist_t *playlist;
   dlna_service_t *service;
   enum {
-    E_NO_MEDIA,
+	E_SHUTDOWN = -1,
+    E_NO_MEDIA = 0,
     E_STOPPED,
     E_PLAYING,
     E_PAUSING,
@@ -498,8 +499,9 @@ static void *
 avts_thread_play (void *arg)
 {
   avts_instance_t *instance = (avts_instance_t *) arg;
+  int run = 1;
 
-  while (1)
+  while (run)
   {
     int play_frame = 0;
     int state;
@@ -509,6 +511,9 @@ avts_thread_play (void *arg)
     ithread_mutex_unlock (&instance->state_mutex);
     switch (state)
     {
+    case E_SHUTDOWN:
+      run = 0;
+      break;
     case E_PLAYING:
       play_frame = 1;
       break;
@@ -520,7 +525,8 @@ avts_thread_play (void *arg)
       while (!instance->playlist && instance->state == E_NO_MEDIA)
         ithread_cond_wait (&instance->state_change, &instance->state_mutex);
       ithread_mutex_unlock (&instance->state_mutex);
-      playitem_prepare (instance->playlist->item);
+      if (instance->playlist)
+        playitem_prepare (instance->playlist->item);
       instance->counter = 0;
       break;
     case E_STOPPED:
@@ -649,10 +655,14 @@ avts_kill_instance (dlna_service_t *service, uint32_t instanceID)
 
   if (instance)
   {
+    ithread_mutex_lock (&instance->state_mutex);
+    instance->state = E_SHUTDOWN;
+    ithread_cond_signal (&instance->state_change);
+    ithread_mutex_unlock (&instance->state_mutex);
+    ithread_join (instance->playthread, NULL);
     ithread_mutex_destroy (&instance->state_mutex);
     ithread_cond_destroy (&instance->state_change);
     playlist_empty (instance->playlist);
-    ithread_join (instance->playthread, NULL);
     HASH_DEL (instances, instance);
     free (instance);
   }
