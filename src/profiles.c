@@ -331,17 +331,39 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   return item;
 }
 
+static void
+dlna_metadata_free (dlna_metadata_t *meta)
+{
+  if (!meta)
+    return;
+
+  if (meta->title)
+    free (meta->title);
+  if (meta->author)
+    free (meta->author);
+  if (meta->comment)
+    free (meta->comment);
+  if (meta->album)
+    free (meta->album);
+  if (meta->genre)
+    free (meta->genre);
+  free (meta);
+}
+
 void
 dlna_item_free (dlna_item_t *item)
 {
   if (!item)
     return;
 
+  if (item->profile->free)
+    item->profile->free (item);
   if (item->filename)
     free (item->filename);
   if (item->properties)
     free (item->properties);
-  item->profile->free (item);
+  if (item->metadata)
+    dlna_metadata_free (item->metadata);
   item->profile = NULL;
   free (item);
 }

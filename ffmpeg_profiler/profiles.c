@@ -379,30 +379,9 @@ ffmpeg_profiler_get_media_profile (char *profileid)
 }
 
 static void
-dlna_metadata_free (dlna_metadata_t *meta)
-{
-  if (!meta)
-    return;
-
-  if (meta->title)
-    free (meta->title);
-  if (meta->author)
-    free (meta->author);
-  if (meta->comment)
-    free (meta->comment);
-  if (meta->album)
-    free (meta->album);
-  if (meta->genre)
-    free (meta->genre);
-  free (meta);
-}
-
-static void
 media_profile_free(dlna_item_t *item)
 {
   ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
-
-  dlna_metadata_free (item->metadata);
 
   avformat_close_input (&cookie->ctx);
   free (cookie);

@@ -201,25 +201,6 @@ mpg123_profiler_init ()
 	return ret;
 }
 
-static void
-dlna_metadata_free (dlna_metadata_t *meta)
-{
-  if (!meta)
-    return;
-
-  if (meta->title)
-    free (meta->title);
-  if (meta->author)
-    free (meta->author);
-  if (meta->comment)
-    free (meta->comment);
-  if (meta->album)
-    free (meta->album);
-  if (meta->genre)
-    free (meta->genre);
-  free (meta);
-}
-
 static int
 dlna_list_length (void *list)
 {
@@ -412,10 +393,6 @@ profile_free(dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
 
-  if (item->metadata)
-    dlna_metadata_free (item->metadata);
-  if (cookie->prop)
-    free (cookie->prop);
   free (cookie);
   item->profile_cookie = NULL;
 }
