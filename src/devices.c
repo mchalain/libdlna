@@ -61,16 +61,30 @@ dlna_device_free (dlna_device_t *device)
 {
   dlna_service_unregister_all (device);
   
-  free (device->friendly_name);
-  free (device->manufacturer);
-  free (device->manufacturer_url);
-  free (device->model_description);
-  free (device->model_name);
-  free (device->model_number);
-  free (device->model_url);
-  free (device->serial_number);
-  free (device->uuid);
-  free (device->presentation_url);
+  if (device->urn_type)
+    free (device->urn_type);
+  if (device->friendly_name )
+    free (device->friendly_name);
+  if (device->manufacturer )
+    free (device->manufacturer);
+  if (device->manufacturer_url )
+    free (device->manufacturer_url);
+  if (device->model_description )
+    free (device->model_description);
+  if (device->model_name )
+    free (device->model_name);
+  if (device->model_number )
+    free (device->model_number);
+  if (device->model_url )
+    free (device->model_url);
+  if (device->serial_number )
+    free (device->serial_number);
+  if (device->uuid )
+    free (device->uuid);
+  if (device->presentation_url )
+    free (device->presentation_url);
+
+  free (device);
 }
 
 void

@@ -93,7 +93,7 @@ dlna_init (void)
 {
   dlna_t *dlna;
 
-  dlna = malloc (sizeof (dlna_t));
+  dlna = calloc (1, sizeof (dlna_t));
   dlna->inited = 1;
   dlna->verbosity = DLNA_MSG_ERROR;
   dlna->mode = DLNA_CAPABILITY_DLNA;
@@ -116,6 +116,23 @@ dlna_init (void)
   return dlna;
 }
 
+static void
+dlna_remove_profilers (dlna_t *dlna)
+{
+  if (!dlna)
+    return;
+  
+  while (dlna->profilers)
+  {
+    dlna_profiler_list_t *profilers_list = dlna->profilers->next;
+
+    if (dlna->profilers->profiler->free)
+      dlna->profilers->profiler->free ();
+    free (dlna->profilers);
+    dlna->profilers = profilers_list;
+  }
+}
+
 void
 dlna_uninit (dlna_t *dlna)
 {
@@ -124,7 +141,7 @@ dlna_uninit (dlna_t *dlna)
 
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
-  vfs_item_free (dlna, dlna->dms.vfs_root);
+  dlna_vfs_uninit (dlna);
   free (dlna->interface);
 
   dms_db_close (dlna);
@@ -133,6 +150,7 @@ dlna_uninit (dlna_t *dlna)
   if (dlna->http_callback)
     free (dlna->http_callback);
 
+  dlna_remove_profilers (dlna);
   /* UPnP Properties */
   if (dlna->device)
 	dlna_device_free (dlna->device);

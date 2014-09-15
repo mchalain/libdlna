@@ -69,6 +69,7 @@ struct vfs_s
  * Initialize the VFS of the device
  */
 int dlna_vfs_init (dlna_t *dlna);
+void dlna_vfs_uninit (dlna_t *dlna);
 
 vfs_item_t *vfs_get_item_by_id (dlna_t *dlna, uint32_t id);
 vfs_item_t *vfs_get_item_by_name (dlna_t *dlna, char *name);

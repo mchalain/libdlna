@@ -46,6 +46,13 @@ dlna_vfs_init (dlna_t *dlna)
 }
 
 void
+dlna_vfs_uninit (dlna_t *dlna)
+{
+  vfs_item_free (dlna, dlna->dms.vfs_root);
+  dlna->dms.vfs_root = NULL;
+}
+
+void
 vfs_item_free (dlna_t *dlna, vfs_item_t *item)
 {
   if (!dlna || !dlna->dms.vfs_root || !item)
@@ -75,6 +82,7 @@ vfs_item_free (dlna_t *dlna, vfs_item_t *item)
   
   item->parent = NULL;
   dlna->dms.vfs_items--;
+  free (item);
 }
 
 static dlna_status_code_t

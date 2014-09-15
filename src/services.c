@@ -183,22 +183,8 @@ dlna_service_register (dlna_device_t *device, dlna_service_t *service)
   item = calloc (1, sizeof(dlna_service_list_t));
 
   item->id = service->typeid;
-  item->service = calloc (1, sizeof (dlna_service_t));
-  memcpy (item->service, service, sizeof (dlna_service_t));
+  item->service = service;
   HASH_ADD_INT (device->services, id, item);
-}
-
-static void
-dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
-{
-  if (!device || !device->services || !item)
-    return;
-
-  if (item->service->free)
-    item->service->free (item->service);
-  HASH_DEL (device->services, item);
-  free (item->service);
-  free (item);
 }
 
 dlna_service_t *
@@ -259,6 +245,19 @@ dlna_service_foreach (dlna_device_t *device, int (*cb)(void *cookie, dlna_servic
       break;
   }
   return ret;
+}
+
+static void
+dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
+{
+  if (!device || !device->services || !item)
+    return;
+
+  if (item->service->free)
+    item->service->free (item->service);
+  HASH_DEL (device->services, item);
+  free (item->service);
+  free (item);
 }
 
 void

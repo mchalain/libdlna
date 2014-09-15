@@ -165,6 +165,8 @@ main (int argc, char **argv)
 
   /* DLNA stack cleanup */
   dlna_uninit (dlna);
-  
+
+  free (interface);
+
   return 0;
 }
