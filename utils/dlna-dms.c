@@ -99,6 +99,7 @@ display_usage (char *name)
   printf ("Usage: %s [-u|d|x] [-c directory] [[-c directory]...]\n", name);
   printf ("Options:\n");
   printf (" -c\tContent directory to be shared\n");
+  printf (" -i\tNetwork interface\n");
   printf (" -d\tStart in strict DLNA compliant mode\n");
   printf (" -h\tDisplay help\n");
   printf (" -u\tStart in pervasive UPnP A/V compliant mode\n");
@@ -112,13 +113,15 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
+  char *interface = NULL;
   const dlna_profiler_t *profiler;
   int c, index;
   char *content_dir = NULL;
   struct stat st;
-  char short_options[] = "c:dhux";
+  char short_options[] = "c:i:dhux";
   struct option long_options [] = {
     {"content", required_argument, 0, 'c' },
+    {"interface", required_argument, 0, 'i' },
     {"dlna", no_argument, 0, 'd' },
     {"help", no_argument, 0, 'h' },
     {"upnp", no_argument, 0, 'u' },
@@ -164,6 +167,10 @@ main (int argc, char **argv)
       content_dir = strdup (optarg);
       break;
 
+    case 'i':
+      interface = strdup (optarg);
+      break;
+
     case 'd':
       cap = DLNA_CAPABILITY_DLNA;
       printf ("Running in strict DLNA compliant mode ...\n");
@@ -184,6 +191,10 @@ main (int argc, char **argv)
     }
   }
   
+  if (!interface)
+  {
+    interface = strdup ("eth0");
+  }
   if (!content_dir)
   {
     printf ("No content directory to be shared, bail out.\n");
@@ -210,7 +221,7 @@ main (int argc, char **argv)
 #endif
 
   /* define NIC to be used */
-  dlna_set_interface (dlna, "eth0");
+  dlna_set_interface (dlna, interface);
 
   /* set some UPnP device properties */
   device = dlna_device_new ();
@@ -263,6 +274,9 @@ main (int argc, char **argv)
 
   /* DLNA stack cleanup */
   dlna_uninit (dlna);
+
+  free (interface);
+  free (content_dir);
   
   return 0;
 }
