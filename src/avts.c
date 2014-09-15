@@ -82,7 +82,6 @@
 #define AVTS_VAR_AVT_URI_VAL_EMPTY          "no track uri"
 
 #define AVTS_ARG_INSTANCEID            "InstanceID"
-#define AVTS_ARG_INSTANCEID            "InstanceID"
 #define AVTS_ARG_CURRENT_URI           "CurrentURI"
 #define AVTS_ARG_NEXT_URI              "NextURI"
 #define AVTS_ARG_CURRENT_URI_METADATA  "CurrentURIMetaData"
@@ -225,7 +224,8 @@ struct avts_instance_s
   avts_playlist_t *playlist;
   dlna_service_t *service;
   enum {
-    E_NO_MEDIA,
+	E_SHUTDOWN = -1,
+    E_NO_MEDIA = 0,
     E_STOPPED,
     E_PLAYING,
     E_PAUSING,
@@ -499,8 +499,9 @@ static void *
 avts_thread_play (void *arg)
 {
   avts_instance_t *instance = (avts_instance_t *) arg;
+  int run = 1;
 
-  while (1)
+  while (run)
   {
     int play_frame = 0;
     int state;
@@ -510,6 +511,9 @@ avts_thread_play (void *arg)
     ithread_mutex_unlock (&instance->state_mutex);
     switch (state)
     {
+    case E_SHUTDOWN:
+      run = 0;
+      break;
     case E_PLAYING:
       play_frame = 1;
       break;
@@ -521,7 +525,8 @@ avts_thread_play (void *arg)
       while (!instance->playlist && instance->state == E_NO_MEDIA)
         ithread_cond_wait (&instance->state_change, &instance->state_mutex);
       ithread_mutex_unlock (&instance->state_mutex);
-      playitem_prepare (instance->playlist->item);
+      if (instance->playlist)
+        playitem_prepare (instance->playlist->item);
       instance->counter = 0;
       break;
     case E_STOPPED:
@@ -650,10 +655,14 @@ avts_kill_instance (dlna_service_t *service, uint32_t instanceID)
 
   if (instance)
   {
+    ithread_mutex_lock (&instance->state_mutex);
+    instance->state = E_SHUTDOWN;
+    ithread_cond_signal (&instance->state_change);
+    ithread_mutex_unlock (&instance->state_mutex);
+    ithread_join (instance->playthread, NULL);
     ithread_mutex_destroy (&instance->state_mutex);
     ithread_cond_destroy (&instance->state_change);
     playlist_empty (instance->playlist);
-    ithread_join (instance->playthread, NULL);
     HASH_DEL (instances, instance);
     free (instance);
   }
@@ -1262,7 +1271,7 @@ avts_seek (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
   unit   = upnp_get_string (ev->ar, AVTS_ARG_SEEK_UNIT);
-  if (!strncmp (unit, "TRACK_NR", 0))
+  if (!strncmp (unit, "TRACK_NR", 8))
   {
     int32_t nbtrack;
     nbtrack = upnp_get_ui4 (ev->ar, AVTS_ARG_SEEK_TARGET);
@@ -1393,7 +1402,7 @@ avts_get_actions (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static char *
-avts_get_last_change (dlna_t *dlna, dlna_service_t *service)
+avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
 {
   char *value = NULL;
   buffer_t *out;
@@ -1578,9 +1587,21 @@ upnp_service_statevar_t avts_service_variables[] = {
 };
 
 static char *
-avts_get_description (dlna_t *dlna)
+avts_get_description (dlna_service_t *service dlna_unused)
 {
-  return dlna_service_get_description (dlna, avts_service_actions, avts_service_variables);
+  return dlna_service_get_description (avts_service_actions, avts_service_variables);
+}
+
+static void
+avts_free (dlna_service_t *service)
+{
+  avts_instance_t *instance;
+  avts_instance_t *instances = (avts_instance_t *)service->cookie;
+
+  for (instance = instances; instance; instance = instance->hh.next)
+  {
+    avts_kill_instance (service, instance->id);
+  }
 }
 
 dlna_service_t *
@@ -1600,6 +1621,7 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service->statevar     = avts_service_variables;
   service->get_description     = avts_get_description;
   service->init         = NULL;
+  service->free         = avts_free;
   service->last_change  = 1;
 
   instance = avts_create_instance (service, 0);

@@ -52,10 +52,12 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
+  char *interface = NULL;
   const dlna_profiler_t *profiler;
   int c, index;
-  char short_options[] = "dhu";
+  char short_options[] = "i:dhu";
   struct option long_options [] = {
+    {"interface", required_argument, 0, 'i' },
     {"dlna", no_argument, 0, 'd' },
     {"help", no_argument, 0, 'h' },
     {"upnp", no_argument, 0, 'u' },
@@ -90,6 +92,10 @@ main (int argc, char **argv)
       display_usage (argv[0]);
       return -1;
 
+    case 'i':
+      interface = strdup (optarg);
+      break;
+
     case 'd':
       cap = DLNA_CAPABILITY_DLNA;
       printf ("Running in strict DLNA compliant mode ...\n");
@@ -105,6 +111,11 @@ main (int argc, char **argv)
     }
   }
   
+  if (!interface)
+  {
+    interface = strdup ("eth0");
+  }
+
   /* init DLNA stack */
   dlna = dlna_init ();
   dlna_set_org_flags (dlna, flags);
@@ -120,7 +131,7 @@ main (int argc, char **argv)
 #endif
 
   /* define NIC to be used */
-  dlna_set_interface (dlna, "eth0");
+  dlna_set_interface (dlna, interface);
 
   /* set some UPnP device properties */
   device = dlna_device_new ();

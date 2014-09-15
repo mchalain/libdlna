@@ -108,7 +108,7 @@ char *SERVICE_STATE_TYPES[] = {
 };
 
 char *
-dlna_service_get_description (dlna_t *dlna dlna_unused, upnp_service_action_t *actions, upnp_service_statevar_t *variables)
+dlna_service_get_description (upnp_service_action_t *actions, upnp_service_statevar_t *variables)
 {
   buffer_t *b = NULL;
   char *desc = NULL;
@@ -194,6 +194,8 @@ dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
   if (!device || !device->services || !item)
     return;
 
+  if (item->service->free)
+    item->service->free (item->service);
   HASH_DEL (device->services, item);
   free (item->service);
   free (item);

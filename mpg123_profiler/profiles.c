@@ -147,40 +147,31 @@ open_url (char *url, int mode, struct http_info *info)
   return fd;
 }
 
+#define ONLY_ONE
 int
 mpg123_profiler_init ()
 {
   int ret = 0;
-  mpg123_profiler_data_t *profiler;
-  mpg123_profiler_data_t *previous;
+  mpg123_profiler_data_t *profiler = NULL;
+  mpg123_profiler_data_t *previous = NULL;
   const char **decoderslist;
 
   mpg123_init ();
 
-	decoderslist = mpg123_decoders();
+  decoderslist = mpg123_decoders();
   while (*decoderslist)
   {
     int i;
 
+//    printf ("try %s\n", *decoderslist);
     for (i = 0; default_profiles[i]; i++)
     {
-      if (!g_profiler)
-      {
-        profiler = calloc (1, sizeof (mpg123_profiler_data_t));
-        g_profiler = profiler;
-      }
-      else
-      {
-        profiler->next = calloc (1, sizeof (mpg123_profiler_data_t));
-        previous = profiler;
-        profiler = profiler->next;
-        profiler->previous = previous;
-      }
+      profiler = calloc (1, sizeof (mpg123_profiler_data_t));
       profiler->handle = mpg123_new(*decoderslist, &ret);
       if (ret)
       {
         free (profiler);
-        previous->next = NULL;
+        profiler = NULL;
         break;
       }
       mpg123_param(profiler->handle, MPG123_RESYNC_LIMIT, -1, 0);
@@ -189,29 +180,25 @@ mpg123_profiler_init ()
       profiler->layer = default_profiles_info[i].layer;
       profiler->channels = default_profiles_info[i].channels;
       profiler->sound = sound_module_get();
-      decoderslist ++;
+
+      if (!g_profiler)
+      {
+        g_profiler = profiler;
+      }
+      else if (profiler)
+      {
+        previous->next = profiler;
+        profiler->previous = previous;
+      }
+      previous = profiler;
     }
+#ifdef ONLY_ONE
+    if (profiler)
+      break;
+#endif
+    decoderslist ++;
   }
 	return ret;
-}
-
-static void
-dlna_metadata_free (dlna_metadata_t *meta)
-{
-  if (!meta)
-    return;
-
-  if (meta->title)
-    free (meta->title);
-  if (meta->author)
-    free (meta->author);
-  if (meta->comment)
-    free (meta->comment);
-  if (meta->album)
-    free (meta->album);
-  if (meta->genre)
-    free (meta->genre);
-  free (meta);
 }
 
 static int
@@ -270,14 +257,17 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
 	if(mpg123_open_fd(profiler->handle, fdin) != MPG123_OK)
 	{
     printf ("%s: %s\n", __FUNCTION__, mpg123_strerror (profiler->handle));
-		return -1;
+		return -2;
 	}
 
   if (info)
   {
     enum mpg123_channelcount channels;
 
-    mpg123_info (profiler->handle, info);
+//    if (mpg123_scan(profiler->handle) != MPG123_OK)
+//      return -1;
+    if (mpg123_info (profiler->handle, info) != MPG123_OK)
+      return -2;
     channels = (info->mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
 
     if (info->version != profiler->version || info->layer != profiler->layer || channels != profiler->channels)
@@ -313,16 +303,16 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   mpg123_id3v1 *v1 = NULL;
   mpg123_id3v2 *v2 = NULL;
 
-  
+//  printf("file %s\n", filename);
   fd = open_url (filename, O_RDONLY, &file_info);
   
   profiler = g_profiler;
-  while (mpg123_openstream (profiler, fd, &mpg_info))
+  while (profiler && (ret = mpg123_openstream (profiler, fd, &mpg_info)) == -1)
   {
     profiler = profiler->next;
-    if (!profiler)
-      return NULL;
   }
+  if (!profiler || ret == -2)
+    return NULL;
   mpg123_set_filesize (profiler->handle, file_info.length);
 
   profile = profiler->profile;
@@ -366,16 +356,16 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   {
     meta = calloc (1, sizeof (dlna_metadata_t));
     meta->title = dup_mpg123_string (v2->title);
-    if (!meta->title)
+    if (!meta->title && v1->title)
       meta->title = strndup (v1->title,sizeof(v1->title));
     meta->author = dup_mpg123_string (v2->artist);
-    if (!meta->author)
+    if (!meta->author && v1->artist)
       meta->author = strndup (v1->artist,sizeof(v1->artist));
     meta->album = dup_mpg123_string (v2->album);
-    if (!meta->album)
+    if (!meta->album && v1->album)
       meta->album = strndup (v1->album,sizeof(v1->album));
     meta->comment = dup_mpg123_string (v2->comment);
-    if (!meta->comment)
+    if (!meta->comment && v1->comment)
       meta->comment = strndup (v1->comment,sizeof(v1->comment));
     meta->genre = dup_mpg123_string (v2->genre);
     if (!meta->genre)
@@ -403,10 +393,6 @@ profile_free(dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
 
-  if (item->metadata)
-    dlna_metadata_free (item->metadata);
-  if (cookie->prop)
-    free (cookie->prop);
   free (cookie);
   item->profile_cookie = NULL;
 }
