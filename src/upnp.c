@@ -456,7 +456,7 @@ dlna_event_thread (void *arg)
 {
   dlna_t *dlna =(dlna_t *)arg;
 
-  while (1)
+  while (dlna->inited)
   {
     int ret;
     struct timespec abstime = {.tv_sec = 0, .tv_nsec = 200000000,}; /*0.2s*/
@@ -464,8 +464,8 @@ dlna_event_thread (void *arg)
     do
     {
       //ret = ithread_cond_wait (&dlna->eventing, &dlna->event_mutex);
-      ret = ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
       nanosleep (&abstime, NULL);
+      ret = ithread_cond_timedwait (&dlna->eventing, &dlna->event_mutex, &abstime);
       if (ret == ETIMEDOUT)
         break;
     }
@@ -590,6 +590,10 @@ dlna_stop (dlna_t *dlna)
     return DLNA_ST_ERROR;
 
   dlna_log (dlna, DLNA_MSG_INFO, "Stopping UPnP A/V Service ...\n");
+  dlna->inited = 0;
+  ithread_mutex_lock (&dlna->event_mutex);
+  ithread_cond_signal (&dlna->eventing);
+  ithread_mutex_unlock (&dlna->event_mutex);
   ithread_join (dlna->event_thread, NULL);
   ithread_mutex_destroy (&dlna->event_mutex);
   ithread_cond_destroy (&dlna->eventing);
