@@ -120,7 +120,7 @@ install_shared: lib_shared
 
 install: $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)
-	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)
+#	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
