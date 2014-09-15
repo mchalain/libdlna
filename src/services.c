@@ -255,8 +255,8 @@ dlna_service_free (dlna_device_t *device, dlna_service_list_t *item)
 
   if (item->service->free)
     item->service->free (item->service);
-  HASH_DEL (device->services, item);
   free (item->service);
+  HASH_DEL (device->services, item);
   free (item);
 }
 
@@ -283,7 +283,11 @@ dlna_service_unregister_all (dlna_device_t *device)
   if (!device || !device->services)
     return;
 
-  for (item = device->services; item; item = item->hh.next)
-    dlna_service_free (device, item);
+  while (device->services)
+  {
+    item = device->services->hh.next;
+    dlna_service_free (device, device->services);
+    device->services = item;
+  }
   device->services = NULL;
 }
