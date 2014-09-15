@@ -52,6 +52,7 @@ SRCS :=  \
 	msr.c \
 	rcs.c \
 	http.c \
+	upnpav_profiler.c \
 	upnp_dms.c \
 	upnp_dmr.c \
 
