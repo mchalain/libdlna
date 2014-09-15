@@ -95,6 +95,7 @@ static dlna_profile_t *default_profiles[] = {
 typedef struct mpg123_profiler_data_s mpg123_profiler_data_t;
 struct mpg123_profiler_data_s
 {
+  char **mimes;
   dlna_profile_t *profile;
   enum mpg123_version version;
   int layer;
@@ -118,7 +119,7 @@ struct profile_data_s
   uint32_t length;
 };
 
-mpg123_profiler_data_t *g_profiler = NULL;
+static mpg123_profiler_data_t *g_profiler = NULL;
 
 int
 open_url (char *url, int mode, struct http_info *info)
@@ -230,18 +231,40 @@ dlna_list_add (char **list, char *element)
   return l;
 }
 
-char **
-mpg123_profiler_get_supported_mime_types (char **mimes)
+static char **
+mpg123_profiler_get_supported_mime_types ()
 {
   mpg123_profiler_data_t *profiler;
+
+  if (g_profiler->mimes)
+    return g_profiler->mimes;
+  else
+    g_profiler->mimes = calloc (1, sizeof (char *));
   
   profiler = g_profiler;
   while (profiler)
   {
-    mimes = dlna_list_add (mimes, (char *)profiler->profile->mime);
+    g_profiler->mimes = dlna_list_add (g_profiler->mimes, (char *)profiler->profile->mime);
     profiler = profiler->next;
   }
-  return mimes;
+  g_profiler->mimes = dlna_list_add (g_profiler->mimes, NULL);
+  return g_profiler->mimes;
+}
+
+static void
+mpg123_profiler_free ()
+{
+  mpg123_profiler_data_t *profiler;
+  while (g_profiler)
+  {
+    profiler = g_profiler->next;
+    if (g_profiler->mimes)
+      free (g_profiler->mimes);
+    mpg123_delete (g_profiler->handle);
+    free (g_profiler);
+    g_profiler = profiler;
+  }
+  mpg123_exit ();
 }
 
 static void
@@ -505,4 +528,5 @@ const dlna_profiler_t mpg123_profiler = {
   .guess_media_profile = mpg123_profiler_guess_media_profile,
   .get_media_profile = mpg123_profiler_get_media_profile,
   .get_supported_mime_types = mpg123_profiler_get_supported_mime_types,
+  .free = mpg123_profiler_free,
 };

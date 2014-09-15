@@ -378,12 +378,10 @@ char * dlna_write_protocol_info (dlna_t *dlna,
 typedef struct dlna_profiler_s {
 /**
  * Output the table of mime type supported by the profiler.
- * reentrance function
  *
- * @param[in] mimes    The table to append.
  * @return            The table with the new values added.
  */
-  char **(*get_supported_mime_types) ( char **mimes);
+  char **(*get_supported_mime_types) ();
 /**
  * Output the Media profile of a type.
  *

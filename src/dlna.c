@@ -76,16 +76,17 @@ dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
     profilers_list->next = dlna->profilers;
     dlna->profilers = profilers_list;
   }
-  if (!dlna->cms.sourcemimes)
+  char **mimelist;
+  char **iterator;
+
+  mimelist = profiler->get_supported_mime_types ();
+  iterator = mimelist;
+  while (*iterator)
   {
-    dlna->cms.sourcemimes = malloc (sizeof (char*));
+    dlna_append_supported_mime_types (dlna, 0, *iterator);
+    dlna_append_supported_mime_types (dlna, 1, *iterator);
+    iterator++;
   }
-  if (!dlna->cms.sinkmimes)
-  {
-    dlna->cms.sinkmimes = malloc (sizeof (char*));
-  }
-  dlna->cms.sourcemimes = profiler->get_supported_mime_types (dlna->cms.sourcemimes);
-  dlna->cms.sinkmimes = profiler->get_supported_mime_types (dlna->cms.sinkmimes);
 }
 
 dlna_t *
@@ -131,6 +132,8 @@ dlna_remove_profilers (dlna_t *dlna)
     free (dlna->profilers);
     dlna->profilers = profilers_list;
   }
+  free (dlna->cms.sourcemimes);
+  free (dlna->cms.sinkmimes);
 }
 
 void

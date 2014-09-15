@@ -131,6 +131,7 @@ typedef struct ffmpeg_profiler_data_s
   int inited;
   /* linked-list of registered DLNA profiles */
   void *first_profile;
+  char **mimes;
 } ffmpeg_profiler_data_t;
 
 typedef struct ffmpeg_stream_s ffmpeg_stream_t;
