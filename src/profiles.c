@@ -255,24 +255,6 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
   return NULL;
 }
 
-char **
-dlna_get_supported_mime_types (dlna_t *dlna)
-{
-  dlna_profiler_list_t *profilerit;
-  char **mimes;
- 
-  if (!dlna)
-    return NULL;
-
-  mimes = malloc (sizeof (char *));
-  *mimes = NULL;
-
-  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
-    mimes = profilerit->profiler->get_supported_mime_types (mimes);
-  mimes = dlna_list_add (mimes, NULL);
-  return mimes;
-}
-
 dlna_profile_t *
 dlna_get_media_profile (dlna_t *dlna, char *profileid)
 {
