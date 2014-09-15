@@ -395,6 +395,7 @@ ffmpeg_profiler_free ()
   {
     if (g_profiler->mimes)
       free (g_profiler->mimes);
+    avformat_network_deinit ();
     free (g_profiler);
   }
 }
