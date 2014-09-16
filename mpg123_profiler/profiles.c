@@ -287,8 +287,10 @@ mpg123_openstream(mpg123_profiler_data_t *profiler, int fdin, struct mpg123_fram
   {
     enum mpg123_channelcount channels;
 
-//    if (mpg123_scan(profiler->handle) != MPG123_OK)
-//      return -1;
+    if (mpg123_scan(profiler->handle) != MPG123_OK)
+      return -1;
+    if (mpg123_length(profiler->handle) != MPG123_OK)
+      return -1;
     if (mpg123_info (profiler->handle, info) != MPG123_OK)
       return -2;
     channels = (info->mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
