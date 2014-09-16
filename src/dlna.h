@@ -396,7 +396,7 @@ typedef struct dlna_profiler_s {
  * @param[out] cookie     The data to set into the dlna_item_t (profile_cookie).
  * @return            The profile of the file.
  */
-  dlna_profile_t *(*guess_media_profile) (char *filename, void **cookie);
+  dlna_profile_t *(*guess_media_profile) (char *filename, int fd, void **cookie);
 /**
  * free data used by the profiler
  **/

@@ -411,7 +411,7 @@ media_profile_free(dlna_item_t *item)
 }
 
 dlna_profile_t *
-ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
+ffmpeg_profiler_guess_media_profile (char *filename, int fd, void **cookie)
 {
   registered_profile_t *p;
   dlna_profile_t *profile = NULL;
@@ -421,7 +421,7 @@ ffmpeg_profiler_guess_media_profile (char *filename, void **cookie)
 
   if (!g_profiler || !g_profiler->inited)
     g_profiler = ffmpeg_profiler_init ();
-  
+
   if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
   {
     return NULL;

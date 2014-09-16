@@ -311,7 +311,7 @@ dup_mpg123_string (mpg123_string *string)
 }
 
 dlna_profile_t *
-mpg123_profiler_guess_media_profile (char *filename, void **cookie)
+mpg123_profiler_guess_media_profile (char *filename, int fd, void **cookie)
 {
   dlna_profile_t *profile;
   dlna_properties_t *prop;
@@ -320,7 +320,7 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   mpg123_profiler_data_t *profiler;
   int  channels = 2, encoding = MPG123_ENC_SIGNED_32;
   long rate = 44100;
-  int fd, ret;
+  int ret;
   uint32_t time, time_s, time_m, time_h;
   uint32_t len;
   struct http_info file_info;
@@ -329,8 +329,9 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
   mpg123_id3v2 *v2 = NULL;
 
 //  printf("file %s\n", filename);
-  fd = open_url (filename, O_RDONLY, &file_info);
-  
+  if (!fd && filename)
+    fd = open_url (filename, O_RDONLY, &file_info);
+
   profiler = g_profiler;
   while (profiler && (ret = mpg123_openstream (profiler, fd, &mpg_info)) == -1)
   {

@@ -148,7 +148,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 
   for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
   {
-	item->profile    = profilerit->profiler->guess_media_profile ((char *)item->filename, &item->profile_cookie);
+	item->profile    = profilerit->profiler->guess_media_profile ((char *)item->filename, 0, &item->profile_cookie);
 	if (item->profile)
 		break;
   }
