@@ -28,7 +28,6 @@ endif
 
 SRCS :=  \
 	profiles.c \
-	network.c \
 	modules/sound_tinyalsa.c
 
 EXTRADIST = \

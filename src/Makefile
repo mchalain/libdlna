@@ -53,6 +53,8 @@ SRCS :=  \
 	rcs.c \
 	http.c \
 	upnpav_profiler.c \
+	stream.c \
+	network.c \
 	upnp_dms.c \
 	upnp_dmr.c \
 

@@ -113,7 +113,7 @@ dlna_init (void)
 
   dlna_vfs_init (dlna);
 
-  dlna_add_profiler (dlna, &upnpav_profiler);
+//  dlna_add_profiler (dlna, &upnpav_profiler);
   return dlna;
 }
 

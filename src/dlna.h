@@ -106,7 +106,9 @@ extern "C" {
 struct dlna_metadata_s;
 struct dlna_properties_s;
 struct dlna_item_s;
+struct dlna_stream_s;
 
+typedef struct dlna_stream_s dlna_stream_t;
 typedef struct dlna_item_s dlna_item_t;
 
 /* Status code for DLNA related functions */
@@ -396,7 +398,7 @@ typedef struct dlna_profiler_s {
  * @param[out] cookie     The data to set into the dlna_item_t (profile_cookie).
  * @return            The profile of the file.
  */
-  dlna_profile_t *(*guess_media_profile) (char *filename, int fd, void **cookie);
+  dlna_profile_t *(*guess_media_profile) (dlna_stream_t *reader, void **cookie);
 /**
  * free data used by the profiler
  **/

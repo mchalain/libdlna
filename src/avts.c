@@ -366,7 +366,12 @@ static int
 playitem_prepare (dlna_item_t *item)
 {
   if (item->profile->prepare_stream)
+  {
+    if (item->stream)
+      return -1;
+    item->stream = stream_open (item->filename);
     item->profile->prepare_stream (item);
+  }
   return 0;
 }
 
@@ -383,7 +388,11 @@ static int
 playitem_close (dlna_item_t *item)
 {
   if (item->profile->close_stream)
+  {
     item->profile->close_stream (item);
+    stream_close (item->stream);
+    item->stream = NULL;
+  }
   return 0;
 }
 

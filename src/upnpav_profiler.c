@@ -186,13 +186,13 @@ upnp_get_media_profile (char *profileid)
 }
 
 static dlna_profile_t *
-upnp_guess_media_profile (char *filename, int fd, void **cookie)
+upnp_guess_media_profile (dlna_stream_t *reader, int fd, void **cookie)
 {
   dlna_profile_t *profile = NULL;
   char *extension;
   int i;
 
-  extension = get_file_extension (filename);
+  extension = get_file_extension (reader->url);
   if (!extension)
     return NULL;
   

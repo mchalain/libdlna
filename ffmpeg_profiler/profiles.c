@@ -411,7 +411,7 @@ media_profile_free(dlna_item_t *item)
 }
 
 dlna_profile_t *
-ffmpeg_profiler_guess_media_profile (char *filename, int fd, void **cookie)
+ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
 {
   registered_profile_t *p;
   dlna_profile_t *profile = NULL;
@@ -422,7 +422,7 @@ ffmpeg_profiler_guess_media_profile (char *filename, int fd, void **cookie)
   if (!g_profiler || !g_profiler->inited)
     g_profiler = ffmpeg_profiler_init ();
 
-  if (avformat_open_input (&ctx, filename, NULL, NULL) != 0)
+  if (avformat_open_input (&ctx, reader->url, NULL, NULL) != 0)
   {
     return NULL;
   }
@@ -452,7 +452,7 @@ ffmpeg_profiler_guess_media_profile (char *filename, int fd, void **cookie)
       if (p->extensions)
       {
         /* check for valid file extension */
-        if (!match_file_extension (filename, p->extensions))
+        if (!match_file_extension (reader->url, p->extensions))
         {
           p = p->next;
           continue;

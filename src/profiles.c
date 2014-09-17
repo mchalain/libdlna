@@ -24,9 +24,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #include "dlna_internals.h"
 #include "vfs.h"
+#include "network.h"
 
 extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
 
@@ -130,7 +132,9 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 {
   dlna_profiler_list_t *profilerit;
   dlna_item_t *item;
-  struct stat st;
+  dlna_stream_t *reader;
+  int fd;
+  struct http_info info = { 0, "\0"};
 
   if (!dlna || !filename)
     return NULL;
@@ -141,17 +145,35 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   item = calloc (1, sizeof (dlna_item_t));
 
   item->filename   = strdup (filename);
-  if (!stat (filename, &st))
-    item->filesize   = st.st_size;
-  else
-    item->filesize	 = -1;
+  reader = stream_open (item->filename);
 
-  for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+  if (reader)
   {
-	item->profile    = profilerit->profiler->guess_media_profile ((char *)item->filename, 0, &item->profile_cookie);
-	if (item->profile)
-		break;
+    for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
+    {
+      if (strlen (info.mime) > 0)
+      {
+        char **mimestable = profilerit->profiler->get_supported_mime_types ();
+        while (*mimestable)
+        {
+          printf( "profiler %p mime %s\n", profilerit->profiler, *mimestable);
+          if ( !strcmp (*mimestable, info.mime))
+            break;
+          mimestable ++;
+        }
+        if (!*mimestable)
+          continue;
+      }
+      printf ("profiler %p\n", profilerit->profiler);
+      item->profile    = profilerit->profiler->guess_media_profile (reader, &item->profile_cookie);
+      printf ("profile %p\n", item->profile);
+      reader->cleanup (reader);
+      if (item->profile)
+        break;
+    }
+    stream_close (reader);
   }
+
   if (!item->profile) /* not DLNA compliant */
   {
     dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
