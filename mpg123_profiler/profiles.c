@@ -102,7 +102,6 @@ struct mpg123_profiler_data_s
   enum mpg123_version version;
   int layer;
   enum mpg123_channelcount channels;
-  struct sound_module *sound;
   mpg123_profiler_data_t *next;
   mpg123_profiler_data_t *previous;
 };
@@ -122,6 +121,7 @@ struct profile_data_s
 
 static mpg123_profiler_data_t *g_profiler = NULL;
 static mpg123_handle *g_profiler_handle = NULL;
+struct sound_module *g_profiler_sound = NULL;
 
 #define ONLY_ONE
 int
@@ -134,6 +134,7 @@ mpg123_profiler_init ()
 
   mpg123_init ();
 
+  g_profiler_sound = sound_module_get();
   decoderslist = mpg123_decoders();
   while (*decoderslist)
   {
@@ -151,7 +152,6 @@ mpg123_profiler_init ()
       profiler->version = default_profiles_info[i].version;
       profiler->layer = default_profiles_info[i].layer;
       profiler->channels = default_profiles_info[i].channels;
-      profiler->sound = sound_module_get();
 
       if (!g_profiler)
       {
@@ -271,7 +271,6 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   mpg123_id3v2 *v2 = NULL;
   enum mpg123_channelcount channels;
 
-  profiler = g_profiler;
   mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
 
 	if(mpg123_open_handle(g_profiler_handle, reader) != MPG123_OK)
@@ -301,6 +300,7 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   rate = mpg_info.rate;
   channels = (mpg_info.mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
 
+  profiler = g_profiler;
   while (profiler)
   {
     if (mpg_info.version == profiler->version && mpg_info.layer == profiler->layer && channels == profiler->channels)
@@ -411,11 +411,9 @@ static int
 item_prepare_stream (dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
-  mpg123_profiler_data_t *profiler = cookie->profiler;
   int  channels = 2, encoding = MPG123_ENC_SIGNED_32;
   long rate = 44100;
 
-  profiler = g_profiler;
   mpg123_replace_reader_handle (g_profiler_handle, item->stream->read, item->stream->lseek, item->stream->cleanup);
 
   if (mpg123_open_handle (g_profiler_handle, item->stream))
@@ -436,7 +434,7 @@ item_prepare_stream (dlna_item_t *item)
 		return -1;
 	}
 
-  profiler->sound->open (channels, encoding, rate);
+  g_profiler_sound->open (channels, encoding, rate);
   cookie->buffer = calloc (1, cookie->buffsize);
   cookie->offset = 0;
   return 0;
@@ -464,7 +462,7 @@ item_read_stream (dlna_item_t *item)
   if (err == MPG123_OK)
   {
     cookie->offset += done;
-    err = profiler->sound->write (cookie->buffer, cookie->buffsize);
+    err = g_profiler_sound->write (cookie->buffer, cookie->buffsize);
     if (err <  0)
        dbgprintf ("%s: %d %d\n", __FUNCTION__, err, done);
   }
@@ -478,7 +476,7 @@ item_close_stream (dlna_item_t *item)
   mpg123_profiler_data_t *profiler = cookie->profiler;
 
   mpg123_close(g_profiler_handle);
-  profiler->sound->close ();
+  g_profiler_sound->close ();
 }
 
 dlna_profile_t *
