@@ -1031,7 +1031,22 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   else
     upnp_add_response (ev, AVTS_ARG_TRACK_URI, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
-  upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
+  if (plitem && plitem->item->properties && plitem->item->properties->bps && plitem->item->properties->sample_frequency)
+  {
+    char duration[100];
+    uint32_t time, time_s, time_m, time_h;
+    long rate = plitem->item->properties->sample_frequency;
+
+    time = instance->counter * plitem->item->properties->spf / rate / plitem->item->properties->bps * 8;
+
+    time_h = time / 60 / 60;
+    time_m = (time / 60) % 60;
+    time_s = time % 60;
+    snprintf(duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
+    upnp_add_response (ev, AVTS_ARG_RTIME, duration);
+  }
+  else
+    upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
   upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
   out = buffer_new ();
   buffer_appendf (out, "%u", instance->counter);

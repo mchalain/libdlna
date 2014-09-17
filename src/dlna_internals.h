@@ -186,6 +186,7 @@ typedef struct dlna_properties_s {
   uint32_t bitrate;               /* res@bitrate */
   uint32_t sample_frequency;      /* res@sampleFrequency */
   uint32_t bps;                   /* res@bitsPerSample */
+  uint32_t spf;                   /* sample per frame */
   uint32_t channels;              /* res@nrAudioChannels */
   char     resolution[DLNA_PROPERTIES_RESOLUTION_MAX_SIZE];        /* res@resolution */
 } dlna_properties_t;

@@ -365,6 +365,8 @@ mpg123_profiler_guess_media_profile (char *filename, void **cookie)
 
   prop->sample_frequency = rate;
   prop->channels = channels;
+  prop->bps = ((encoding & MPG123_ENC_8)? 8 : (encoding & MPG123_ENC_16)? 16: (encoding & MPG123_ENC_32)? 32:0);
+  prop->spf = mpg123_spf(profiler->handle);
 
   len = mpg123_length(profiler->handle);
   time = len / (rate * ((encoding & MPG123_ENC_8)? 1 : (encoding & MPG123_ENC_16)? 2: 4));
