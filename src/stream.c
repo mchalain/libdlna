@@ -138,6 +138,7 @@ fullload_open (char *url)
     file->lseek = fullload_lseek;
     file->cleanup = fullload_cleanup;
     file->close = fullload_close;
+    strcpy (file->mime, info.mime);
 
     data = calloc (1, sizeof (struct fullload_data_s));
     data->total = info.length;
@@ -166,9 +167,9 @@ seekable_lseek (void *opaque, off_t len, int whence)
 }
 
 static void
-seekable_cleanup (void *opaque)
+seekable_cleanup (void *opaque dlna_unused)
 {
-  dlna_stream_t *file = opaque;
+//  dlna_stream_t *file = opaque;
 }
 
 static void
@@ -184,6 +185,7 @@ seekable_open (char *url)
   int fd;
   dlna_stream_t *file = NULL;
   struct stat finfo;
+  dlna_profile_t *profile;
 
   fd = open (url, O_RDONLY);
   if (!fstat (fd, &finfo))
@@ -195,6 +197,10 @@ seekable_open (char *url)
     file->lseek = seekable_lseek;
     file->cleanup = seekable_cleanup;
     file->close = seekable_close;
+
+    profile = upnpav_profiler.guess_media_profile (file, NULL);
+    if (profile)
+      strcpy (file->mime, profile->mime);
 
     file->private = NULL;
   }

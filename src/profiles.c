@@ -133,8 +133,6 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   dlna_profiler_list_t *profilerit;
   dlna_item_t *item;
   dlna_stream_t *reader;
-  int fd;
-  struct http_info info = { 0, "\0"};
 
   if (!dlna || !filename)
     return NULL;
@@ -151,22 +149,23 @@ dlna_item_new (dlna_t *dlna, const char *filename)
   {
     for (profilerit = dlna->profilers; profilerit; profilerit = profilerit->next)
     {
-      if (strlen (info.mime) > 0)
+      if (strlen (reader->mime) > 0)
       {
         char **mimestable = profilerit->profiler->get_supported_mime_types ();
         while (*mimestable)
         {
-          printf( "profiler %p mime %s\n", profilerit->profiler, *mimestable);
-          if ( !strcmp (*mimestable, info.mime))
+          if ( !strcmp (*mimestable, reader->mime))
+          {
             break;
+          }
           mimestable ++;
         }
         if (!*mimestable)
+        {
           continue;
+        }
       }
-      printf ("profiler %p\n", profilerit->profiler);
-      item->profile    = profilerit->profiler->guess_media_profile (reader, &item->profile_cookie);
-      printf ("profile %p\n", item->profile);
+      item->profile = profilerit->profiler->guess_media_profile (reader, &item->profile_cookie);
       reader->cleanup (reader);
       if (item->profile)
         break;

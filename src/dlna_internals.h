@@ -222,6 +222,10 @@ struct dlna_stream_s {
    **/
   char *url;
   /**
+   * mime type of the stream
+   **/
+  char mime[100];
+  /**
    * file descriptor of the file
    * 
    * it's mandatory, to not use it directly.

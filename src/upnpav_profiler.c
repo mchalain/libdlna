@@ -53,6 +53,7 @@ static const mime_type_t mime_type_list[] = {
   { "m2v",   {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,.id = "MPEG_PS_PAL",}},
   { "mpg2",  {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,.id = "MPEG_PS_PAL",}},
   { "mpeg2", {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,.id = "MPEG_PS_PAL",}},
+  { "ps",    {.mime = MIME_VIDEO_MPEG_2, .media_class = DLNA_CLASS_AV,.id = "MPEG_PS_PAL",}},
   { "m4v",   {.mime = MIME_VIDEO_MPEG_4, .media_class = DLNA_CLASS_AV,.id = "AVC_MP4_MP_SD_AC3",}},
   { "m4p",   {.mime = MIME_VIDEO_MPEG_4, .media_class = DLNA_CLASS_AV,.id = "AVC_MP4_MP_SD_AC3",}},
   { "mp4",   {.mime = MIME_VIDEO_MPEG_4, .media_class = DLNA_CLASS_AV,.id = "MPEG4_P2_MP4_SP_AAC",}},
@@ -186,19 +187,22 @@ upnp_get_media_profile (char *profileid)
 }
 
 static dlna_profile_t *
-upnp_guess_media_profile (dlna_stream_t *reader, int fd, void **cookie)
+upnp_guess_media_profile (dlna_stream_t *reader, void **cookie dlna_unused)
 {
   dlna_profile_t *profile = NULL;
-  char *extension;
+  char *extension = NULL;
   int i;
 
   extension = get_file_extension (reader->url);
   if (!extension)
     return NULL;
-  
   for (i = 0; mime_type_list[i].extension; i++)
+  {
     if (!strcmp (extension, mime_type_list[i].extension))
+    {
       profile = (dlna_profile_t *)&mime_type_list[i].profile;
+    }
+  }
 
   return profile;
 }
@@ -206,7 +210,8 @@ upnp_guess_media_profile (dlna_stream_t *reader, int fd, void **cookie)
 static void
 upnp_free ()
 {
-  free (mimes);
+  if (mimes)
+    free (mimes);
   mimes = NULL;
 }
 
