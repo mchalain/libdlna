@@ -24,12 +24,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "dlna_internals.h"
 #include "network.h"
 #include "minmax.h"
 
-#define FULLLOAD_STREAM
+#define NORMAL_STREAM
+//#define FULLLOAD_STREAM
+//#define DBUFFER_STREAM
 /***********************************************************************
  * stream buffer with complete loading into memory of the file
  * 
@@ -156,12 +159,67 @@ fullload_open (char *url)
  * double buffer streaming
  **/
 #ifdef DBUFFER_STREAM
+
+#define DBUFFER_SIZE 2090
 struct dbuffer_data_s {
-  char buffer[2][BUFFER_SIZE];
+  char buffer[2][DBUFFER_SIZE];
   char *current_buffer;
   off_t offset;
+  off_t threshold;
+  ssize_t buffersize;
   off_t total_offset;
+  int next_ready;
 };
+
+static void
+dbuffer_fillcurrent (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct dbuffer_data_s *data = file->private;
+  char *buffer;
+  ssize_t len;
+
+  buffer = data->current_buffer;
+	len = read (file->fd, buffer, data->buffersize);
+	while (len < data->buffersize)
+	{
+		len += read (file->fd, buffer + len, data->buffersize - len);
+	}
+  data->offset = 0;
+}
+
+static void
+dbuffer_fillnext (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct dbuffer_data_s *data = file->private;
+  char *buffer;
+  ssize_t len;
+
+  buffer = 
+    (data->current_buffer == data->buffer[0])? data->buffer[1]:data->buffer[0];
+	len = read (file->fd, buffer, data->buffersize);
+	while (len < data->buffersize)
+	{
+		len += read (file->fd, buffer + len, data->buffersize - len);
+	}
+  data->next_ready = 1;
+}
+
+static char *
+dbuffer_nextbuffer (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct dbuffer_data_s *data = file->private;
+
+  if (!data->next_ready)
+    dbuffer_fillnext (opaque);
+  data->current_buffer = 
+    (data->current_buffer == data->buffer[0])? data->buffer[1]:data->buffer[0];
+  data->next_ready = 0;
+  data->offset = 0;
+  return data->current_buffer;
+}
 
 static void
 dbuffer_reset (void *opaque)
@@ -172,15 +230,10 @@ dbuffer_reset (void *opaque)
   if (data->offset)
   {
     close (file->fd);
-    file->fd = http_get (url, NULL);
+    file->fd = http_get (file->url, NULL);
   }
   data->current_buffer = data->buffer[0];
-  len = read (file->fd, data->current_buffer, BUFFER_SIZE);
-  while (len < BUFFER_SIZE)
-  {
-    len += read (file->fd, data->current_buffer + len, BUFFER_SIZE - len);
-  }
-  data->offset = 0;
+  dbuffer_fillcurrent (opaque);
 }
 
 static ssize_t
@@ -188,37 +241,49 @@ dbuffer_read (void *opaque, void *buf, size_t len)
 {
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
+  size_t tmp_len = len;
 
-  if (data->offset >= BUFFER_SIZE / 2)
-  {
-    int len;
-    char *fill_buffer;
+  if (len >= 1041 || len < 0)
+    printf ("error\n");
 
-    fill_buffer = (data->current_buffer == data->buffer[0])?data->buffer[1]:data->buffer[0];
-    
-    len = read (file->fd, fill_buffer, BUFFER_SIZE);
-    while (len > 0 && len < BUFFER_SIZE)
-    {
-      len += read (file->fd, fill_buffer + len, BUFFER_SIZE - len);
-    }
-  }
-  if (data->offset + len <= BUFFER_SIZE)
+  if (data->offset + len < data->buffersize)
   {
-    len = memcpy (buf, data->current_buffer + data->offset, len);
+    /** there is enought data inside the current buffer **/
+    memcpy (buf, data->current_buffer + data->offset, len);
     data->offset += len;
     data->total_offset += len;
   }
   else
   {
-    int wlen;
-    wlen = memcpy (buf, data->current_buffer + data->offset, BUFFER_SIZE - data->offset);
-    data->current_buffer = (data->current_buffer == data->buffer[0])?data->buffer[1]:data->buffer[0];
-    data->offset = 0;
-    len = memcpy (buf + wlen, data->current_buffer + data->offset, len - wlen);
+    ssize_t wlen = 0;
+    /** the requested length requires the next buffer **/
+    while (len > data->buffersize - data->offset)
+    {
+      memcpy (buf, data->current_buffer + data->offset, data->buffersize - data->offset);
+      dbuffer_nextbuffer (opaque);
+      data->total_offset += data->buffersize - data->offset;
+      len -= data->buffersize - data->offset;
+      buf += data->buffersize - data->offset;
+      wlen += data->buffersize - data->offset;
+    }
+    memcpy (buf, data->current_buffer + data->offset, len);
     data->offset += len;
     data->total_offset += len;
+    /** recompute the return of the function **/
     len += wlen;
+
+    if (data->offset >= data->buffersize)
+    {
+      dbuffer_nextbuffer (opaque);
+    }
   }
+  if (data->offset >= data->threshold && !data->next_ready)
+  {
+    /** move inside the current buffer requires to fill the next one **/
+    dbuffer_fillnext (opaque);
+  }
+  if (tmp_len != len)
+    printf ("error\n");
   return len;
 }
 
@@ -227,49 +292,94 @@ dbuffer_lseek (void *opaque, off_t len, int whence)
 {
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
-  int rlen, clen;
+  off_t rlen = 0;
 
   switch (whence)
   {
   case SEEK_END:
-    /** the required offset is already past **/
-    if (data->total_offset > (data->total + len))
+    if (len > 0)
     {
-      if ((data->total_offset - data->offset) <= (data->total + len))
-      {
-        data->total_offset -= data->offset;
-        data->offset = 0;
-      }
-      /** the second buffer contains old data **/
-      if (data->offset < BUFFER_SIZE / 2)
-      {
-      }
+      errno = EINVAL;
+      return (off_t) -1;
     }
-    /** the offset is far to the end **/
-    while (data->total_offset <= (data->total + len))
+    /** jump to the end of the buffer already available nothing more **/
+    data->total_offset += data->buffersize - data->offset + len;
+    data->offset = data->buffersize + len;
+    if (data->next_ready)
     {
-      rlen = MIN((data->total - data->total_offset + len) , BUFFER_SIZE);
-      rlen = read (file->fd, data->current_buffer, rlen);
-      data->total_offset += rlen;
-    }
-    /** now the current buffer start at the required offset of the stream **/
-    data->offset = 0;
-    /** fill the current buffer for the next call to read **/
-    rlen = MIN(-len, BUFFER_SIZE);
-    clen = read (file->fd, data->current_buffer, rlen);
-    while (clen < rlen)
-    {
-      clen += read (file->fd, data->current_buffer + clen, rlen - clen);
+      dbuffer_nextbuffer (opaque);
+      data->total_offset += data->buffersize;
+      data->offset += data->buffersize;
     }
     break;
   case SEEK_SET:
-    data->offset = len;
+    if (len < 0)
+    {
+      errno = EINVAL;
+      return (off_t) -1;
+    }
+    dbuffer_reset (opaque);
+    data->total_offset = len;
+    while (0 < len)
+    {
+      rlen = MIN(len, data->buffersize);
+      len -= read (file->fd, data->current_buffer, rlen);
+    }
+    /** fill the current buffer with requested data for next read **/
+    dbuffer_fillcurrent (opaque);
     break;
   case SEEK_CUR:
-    data->offset += len;
+    if (len == 0)
+      return data->total_offset;
+    if ((data->offset + len) >= 0 && (data->offset + len) < data->buffersize)
+    {
+      data->offset += len;
+      data->total_offset += len;
+      if (data->offset > data->threshold && !data->next_ready)
+        dbuffer_fillnext (opaque);
+    }
+    else if ((data->offset + len) < 0)
+    {
+      data->total_offset -= data->offset;
+      len += data->offset;
+      data->offset = 0;
+      /** no more old data impossible to seek more  **/
+      if (!data->next_ready)
+      {
+        /** move to the previous buffer **/
+        data->next_ready = 1;
+        dbuffer_nextbuffer (opaque);
+        data->next_ready = 1;
+        data->offset = data->buffersize;
+        if ((data->offset + len) < 0)
+        {
+          data->total_offset -= data->offset;
+          len += data->offset;
+          data->offset = 0;
+        }
+        else
+        {
+          data->offset += len;
+          data->total_offset += len;
+        }
+      }
+    }
+    else if ((data->offset + len) < data->buffersize)
+    {
+      /** move to the next buffer **/
+      while ((data->offset + len) < data->buffersize)
+      {
+        len -= data->buffersize - data->offset;
+        data->total_offset += data->buffersize - data->offset;
+        data->offset = 0;
+        dbuffer_nextbuffer (opaque);
+      }
+      /** move to the last bytes **/
+      data->offset = len;
+      data->total_offset += len;
+    }
     break;
   }
-
   return data->total_offset;
 }
 
@@ -302,13 +412,11 @@ dbuffer_open (char *url)
   int fd;
   struct http_info info;
   dlna_stream_t *file = NULL;
-  struct fullload_data_s *data = NULL;
+  struct dbuffer_data_s *data = NULL;
 
   fd = http_get (url, &info);
   if (fd > 0)
   {
-    int len;
-
     file = calloc (1, sizeof (dlna_stream_t));
     file->fd = fd;
     file->url = strdup (url);
@@ -319,6 +427,8 @@ dbuffer_open (char *url)
     strcpy (file->mime, info.mime);
 
     data = calloc (1, sizeof (struct dbuffer_data_s));
+    data->buffersize = DBUFFER_SIZE;
+    data->threshold = DBUFFER_SIZE * 9 / 10;
 
     file->private = data;
     dbuffer_reset (file);
@@ -330,6 +440,7 @@ dbuffer_open (char *url)
 /***********************************************************************
  * stream buffer for seekable stream
  **/
+#ifdef NORMAL_STREAM
 static ssize_t
 seekable_read (void *opaque, void *buf, size_t len)
 {
@@ -386,6 +497,8 @@ seekable_open (char *url)
   }
   return file;
 }
+
+#endif
 /***********************************************************************
  * stream internal API
  **********************************************************************/
@@ -398,6 +511,9 @@ stream_open (char *url)
   }
   else if (!strncmp (url, "http:", 5))
   {
+#ifdef DBUFFER_STREAM
+    return dbuffer_open (url);
+#endif
 #ifdef FULLLOAD_STREAM
     return fullload_open (url);
 #endif
