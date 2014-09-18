@@ -31,7 +31,8 @@
 #include "sound_module.h"
 #include "network.h"
 
-#define dbgprintf(...)
+//#define dbgprintf(...)
+#define dbgprintf printf
 
 static dlna_properties_t *item_get_properties (dlna_item_t *item);
 static dlna_metadata_t *item_get_metadata (dlna_item_t *item);
@@ -124,6 +125,7 @@ static mpg123_handle *g_profiler_handle = NULL;
 struct sound_module *g_profiler_sound = NULL;
 
 #define ONLY_ONE
+//#define SELECT_DECODER "generic"
 int
 mpg123_profiler_init ()
 {
@@ -140,6 +142,13 @@ mpg123_profiler_init ()
   {
     int i;
 
+#ifdef SELECT_DECODER
+    if (strcmp (*decoderslist, SELECT_DECODER))
+    {
+      decoderslist ++;
+      continue;
+    }
+#endif
     g_profiler_handle = mpg123_new(*decoderslist, &ret);
     decoderslist ++;
     if (ret)
@@ -263,13 +272,13 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   mpg123_profiler_data_t *profiler;
   int  encoding = MPG123_ENC_SIGNED_32;
   long rate = 44100;
+  enum mpg123_channelcount channels;
   off_t length;
   uint32_t time, time_s, time_m, time_h;
   struct mpg123_frameinfo mpg_info;
   int metaflags;
   mpg123_id3v1 *v1 = NULL;
   mpg123_id3v2 *v2 = NULL;
-  enum mpg123_channelcount channels;
 
   mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
 
@@ -278,24 +287,31 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
     dbgprintf ("%s 1: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
 		return NULL;
 	}
-  if (mpg123_scan(g_profiler_handle) != MPG123_OK)
+  if (mpg123_scan(g_profiler_handle) != MPG123_OK && 
+      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK && 
+      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK_FROM_END)
   {
     dbgprintf ("%s 2: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
     mpg123_close(g_profiler_handle);
     return NULL;
   }
-  length = mpg123_length(g_profiler_handle);
-  if (length < MPG123_OK)
-  {
-    dbgprintf ("%s 3: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-    mpg123_close(g_profiler_handle);
-    return NULL;
-  }
+
   if (mpg123_info (g_profiler_handle, &mpg_info) != MPG123_OK)
   {
     dbgprintf ("%s 4: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
     mpg123_close(g_profiler_handle);
     return NULL;
+  }
+  if (reader->length > 0)
+  {
+    mpg123_set_filesize (g_profiler_handle, reader->length);
+    length = mpg123_length(g_profiler_handle);
+    if (length < MPG123_OK)
+    {
+      dbgprintf ("%s 3: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+      mpg123_close(g_profiler_handle);
+      return NULL;
+    }
   }
   rate = mpg_info.rate;
   channels = (mpg_info.mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
@@ -328,7 +344,6 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
     mpg123_close(g_profiler_handle);
 		return NULL;
 	}
-
   data->buffsize = mpg123_outblock(g_profiler_handle);
 
   /* properties setup */
@@ -339,35 +354,44 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   prop->bps = (encoding & MPG123_ENC_8)? 8:(encoding & MPG123_ENC_16)? 16: (encoding & MPG123_ENC_32)? 32: 0;
   prop->spf = mpg123_spf(g_profiler_handle);
 
-  data->length = length;
-  time = length / rate;
+  if (length > 0)
+  {
+    data->length = length;
+    time = length / rate;
 
-  time_h = time / 60 / 60;
-  time_m = (time / 60) % 60;
-  time_s = time % 60;
-  snprintf(prop->duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
-  data->prop = prop;
+    time_h = time / 60 / 60;
+    time_m = (time / 60) % 60;
+    time_s = time % 60;
+    snprintf(prop->duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
+    data->prop = prop;
+  }
+  else
+    snprintf(prop->duration, 63, "00:00:00");
   
   /* metadata setup */
   metaflags = mpg123_meta_check(g_profiler_handle);
   if((metaflags & MPG123_ID3) && mpg123_id3(g_profiler_handle, &v1, &v2) == MPG123_OK)
   {
     meta = calloc (1, sizeof (dlna_metadata_t));
-    meta->title = dup_mpg123_string (v2->title);
-    if (!meta->title && v1->title)
+    if (v2)
+    {
+      meta->title = dup_mpg123_string (v2->title);
+      meta->author = dup_mpg123_string (v2->artist);
+      meta->album = dup_mpg123_string (v2->album);
+      meta->comment = dup_mpg123_string (v2->comment);
+      meta->genre = dup_mpg123_string (v2->genre);
+    }
+    if (v1 && !meta->title && v1->title)
       meta->title = strndup (v1->title,sizeof(v1->title));
-    meta->author = dup_mpg123_string (v2->artist);
-    if (!meta->author && v1->artist)
+    if (v1 && !meta->author && v1->artist)
       meta->author = strndup (v1->artist,sizeof(v1->artist));
-    meta->album = dup_mpg123_string (v2->album);
-    if (!meta->album && v1->album)
+    if (v1 && !meta->album && v1->album)
       meta->album = strndup (v1->album,sizeof(v1->album));
-    meta->comment = dup_mpg123_string (v2->comment);
-    if (!meta->comment && v1->comment)
+    if (v1 && !meta->comment && v1->comment)
       meta->comment = strndup (v1->comment,sizeof(v1->comment));
-    meta->genre = dup_mpg123_string (v2->genre);
-    if (!meta->genre)
+    if (v1 && !meta->genre)
       meta->genre = strdup ("default");
+
     mpg123_meta_free (g_profiler_handle);
     data->meta = meta;
   }

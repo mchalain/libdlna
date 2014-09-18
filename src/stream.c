@@ -145,6 +145,7 @@ fullload_open (char *url)
     file->cleanup = fullload_cleanup;
     file->close = fullload_close;
     strcpy (file->mime, info.mime);
+    file->length = info.length;
 
     data = calloc (1, sizeof (struct fullload_data_s));
     data->total = info.length;
@@ -492,6 +493,33 @@ seekable_open (char *url)
     profile = upnpav_profiler.guess_media_profile (file, NULL);
     if (profile)
       strcpy (file->mime, profile->mime);
+    file->length = finfo.st_size;
+
+    file->private = NULL;
+  }
+  return file;
+}
+
+static dlna_stream_t *
+seekable_http_open (char *url)
+{
+  int fd;
+  dlna_stream_t *file = NULL;
+  struct http_info info;
+  dlna_profile_t *profile;
+
+  fd = http_get (url, &info);
+  if (fd > 0)
+  {
+    file = calloc (1, sizeof (dlna_stream_t));
+    file->fd = fd;
+    file->url = strdup (url);
+    file->read = seekable_read;
+    file->lseek = seekable_lseek;
+    file->cleanup = seekable_cleanup;
+    file->close = seekable_close;
+    strcpy (file->mime, info.mime);
+    file->length = info.length;
 
     file->private = NULL;
   }
@@ -517,6 +545,7 @@ stream_open (char *url)
 #ifdef FULLLOAD_STREAM
     return fullload_open (url);
 #endif
+    return seekable_http_open (url);
   }
   else
   {
