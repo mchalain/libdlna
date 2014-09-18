@@ -227,6 +227,11 @@ struct dlna_stream_s {
    **/
   char mime[100];
   /**
+   * total length of the file
+   * if -1 the file is an un-terminated stream
+   **/
+  ssize_t length;
+  /**
    * file descriptor of the file
    * 
    * it's mandatory, to not use it directly.

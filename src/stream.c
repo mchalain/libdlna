@@ -139,6 +139,7 @@ fullload_open (char *url)
     file->cleanup = fullload_cleanup;
     file->close = fullload_close;
     strcpy (file->mime, info.mime);
+    file->length = info.length;
 
     data = calloc (1, sizeof (struct fullload_data_s));
     data->total = info.length;
@@ -148,7 +149,6 @@ fullload_open (char *url)
 
   return file;
 }
-
 /***********************************************************************
  * stream buffer for seekable stream
  **/
@@ -177,6 +177,8 @@ seekable_close (void *opaque)
 {
   dlna_stream_t *file = opaque;
   close (file->fd);
+  free (file->url);
+  free (file);
 }
 
 static dlna_stream_t *
@@ -201,11 +203,13 @@ seekable_open (char *url)
     profile = upnpav_profiler.guess_media_profile (file, NULL);
     if (profile)
       strcpy (file->mime, profile->mime);
+    file->length = finfo.st_size;
 
     file->private = NULL;
   }
   return file;
 }
+
 /***********************************************************************
  * stream internal API
  **********************************************************************/
