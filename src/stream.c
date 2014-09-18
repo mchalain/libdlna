@@ -34,8 +34,21 @@
 //#define FULLLOAD_STREAM
 #define DBUFFER_STREAM
 /***********************************************************************
+ * scatter gather
+ * 
+ * solution for variatic network rate.
+ * But it's useless with simple buffer, because the kernel already uses
+ * a scatter gather.
+ * 
+ * TODO
+ **/
+/***********************************************************************
  * stream buffer with complete loading into memory of the file
  * 
+ * advantages:
+ *  it's possible to seek inside the complete file
+ * mistakes:
+ *  it uses a lot of memory and with un-terminated stream an error occures
  * !!! This version is not a good solution but it's the first one
  **/
 #ifdef FULLLOAD_STREAM
@@ -158,6 +171,15 @@ fullload_open (char *url)
 #endif
 /***********************************************************************
  * double buffer streaming
+ * 
+ * This buffer is a partial solution to seek inside the stream.
+ * advantages:
+ *  - capability to seek forward into the file
+ *  - for variatic network rate, the buffer creates latence
+ *     and the network driver manages the variations.
+ * mistakes:
+ *  - small capability to seek backward.
+ *  - generate blank when seeking a real time stream 
  **/
 #ifdef DBUFFER_STREAM
 
@@ -426,6 +448,15 @@ dbuffer_open (char *url)
 #endif
 /***********************************************************************
  * stream buffer for seekable stream
+ * 
+ * This solution is not a solution, it's just the use of standard functions
+ * to move inside a file, and it's impossible to move inside a stream.
+ * advantages:
+ *  - no memory used
+ *  - no latence
+ * mistakes:
+ *  - it's impossible to move fast inside a stream.
+ *  - if the stream rate is variatic, there isn't any kind of smoothing mechanism
  **/
 #ifdef NORMAL_STREAM
 static ssize_t
