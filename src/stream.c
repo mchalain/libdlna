@@ -173,19 +173,28 @@ struct dbuffer_data_s {
 };
 
 static void
-dbuffer_fillcurrent (void *opaque)
+dbuffer_fillbuffer (void *opaque, char *buffer)
 {
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
-  char *buffer;
   ssize_t len;
 
-  buffer = data->current_buffer;
 	len = read (file->fd, buffer, data->buffersize);
+  if (len < 0)
+    return;
 	while (len < data->buffersize)
 	{
 		len += read (file->fd, buffer + len, data->buffersize - len);
 	}
+}
+
+static void
+dbuffer_fillcurrent (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct dbuffer_data_s *data = file->private;
+
+  dbuffer_fillbuffer (opaque, data->current_buffer);
   data->offset = 0;
 }
 
@@ -195,15 +204,10 @@ dbuffer_fillnext (void *opaque)
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
   char *buffer;
-  ssize_t len;
 
   buffer = 
     (data->current_buffer == data->buffer[0])? data->buffer[1]:data->buffer[0];
-	len = read (file->fd, buffer, data->buffersize);
-	while (len < data->buffersize)
-	{
-		len += read (file->fd, buffer + len, data->buffersize - len);
-	}
+  dbuffer_fillbuffer (opaque, buffer);
   data->next_ready = 1;
 }
 
@@ -242,9 +246,8 @@ dbuffer_read (void *opaque, void *buf, size_t len)
 {
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
-  size_t tmp_len = len;
 
-  if ((data->offset + len) < data->buffersize)
+  if (len < ((size_t)data->buffersize - (size_t)data->offset))
   {
     /** there is enought data inside the current buffer **/
     memcpy (buf, data->current_buffer + data->offset, len);
@@ -253,9 +256,9 @@ dbuffer_read (void *opaque, void *buf, size_t len)
   }
   else
   {
-    ssize_t wlen = 0;
+    off_t wlen = 0;
     /** the requested length requires the next buffer **/
-    while (len > data->buffersize - data->offset)
+    while (len > ((size_t)data->buffersize - (size_t)data->offset))
     {
       memcpy (buf, data->current_buffer + data->offset, data->buffersize - data->offset);
       data->total_offset += data->buffersize - data->offset;
@@ -489,7 +492,6 @@ seekable_http_open (char *url)
   int fd;
   dlna_stream_t *file = NULL;
   struct http_info info;
-  dlna_profile_t *profile;
 
   fd = http_get (url, &info);
   if (fd > 0)
