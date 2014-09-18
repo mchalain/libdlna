@@ -28,11 +28,13 @@
 #include "dlna_internals.h"
 #include "network.h"
 
+#define FULLLOAD_STREAM
 /***********************************************************************
  * stream buffer with complete loading into memory of the file
  * 
  * !!! This version is not a good solution but it's the first one
  **/
+#ifdef FULLLOAD_STREAM
 struct fullload_data_s {
   void *buffer;
   ssize_t size;
@@ -149,6 +151,7 @@ fullload_open (char *url)
 
   return file;
 }
+#endif
 /***********************************************************************
  * stream buffer for seekable stream
  **/
@@ -210,6 +213,31 @@ seekable_open (char *url)
   return file;
 }
 
+static dlna_stream_t *
+seekable_http_open (char *url)
+{
+  int fd;
+  dlna_stream_t *file = NULL;
+  struct http_info info;
+  dlna_profile_t *profile;
+
+  fd = http_get (url, &info);
+  if (fd > 0)
+  {
+    file = calloc (1, sizeof (dlna_stream_t));
+    file->fd = fd;
+    file->url = strdup (url);
+    file->read = seekable_read;
+    file->lseek = seekable_lseek;
+    file->cleanup = seekable_cleanup;
+    file->close = seekable_close;
+    strcpy (file->mime, info.mime);
+    file->length = info.length;
+
+    file->private = NULL;
+  }
+  return file;
+}
 /***********************************************************************
  * stream internal API
  **********************************************************************/
@@ -222,7 +250,10 @@ stream_open (char *url)
   }
   else if (!strncmp (url, "http:", 5))
   {
+#ifdef FULLLOAD_STREAM
     return fullload_open (url);
+#endif
+    return seekable_http_open (url);
   }
   else
   {
