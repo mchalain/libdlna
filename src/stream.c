@@ -32,7 +32,7 @@
 
 #define NORMAL_STREAM
 //#define FULLLOAD_STREAM
-//#define DBUFFER_STREAM
+#define DBUFFER_STREAM
 /***********************************************************************
  * stream buffer with complete loading into memory of the file
  * 
@@ -161,7 +161,7 @@ fullload_open (char *url)
  **/
 #ifdef DBUFFER_STREAM
 
-#define DBUFFER_SIZE 2090
+#define DBUFFER_SIZE 8182
 struct dbuffer_data_s {
   char buffer[2][DBUFFER_SIZE];
   char *current_buffer;
@@ -244,10 +244,7 @@ dbuffer_read (void *opaque, void *buf, size_t len)
   struct dbuffer_data_s *data = file->private;
   size_t tmp_len = len;
 
-  if (len >= 1041 || len < 0)
-    printf ("error\n");
-
-  if (data->offset + len < data->buffersize)
+  if ((data->offset + len) < data->buffersize)
   {
     /** there is enought data inside the current buffer **/
     memcpy (buf, data->current_buffer + data->offset, len);
@@ -261,11 +258,11 @@ dbuffer_read (void *opaque, void *buf, size_t len)
     while (len > data->buffersize - data->offset)
     {
       memcpy (buf, data->current_buffer + data->offset, data->buffersize - data->offset);
-      dbuffer_nextbuffer (opaque);
       data->total_offset += data->buffersize - data->offset;
       len -= data->buffersize - data->offset;
       buf += data->buffersize - data->offset;
       wlen += data->buffersize - data->offset;
+      dbuffer_nextbuffer (opaque);
     }
     memcpy (buf, data->current_buffer + data->offset, len);
     data->offset += len;
@@ -283,8 +280,6 @@ dbuffer_read (void *opaque, void *buf, size_t len)
     /** move inside the current buffer requires to fill the next one **/
     dbuffer_fillnext (opaque);
   }
-  if (tmp_len != len)
-    printf ("error\n");
   return len;
 }
 
@@ -298,20 +293,8 @@ dbuffer_lseek (void *opaque, off_t len, int whence)
   switch (whence)
   {
   case SEEK_END:
-    if (len > 0)
-    {
-      errno = EINVAL;
-      return (off_t) -1;
-    }
-    /** jump to the end of the buffer already available nothing more **/
-    data->total_offset += data->buffersize - data->offset + len;
-    data->offset = data->buffersize + len;
-    if (data->next_ready)
-    {
-      dbuffer_nextbuffer (opaque);
-      data->total_offset += data->buffersize;
-      data->offset += data->buffersize;
-    }
+    errno = ESPIPE;
+    return (off_t) -1;
     break;
   case SEEK_SET:
     if (len < 0)
