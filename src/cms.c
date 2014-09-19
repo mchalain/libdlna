@@ -102,47 +102,39 @@ ACTION_ARG_OUT(CMS_ARG_STATUS,"A_ARG_TYPE_ConnectionStatus") \
 static int
 cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char **mimes;
+  char **mimes[2];
   buffer_t *source;
+  char *args[2];
+  int i;
   
   if (!dlna || !ev)
     return 0;
 
-  source = buffer_new ();
-  mimes = dlna->cms.sourcemimes;
+  mimes[0] = dlna->cms.sourcemimes;
+  mimes[1] = dlna->cms.sinkmimes;
+  args[0] = CMS_ARG_SOURCE;
+  args[1] = CMS_ARG_SINK;
 
-  while (*mimes)
+  for (i = 0; i < 2; i++)
   {
-    /* we do only support HTTP right now */
-    /* format for protocol info is:
-     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
-     */
-    buffer_appendf (source, "http-get:*:%s:*", *mimes++);
-    if (*mimes)
-      buffer_append (source, ",");
+    if (mimes[i])
+    {
+      source = buffer_new ();
+      while (*mimes[i])
+      {
+        /* we do only support HTTP right now */
+        /* format for protocol info is:
+         *  <protocol>:<network>:<contentFormat>:<additionalInfo>
+         */
+        buffer_appendf (source, "http-get:*:%s:*", *mimes[i]++);
+        if (*mimes[i])
+          buffer_append (source, ",");
+      }
+      upnp_add_response (ev, args[i], source->buf);
+      buffer_free (source);
+    }
   }
 
-  upnp_add_response (ev, CMS_ARG_SOURCE, source->buf);
-  buffer_free (source);
-
-  source = buffer_new ();
-  mimes = dlna->cms.sinkmimes;
-
-  while (*mimes)
-  {
-    /* we do only support HTTP right now */
-    /* format for protocol info is:
-     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
-     */
-    buffer_appendf (source, "http-get:*:%s:*", *mimes++);
-    if (*mimes)
-      buffer_append (source, ",");
-  }
-
-  upnp_add_response (ev, CMS_ARG_SINK, source->buf);
-  buffer_free (source);
-  
-  
   return ev->status;
 }
 
@@ -246,6 +238,7 @@ cms_service_new (dlna_t *dlna dlna_unused)
   
   service->id           = CMS_SERVICE_ID;
   service->type         = CMS_SERVICE_TYPE;
+  service->typeid       = DLNA_SERVICE_CONNECTION_MANAGER;
   service->scpd_url     = CMS_URL;
   service->control_url  = CMS_CONTROL_URL;
   service->event_url    = CMS_EVENT_URL;
