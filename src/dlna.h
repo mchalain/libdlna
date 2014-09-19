@@ -429,18 +429,6 @@ typedef enum {
   DLNA_DMS_STORAGE_DB,
 } dlna_dms_storage_type_t;
 
-/**
- * Defines DMS storage type for VFS Metadata.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] type  The VFS storage type.
- * @param[in] data  Optional cookie depending on storage type:
- *                   - May be NULL for memory storage.
- *                   - Path to databased file for DB storage.
- */
-void dlna_dms_set_vfs_storage_type (dlna_t *dlna,
-                                    dlna_dms_storage_type_t type, char *data);
-
 /***************************************************************************/
 /*                                                                         */
 /* DLNA UPnP Device Management                                             */
@@ -582,6 +570,18 @@ extern dlna_service_t *msr_service_new (dlna_t*dlna);
 /*                                                                         */
 /***************************************************************************/
 /**
+ * DLNA Media Object item metadata
+ */
+typedef struct dlna_metadata_s {
+  char     *title;                /* <dc:title> */
+  char     *author;               /* <dc:artist> */
+  char     *comment;              /* <upnp:longDescription> */
+  char     *album;                /* <upnp:album> */
+  uint32_t track;                 /* <upnp:originalTrackNumber> */
+  char     *genre;                /* <upnp:genre> */
+} dlna_metadata_t;
+
+/**
  * Create a new DLNA media object item.
  *
  * @param[in] dlna     The DLNA library's controller.
@@ -607,6 +607,26 @@ void dlna_item_free (dlna_item_t *item);
  * @return mime type of the item
  */
 const char *dlna_item_mime (dlna_item_t * item);
+
+/**
+ * Returns media type about item
+ * 
+ * @warning This function returns a pointer, do _NOT_ free it.
+ * @param[in] item     The DLNA object item to be freed.
+ * 
+ * @return media class ID
+ */
+dlna_media_class_t dlna_item_type (dlna_item_t * item);
+
+/**
+ * Returns metadata about item
+ * 
+ * @warning This function returns a pointer, do _NOT_ free it.
+ * @param[in] item     The DLNA object item to be freed.
+ * 
+ * @return metadata
+ */
+dlna_metadata_t *dlna_item_metadata (dlna_item_t * item);
 
 /**
  * Create a new VFS object for CD Service.
