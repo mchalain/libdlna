@@ -111,8 +111,6 @@ dlna_init (void)
   dlna->cms.sourcemimes = NULL;
   dlna->cms.sinkmimes = NULL;
 
-  dlna_vfs_init (dlna);
-
 //  dlna_add_profiler (dlna, &upnpav_profiler);
   return dlna;
 }
@@ -144,7 +142,6 @@ dlna_uninit (dlna_t *dlna)
 
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
-  dlna_vfs_uninit (dlna);
   free (dlna->interface);
 
   dms_db_close (dlna);

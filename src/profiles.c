@@ -224,6 +224,12 @@ dlna_item_free (dlna_item_t *item)
   free (item);
 }
 
+char *
+dlna_item_mime (dlna_item_t * item)
+{
+  return item->profile->mime;
+}
+
 dlna_item_t *
 dlna_item_get(dlna_t *dlna, vfs_item_t *item)
 {

@@ -47,7 +47,6 @@
 typedef struct dlna_stream_s dlna_stream_t;
 
 /* UPnP Service properties */
-typedef struct dlna_vfs_s dlna_vfs_t;
 struct dlna_vfs_s
 {
   /* VFS for Content Directory */
@@ -57,6 +56,7 @@ struct dlna_vfs_s
 #ifdef HAVE_SQLITE
   void *db;
 #endif /* HAVE_SQLITE */
+  int mode;
 };
 
 /* UPnP Services */
@@ -289,9 +289,6 @@ void dlna_log (dlna_t *dlna,
                const char *format, ...);
 
 dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
-
-void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
-
 
 extern dlna_profiler_t upnpav_profiler;
 

@@ -39,7 +39,7 @@ dms_set_memory (dlna_t *dlna)
   if (!dlna)
     return;
 
-  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
+//  dlna->dms.storage_type = DLNA_DMS_STORAGE_MEMORY;
   dlna_log (dlna, DLNA_MSG_INFO, "Use memory for VFS metadata storage.\n");
 }
 

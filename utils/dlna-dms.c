@@ -39,7 +39,7 @@ extern int mpg123_profiler_init ();
 #endif
 
 static void
-add_dir (dlna_t *dlna, char *dir, uint32_t id)
+add_dir (dlna_t *dlna, dlna_vfs_t *vfs, char *dir, uint32_t id)
 {
   struct dirent **namelist;
   int n, i;
@@ -75,16 +75,21 @@ add_dir (dlna_t *dlna, char *dir, uint32_t id)
     if (S_ISDIR (st.st_mode))
     {
       uint32_t cid;
-      cid = dlna_vfs_add_container (dlna, basename (fullpath), 0, id);
-      add_dir (dlna, fullpath, cid);
+      cid = dlna_vfs_add_container (vfs, basename (fullpath), 0, id);
+      add_dir (dlna, vfs, fullpath, cid);
     }
     else
     {
       dlna_item_t *item;
       item = dlna_item_new (dlna, fullpath);
       if (item)
-        dlna_vfs_add_resource (dlna, basename (fullpath),
+      {
+        dlna_vfs_add_resource (vfs, basename (fullpath),
                              item, id);
+        /* add the mime to cms source protocol info */
+        dlna_append_supported_mime_types (dlna, 0, dlna_item_mime (item));
+
+      }
     }
     
     free (namelist[i]);
@@ -113,6 +118,7 @@ main (int argc, char **argv)
   dlna_device_t *device;
   dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
+  dlna_vfs_t *vfs;
   char *interface = NULL;
   const dlna_profiler_t *profiler;
   int c, index;
@@ -230,18 +236,12 @@ main (int argc, char **argv)
   dlna_device_set_uuid (device, "123456789");
 
   dlna_service_register (device, cms_service_new(dlna));
-  dlna_service_register (device, cds_service_new(dlna));
+  vfs = dlna_vfs_new (dlna);
+  dlna_service_register (device, cds_service_new(dlna, vfs));
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
     dlna_service_register (device, msr_service_new(dlna));
   
   dlna_set_device (dlna, device);
-
-  if (dlna_start (dlna) != DLNA_ST_OK)
-  {
-    printf ("DMS init went wrong\n");
-    dlna_uninit (dlna);
-    return -1;
-  }
 
   printf ("Trying to share '%s'\n", content_dir);
   if (stat (content_dir, &st) < 0)
@@ -250,17 +250,29 @@ main (int argc, char **argv)
     return -1;
   }
   if (S_ISDIR (st.st_mode))
-    add_dir (dlna, content_dir, 0);
+    add_dir (dlna, vfs, content_dir, 0);
   else
   {
     dlna_item_t *item;
 
     item = dlna_item_new (dlna, content_dir);
     if (item)
-      dlna_vfs_add_resource (dlna, basename (content_dir),
+    {
+      dlna_vfs_add_resource (vfs, basename (content_dir),
                            item, 0);
+      /* add the mime to cms source protocol info */
+      dlna_append_supported_mime_types (dlna, 0, dlna_item_mime (item));
+    }
   }
   
+  if (dlna_start (dlna) != DLNA_ST_OK)
+  {
+    printf ("DMS init went wrong\n");
+    dlna_uninit (dlna);
+    dlna_vfs_free (vfs);
+    return -1;
+  }
+
   printf ("Hit 'q' or 'Q' + Enter to shutdown\n");
   while (1)
   {
@@ -274,6 +286,8 @@ main (int argc, char **argv)
 
   /* DLNA stack cleanup */
   dlna_uninit (dlna);
+  
+  dlna_vfs_free (vfs);
 
   free (interface);
   free (content_dir);

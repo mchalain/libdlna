@@ -109,6 +109,7 @@ struct dlna_item_s;
 struct dlna_stream_s;
 
 typedef struct dlna_stream_s dlna_stream_t;
+typedef struct dlna_vfs_s dlna_vfs_t;
 typedef struct dlna_item_s dlna_item_t;
 
 /* Status code for DLNA related functions */
@@ -356,6 +357,8 @@ typedef struct dlna_profile_s {
  */
 char *dlna_profile_upnp_object_item (dlna_profile_t *profile);
 
+void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
+
 /**
  * Output the protocol information string that must be send by a DMS to a DMP
  * for the file to be played/recognized.
@@ -568,7 +571,7 @@ typedef enum {
 void dlna_service_register (dlna_device_t *device, dlna_service_t *srv);
 
 extern dlna_service_t *cms_service_new (dlna_t*dlna);
-extern dlna_service_t *cds_service_new (dlna_t*dlna);
+extern dlna_service_t *cds_service_new (dlna_t*dlna, dlna_vfs_t *vfs);
 extern dlna_service_t *rcs_service_new (dlna_t*dlna);
 extern dlna_service_t *avts_service_new (dlna_t*dlna);
 extern dlna_service_t *msr_service_new (dlna_t*dlna);
@@ -596,44 +599,69 @@ dlna_item_t *dlna_item_new (dlna_t *dlna,
 void dlna_item_free (dlna_item_t *item);
 
 /**
+ * Returns information about item
+ * 
+ * @warning This function returns a pointer, do _NOT_ free it.
+ * @param[in] item     The DLNA object item to be freed.
+ * 
+ * @return mime type of the item
+ */
+char *dlna_item_mime (dlna_item_t * item);
+
+/**
+ * Create a new VFS object for CD Service.
+ *
+ * @param[in] dlna     The DLNA library's controller.
+ * @return A new VFS object if compatible, NULL otherwise.
+ */
+dlna_vfs_t *dlna_vfs_new (dlna_t *dlna);
+
+/**
+ * Free an existing DLNA media object item.
+ *
+ * @param[in] vfs     The VFS to be freed.
+ */
+void dlna_vfs_free (dlna_vfs_t *vfs);
+
+/**
  * Add a new container to the VFS layer.
  *
- * @param[in] dlna         The DLNA library's controller.
+ * @param[in] dlna         The VFS to manage.
  * @param[in] name         Displayed name of the container.
  * @param[in] object_id    Expected UPnP object ID.
  * @param[in] container_id UPnP object ID of its parent.
  * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
  */
-uint32_t dlna_vfs_add_container (dlna_t *dlna, char *name,
+uint32_t dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
                                  uint32_t object_id, uint32_t container_id);
 
 /**
  * Add a new resource to the VFS layer.
  *
- * @param[in] dlna         The DLNA library's controller.
+ * @param[in] dlna         The VFS to manage.
  * @param[in] name         Displayed name of the resource.
  * @param[in] dlna_item    The resource created by dlna_new_item ().
  * @param[in] container_id UPnP object ID of its parent.
  * @return The attrbiuted UPnP object ID if successfull, 0 otherwise.
  */
-uint32_t dlna_vfs_add_resource (dlna_t *dlna, char *name,
+uint32_t dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
                                 dlna_item_t *dlna_item, uint32_t container_id);
 
 /**
  * Remove an existing item (and all its children) from VFS layer by ID.
  *
- * @param[in] dlna         The DLNA library's controller.
+ * @param[in] vfs          The VFS to manage.
  * @param[in] id           Unique ID of the item to be removed.
  */
-void dlna_vfs_remove_item_by_id (dlna_t *dlna, uint32_t id);
+void dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id);
 
 /**
  * Remove an existing item (and all its children) from VFS layer by name.
  *
- * @param[in] dlna         The DLNA library's controller.
+ * @param[in] vfs          The VFS to manage.
  * @param[in] name         Name of the item to be removed.
  */
-void dlna_vfs_remove_item_by_name (dlna_t *dlna, char *name);
+void dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name);
 
 /***************************************************************************/
 /*                                                                         */

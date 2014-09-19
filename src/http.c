@@ -84,6 +84,7 @@ dlna_http_get_info (void *cookie,
   dlna_item_t *dlna_item;
   struct stat st;
   dlna_service_t *service;
+  dlna_service_list_t *it;
   
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
@@ -116,7 +117,7 @@ dlna_http_get_info (void *cookie,
     /* return the service description if available */
     if (service)
     {
-      char *description = service->get_description (dlna);
+      char *description = service->get_description (service);
 
       set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
       free (description);
@@ -124,9 +125,14 @@ dlna_http_get_info (void *cookie,
     }
   }
 
+  dlna_vfs_t *vfs;
+  int cdsid = DLNA_SERVICE_CONTENT_DIRECTORY;
+  HASH_FIND_INT(dlna->device->services, &cdsid, it);
+  vfs = (dlna_vfs_t *)it->service->cookie;
+
   /* ask for anything else ... */
   id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
-  item = vfs_get_item_by_id (dlna, id);
+  item = vfs_get_item_by_id (vfs, id);
   if (!item)
     return HTTP_ERROR;
 
@@ -232,7 +238,8 @@ dlna_http_open (void *cookie,
   vfs_item_t *item;
   dlna_item_t *dlna_item;
   dlna_service_t *service;
-  
+  dlna_service_list_t *it;
+
   if (!cookie || !filename)
     return NULL;
 
@@ -263,17 +270,22 @@ dlna_http_open (void *cookie,
     if (service)
     {
       dlnaWebFileHandle ret;
-      char *description = service->get_description (dlna);
+      char *description = service->get_description (service);
 
       ret = http_get_file_from_memory (filename, description, strlen(description));
       free (description);
       return ret;
     }
   }
-  
+
+  dlna_vfs_t *vfs;
+  int cdsid = DLNA_SERVICE_CONTENT_DIRECTORY;
+  HASH_FIND_INT(dlna->device->services, &cdsid, it);
+  vfs = (dlna_vfs_t *)it->service->cookie;
+
   /* ask for anything else ... */
   id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
-  item = vfs_get_item_by_id (dlna, id);
+  item = vfs_get_item_by_id (vfs, id);
   if (!item)
     return NULL;
 

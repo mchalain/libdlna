@@ -331,6 +331,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
 static int
 cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   /* input arguments */
   uint32_t id, index, count, sort;
   char *flag = NULL, *filter = NULL;
@@ -387,9 +388,9 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   free (flag);
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (dlna, id);
+  item = vfs_get_item_by_id (vfs, id);
   if (!item)
-    item = vfs_get_item_by_id (dlna, 0);
+    item = vfs_get_item_by_id (vfs, 0);
 
   if (!item)
   {
@@ -594,6 +595,7 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
 static int
 cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   /* input arguments */
   uint32_t index, count, id, sort_criteria;
   char *search_criteria = NULL, *filter = NULL;
@@ -631,9 +633,9 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (dlna, id);
+  item = vfs_get_item_by_id (vfs, id);
   if (!item)
-    item = vfs_get_item_by_id (dlna, 0);
+    item = vfs_get_item_by_id (vfs, 0);
 
   if (!item)
   {
@@ -857,7 +859,7 @@ cds_get_description (dlna_service_t *service dlna_unused)
 }
 
 dlna_service_t *
-cds_service_new (dlna_t *dlna dlna_unused)
+cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
 {
   dlna_service_t *service = NULL;
   service = calloc (1, sizeof (dlna_service_t));
@@ -873,5 +875,6 @@ cds_service_new (dlna_t *dlna dlna_unused)
   service->init         = NULL;
   service->last_change  = 1;
 
+  service->cookie = vfs;
   return service;
 };

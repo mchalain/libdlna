@@ -30,6 +30,6 @@
 #define CDS_CONTROL_URL      "cds_control"
 #define CDS_EVENT_URL        "cds_event"
 
-extern dlna_service_t *cds_service_new (dlna_t*dlna);
+extern dlna_service_t *cds_service_new (dlna_t*dlna, struct dlna_vfs_s *vfs);
 
 #endif /* CDS_H */
