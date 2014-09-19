@@ -114,8 +114,6 @@ struct dlna_profiler_list_s
 struct dlna_s {
   /* has the library's been inited */
   int inited;
-  /* defines verbosity level */
-  dlna_verbosity_level_t verbosity;
   /* defines capability mode */
   dlna_capability_mode_t mode;
   /* defines flexibility on file extension's check */
@@ -271,8 +269,9 @@ struct dlna_stream_s {
 dlna_stream_t *stream_open (char *url);
 void stream_close (dlna_stream_t *stream);
 
-void dlna_log (dlna_t *dlna,
-               dlna_verbosity_level_t level,
+/* defines verbosity level */
+extern  dlna_verbosity_level_t dlna_verbosity;
+void dlna_log (dlna_verbosity_level_t level,
                const char *format, ...);
 
 dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);

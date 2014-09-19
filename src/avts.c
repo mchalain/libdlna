@@ -1031,7 +1031,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
     didl_add_short_item (out, plitem->id, plitem->item, 0);
   else
     buffer_appendf (out, "%s", "");
-  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
+  dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
   upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
   buffer_free (out);
 

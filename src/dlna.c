@@ -53,6 +53,7 @@
 #include "devices.h"
 #include "vfs.h"
 
+dlna_verbosity_level_t dlna_verbosity = DLNA_MSG_ERROR;
 
 void
 dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
@@ -95,7 +96,6 @@ dlna_init (void)
 
   dlna = calloc (1, sizeof (dlna_t));
   dlna->inited = 1;
-  dlna->verbosity = DLNA_MSG_ERROR;
   dlna->mode = DLNA_CAPABILITY_DLNA;
   dlna->check_extensions = 1;
   dlna->flags = 0;
@@ -106,7 +106,7 @@ dlna_init (void)
   dlna->interface = strdup ("lo"); /* bind to loopback as a default */
   dlna->port = 0;
   
-  dlna_log (dlna, DLNA_MSG_INFO, "DLNA: init\n");
+  dlna_log (DLNA_MSG_INFO, "DLNA: init\n");
   dlna->cms.sourcemimes = NULL;
   dlna->cms.sinkmimes = NULL;
 
@@ -140,7 +140,7 @@ dlna_uninit (dlna_t *dlna)
     return;
 
   dlna->inited = 0;
-  dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
+  dlna_log (DLNA_MSG_INFO, "DLNA: uninit\n");
   free (dlna->interface);
 
   /* Internal HTTP Server */
@@ -156,18 +156,18 @@ dlna_uninit (dlna_t *dlna)
 }
 
 void
-dlna_log (dlna_t *dlna, dlna_verbosity_level_t level, const char *format, ...)
+dlna_log (dlna_verbosity_level_t level, const char *format, ...)
 {
   va_list va;
 
-  if (!dlna || !format)
+  if (!format)
     return;
 
   /* do we really want loging ? */
-  if (dlna->verbosity == DLNA_MSG_NONE)
+  if (dlna_verbosity == DLNA_MSG_NONE)
     return;
   
-  if (level < dlna->verbosity)
+  if (level < dlna_verbosity)
     return;
 
   va_start (va, format);
@@ -190,7 +190,7 @@ dlna_set_verbosity (dlna_t *dlna, dlna_verbosity_level_t level)
   if (!dlna)
     return;
 
-  dlna->verbosity = level;
+  dlna_verbosity = level;
 }
 
 void

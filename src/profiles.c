@@ -175,7 +175,7 @@ dlna_item_new (dlna_t *dlna, const char *filename)
 
   if (!item->profile) /* not DLNA compliant */
   {
-    dlna_log (dlna, DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
+    dlna_log (DLNA_MSG_CRITICAL, "can't open file: %s\n", filename);
     free (item->filename);
     free (item);
     return NULL;

@@ -58,9 +58,6 @@ struct dlna_vfs_s
   dlna_dms_storage_type_t storage_type;
   struct vfs_item_s *vfs_root;
   uint32_t vfs_items;
-#ifdef HAVE_SQLITE
-  void *db;
-#endif /* HAVE_SQLITE */
   int mode;
 };
 

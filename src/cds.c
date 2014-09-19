@@ -233,7 +233,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
     break;
   }
   didl_add_footer (out);
-  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
+  dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
 
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, "1");
@@ -307,7 +307,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   }
 
   didl_add_footer (out);
-  dlna_log (dlna, DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
+  dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
 
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   sprintf (tmp, "%d", result_count);

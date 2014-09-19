@@ -91,7 +91,7 @@ dlna_http_get_info (void *cookie,
 
   dlna = (dlna_t *) cookie;
 
-  dlna_log (dlna, DLNA_MSG_INFO,
+  dlna_log (DLNA_MSG_INFO,
             "%s, filename : %s\n", __FUNCTION__, filename);
 
   /* trap application-level HTTP callback */
@@ -245,7 +245,7 @@ dlna_http_open (void *cookie,
 
   dlna = (dlna_t *) cookie;
 
-  dlna_log (dlna, DLNA_MSG_INFO,
+  dlna_log (DLNA_MSG_INFO,
             "%s, filename : %s\n", __FUNCTION__, filename);
 
   if (mode != DLNA_READ)
@@ -312,7 +312,7 @@ dlna_http_read (void *cookie,
   dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (dlna, DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external && dlna->http_callback && dlna->http_callback->read)
@@ -328,23 +328,23 @@ dlna_http_read (void *cookie,
   switch (hdl->type)
   {
   case HTTP_FILE_LOCAL:
-    dlna_log (dlna, DLNA_MSG_INFO, "Read local file.\n");
+    dlna_log (DLNA_MSG_INFO, "Read local file.\n");
     len = read (hdl->detail.local.fd, buf, buflen);
     break;
   case HTTP_FILE_MEMORY:
-    dlna_log (dlna, DLNA_MSG_INFO, "Read file from memory.\n");
+    dlna_log (DLNA_MSG_INFO, "Read file from memory.\n");
     len = (ssize_t) MIN ((ssize_t)buflen, hdl->detail.memory.len - hdl->pos);
     memcpy (buf, hdl->detail.memory.content + hdl->pos, (ssize_t) len);
     break;
   default:
-    dlna_log (dlna, DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
+    dlna_log (DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
     break;
   }
 
   if (len > 0)
     hdl->pos += len;
 
-  dlna_log (dlna, DLNA_MSG_INFO, "Read %zd bytes.\n", len);
+  dlna_log (DLNA_MSG_INFO, "Read %zd bytes.\n", len);
 
   return len;
 }
@@ -390,7 +390,7 @@ dlna_http_seek (void *cookie,
   dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (dlna, DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external && dlna->http_callback && dlna->http_callback->seek)
@@ -406,19 +406,19 @@ dlna_http_seek (void *cookie,
   switch (origin)
   {
   case SEEK_SET:
-    dlna_log (dlna, DLNA_MSG_INFO,
+    dlna_log (DLNA_MSG_INFO,
               "Attempting to seek to %lld (was at %lld) in %s\n",
               offset, hdl->pos, hdl->fullpath);
     newpos = offset;
     break;
   case SEEK_CUR:
-    dlna_log (dlna, DLNA_MSG_INFO,
+    dlna_log (DLNA_MSG_INFO,
               "Attempting to seek by %lld from %lld in %s\n",
               offset, hdl->pos, hdl->fullpath);
     newpos = hdl->pos + offset;
     break;
   case SEEK_END:
-    dlna_log (dlna, DLNA_MSG_INFO,
+    dlna_log (DLNA_MSG_INFO,
               "Attempting to seek by %lld from end (was at %lld) in %s\n",
               offset, hdl->pos, hdl->fullpath);
 
@@ -427,7 +427,7 @@ dlna_http_seek (void *cookie,
       struct stat sb;
       if (stat (hdl->fullpath, &sb) < 0)
       {
-        dlna_log (dlna, DLNA_MSG_ERROR,
+        dlna_log (DLNA_MSG_ERROR,
                   "%s: cannot stat: %s\n", hdl->fullpath, strerror (errno));
         return HTTP_ERROR;
       }
@@ -444,7 +444,7 @@ dlna_http_seek (void *cookie,
     /* Just make sure we cannot seek before start of file. */
     if (newpos < 0)
     {
-      dlna_log (dlna, DLNA_MSG_ERROR,
+      dlna_log (DLNA_MSG_ERROR,
                 "%s: cannot seek: %s\n", hdl->fullpath, strerror (EINVAL));
       return HTTP_ERROR;
     }
@@ -453,7 +453,7 @@ dlna_http_seek (void *cookie,
        changed in size since our last stat. */
     if (lseek (hdl->detail.local.fd, newpos, SEEK_SET) == -1)
     {
-      dlna_log (dlna, DLNA_MSG_ERROR,
+      dlna_log (DLNA_MSG_ERROR,
                 "%s: cannot seek: %s\n", hdl->fullpath, strerror (errno));
       return HTTP_ERROR;
     }
@@ -461,7 +461,7 @@ dlna_http_seek (void *cookie,
   case HTTP_FILE_MEMORY:
     if (newpos < 0 || newpos > hdl->detail.memory.len)
     {
-      dlna_log (dlna, DLNA_MSG_ERROR,
+      dlna_log (DLNA_MSG_ERROR,
                 "%s: cannot seek: %s\n", hdl->fullpath, strerror (EINVAL));
       return HTTP_ERROR;
     }
@@ -487,7 +487,7 @@ dlna_http_close (void *cookie,
   dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (dlna, DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external && dlna->http_callback && dlna->http_callback->close)
@@ -514,7 +514,7 @@ dlna_http_close (void *cookie,
       free (hdl->detail.memory.content);
     break;
   default:
-    dlna_log (dlna, DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
+    dlna_log (DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
     break;
   }
 

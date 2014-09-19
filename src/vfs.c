@@ -40,9 +40,6 @@ dlna_vfs_new (dlna_t *dlna dlna_unused)
   vfs->storage_type = DLNA_DMS_STORAGE_MEMORY;
   vfs->vfs_root = NULL;
   vfs->vfs_items = 0;
-#ifdef HAVE_SQLITE
-  vfs->db = NULL;
-#endif /* HAVE_SQLITE */
   vfs->mode = dlna->mode;
   dlna_vfs_add_container (vfs, "root", 0, 0);
   return vfs;
@@ -210,7 +207,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   if (!vfs || !name)
     return 0;
 
-//  dlna_log (dlna, DLNA_MSG_INFO, "Adding container '%s'\n", name);
+  dlna_log (DLNA_MSG_INFO, "Adding container '%s'\n", name);
 
   item = calloc (1, sizeof (vfs_item_t));
 
@@ -224,9 +221,9 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 
   HASH_ADD_INT (vfs->vfs_root, id, item);
   
-//  dlna_log (dlna, DLNA_MSG_INFO,
-//            "New container id (asked for #%u, granted #%u)\n",
-//            object_id, item->id);
+  dlna_log (DLNA_MSG_INFO,
+            "New container id (asked for #%u, granted #%u)\n",
+            object_id, item->id);
 
   item->u.container.title = strdup (name);
   item->u.container.children = calloc (1, sizeof (vfs_item_t *));
@@ -252,8 +249,8 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 
   item->u.container.updateID = 0;
 
-//  dlna_log (dlna, DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
-//            item->parent->id, item->parent->u.container.title);
+  dlna_log (DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
+            item->parent->id, item->parent->u.container.title);
   
   return item->id;
 }
@@ -269,7 +266,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   if (!vfs->vfs_root)
   {
-//    dlna_log (dlna, DLNA_MSG_ERROR, "No VFS root found. Add one first\n");
+    dlna_log (DLNA_MSG_ERROR, "No VFS root found. Add one first\n");
     return 0;
   }
 
@@ -290,8 +287,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   HASH_ADD_INT (vfs->vfs_root, id, item);
   
-//  dlna_log (dlna, DLNA_MSG_INFO, "New resource id #%u (%s)\n",
-//            item->id, dlna_item->metadata->title);
+  dlna_log (DLNA_MSG_INFO, "New resource id #%u (%s)\n",
+            item->id, dlna_item->metadata->title);
   item->u.resource.fd = -1;
 
   /* check for a valid parent id */
@@ -301,8 +298,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   else
     item->parent->u.container.updateID ++;
 
-//  dlna_log (dlna, DLNA_MSG_INFO,
-//            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->u.container.title);
+  dlna_log (DLNA_MSG_INFO,
+            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->u.container.title);
 
   /* add new child to parent */
   vfs_item_add_child (item->parent, item);
@@ -322,8 +319,8 @@ dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id)
   item = vfs_get_item_by_id (vfs, id);
   if (item)
   {
-//    dlna_log (dlna, DLNA_MSG_INFO,
-//              "Removing item #%u\n", item->id);
+    dlna_log (DLNA_MSG_INFO,
+              "Removing item #%u\n", item->id);
     vfs_item_free (vfs, item);
   }
 }
@@ -339,8 +336,8 @@ dlna_vfs_remove_item_by_title (dlna_vfs_t *vfs, char *name)
   item = vfs_get_item_by_name (vfs, name);
   if (item)
   {
-//    dlna_log (dlna, DLNA_MSG_INFO,
-//              "Removing item #%u (%s)\n", item->id, name);
+    dlna_log (DLNA_MSG_INFO,
+              "Removing item #%u (%s)\n", item->id, name);
     vfs_item_free (vfs, item);
   }
 }
