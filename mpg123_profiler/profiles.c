@@ -447,17 +447,20 @@ item_prepare_stream (dlna_item_t *item)
     return -1;
   }
 
-	mpg123_format_none(g_profiler_handle);
-  rate = item->properties->sample_frequency;
-  channels = item->properties->channels;
-	mpg123_format(g_profiler_handle, rate, channels, encoding);
+  mpg123_format_none(g_profiler_handle);
+  if (item->properties)
+  {
+    rate = item->properties->sample_frequency;
+    channels = item->properties->channels;
+  }
+  mpg123_format(g_profiler_handle, rate, channels, encoding);
 
-	if (mpg123_getformat(g_profiler_handle, &rate, &channels, &encoding) != MPG123_OK)
-	{
+  if (mpg123_getformat(g_profiler_handle, &rate, &channels, &encoding) != MPG123_OK)
+  {
     dbgprintf ("%s: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
     mpg123_close(g_profiler_handle);
-		return -1;
-	}
+    return -1;
+  }
 
   g_profiler_sound->open (channels, encoding, rate);
   cookie->buffer = calloc (1, cookie->buffsize);
