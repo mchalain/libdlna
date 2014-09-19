@@ -84,7 +84,6 @@ dlna_http_get_info (void *cookie,
   dlna_item_t *dlna_item;
   struct stat st;
   dlna_service_t *service;
-  dlna_service_list_t *it;
   
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
@@ -125,10 +124,7 @@ dlna_http_get_info (void *cookie,
     }
   }
 
-  dlna_vfs_t *vfs;
-  int cdsid = DLNA_SERVICE_CONTENT_DIRECTORY;
-  HASH_FIND_INT(dlna->device->services, &cdsid, it);
-  vfs = (dlna_vfs_t *)it->service->cookie;
+  dlna_vfs_t *vfs = dlna_service_find_id (dlna->device, DLNA_SERVICE_CONTENT_DIRECTORY)->cookie;
 
   /* ask for anything else ... */
   id = strtoul (strrchr (filename, '/') + 1, NULL, 10);

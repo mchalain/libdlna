@@ -560,6 +560,7 @@ rcs_service_new (dlna_t *dlna dlna_unused)
   
   service->id           = RCS_SERVICE_ID;
   service->type         = RCS_SERVICE_TYPE;
+  service->typeid       = DLNA_SERVICE_RENDERING_CONTROL;
   service->scpd_url     = RCS_URL;
   service->control_url  = RCS_CONTROL_URL;
   service->event_url    = RCS_EVENT_URL;

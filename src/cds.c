@@ -870,6 +870,7 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
   
   service->id           = CDS_SERVICE_ID;
   service->type         = CDS_SERVICE_TYPE;
+  service->typeid       = DLNA_SERVICE_CONTENT_DIRECTORY;
   service->scpd_url     = CDS_URL;
   service->control_url  = CDS_CONTROL_URL;
   service->event_url    = CDS_EVENT_URL;

@@ -205,6 +205,7 @@ msr_service_new (dlna_t *dlna dlna_unused)
   
   service->id           = MSR_SERVICE_ID;
   service->type         = MSR_SERVICE_TYPE;
+  service->typeid       = DLNA_SERVICE_MS_REGISTAR;
   service->scpd_url     = MSR_URL;
   service->control_url  = MSR_CONTROL_URL;
   service->event_url    = MSR_EVENT_URL;
