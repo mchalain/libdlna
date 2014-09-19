@@ -45,19 +45,9 @@
 #include "uthash.h"
 
 typedef struct dlna_stream_s dlna_stream_t;
-
-/* UPnP Service properties */
-struct dlna_vfs_s
-{
-  /* VFS for Content Directory */
-  dlna_dms_storage_type_t storage_type;
-  struct vfs_item_s *vfs_root;
-  uint32_t vfs_items;
-#ifdef HAVE_SQLITE
-  void *db;
-#endif /* HAVE_SQLITE */
-  int mode;
-};
+typedef struct dlna_vfs_s dlna_vfs_t;
+typedef struct vfs_item_s vfs_item_t;
+typedef struct dlna_item_s dlna_item_t;
 
 /* UPnP Services */
 typedef struct upnp_action_event_s    upnp_action_event_t;
@@ -143,9 +133,6 @@ struct dlna_s {
 
   /* Profilers entries */
   dlna_profiler_list_t *profilers;
-
-  /* DMS Properties */
-  dlna_vfs_t dms;
 
   /* cms Service data */
   struct {

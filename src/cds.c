@@ -173,15 +173,18 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  dlna_vfs_t *vfs;
   char *SystemUpdateID;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     return 0;
   }
+  vfs = (dlna_vfs_t *)ev->service->cookie;
 
   SystemUpdateID = calloc (1, 256);
-  snprintf (SystemUpdateID, 255, "%u", dlna->dms.vfs_root->u.container.updateID);
+  snprintf (SystemUpdateID, 255, "%u", vfs->vfs_root->u.container.updateID);
   upnp_add_response (ev, CDS_ARG_UPDATE_ID,
                      SystemUpdateID);
   free (SystemUpdateID);
@@ -193,6 +196,7 @@ static int
 cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
                      vfs_item_t *item, char *filter)
 {
+  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   int result_count = 0;
   char *updateID;
   char *protocol_info;
@@ -216,7 +220,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
     didl_add_item (out, item->id, dlna_item_get(dlna, item), 
             item->parent ? item->parent->id : 0, "false", filter, protocol_info);
     free (protocol_info);
-    snprintf (updateID, 255, "%u", dlna->dms.vfs_root->u.container.updateID);
+    snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
 
   case DLNA_CONTAINER:
@@ -333,8 +337,8 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 {
   dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   /* input arguments */
-  uint32_t id, index, count, sort;
-  char *flag = NULL, *filter = NULL;
+  uint32_t id, index, count;
+  char *flag = NULL, *filter = NULL, *sort = NULL;
 
   /* output arguments */
   int result_count = 0;
@@ -360,7 +364,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   filter = upnp_get_string (ev->ar, CDS_ARG_FILTER);
   index  = upnp_get_ui4    (ev->ar, CDS_ARG_START_INDEX);
   count  = upnp_get_ui4    (ev->ar, CDS_ARG_REQUEST_COUNT);
-  sort   = upnp_get_ui4    (ev->ar, CDS_ARG_SORT_CRIT);
+  sort   = upnp_get_string (ev->ar, CDS_ARG_SORT_CRIT);
 
   if (!flag || !filter)
   {
@@ -597,8 +601,8 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 {
   dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   /* input arguments */
-  uint32_t index, count, id, sort_criteria;
-  char *search_criteria = NULL, *filter = NULL;
+  uint32_t index, count, id;
+  char *search_criteria = NULL, *filter = NULL, *sort = NULL;
 
   /* output arguments */
   vfs_item_t *item;
@@ -624,7 +628,7 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   filter          = upnp_get_string (ev->ar, CDS_ARG_FILTER);
   index           = upnp_get_ui4    (ev->ar, CDS_ARG_START_INDEX);
   count           = upnp_get_ui4    (ev->ar, CDS_ARG_REQUEST_COUNT);
-  sort_criteria   = upnp_get_ui4    (ev->ar, CDS_ARG_SORT_CRIT);
+  sort            = upnp_get_string (ev->ar, CDS_ARG_SORT_CRIT);
 
   if (!search_criteria || !filter)
   {

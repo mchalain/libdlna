@@ -25,7 +25,6 @@
 
 #include "upnp_internals.h"
 #include "vfs.h"
-#include "dlna_db.h"
 
 #define STARTING_ENTRY_ID_XBOX360 100000
 

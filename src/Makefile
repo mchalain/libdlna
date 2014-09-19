@@ -55,16 +55,7 @@ SRCS :=  \
 	upnpav_profiler.c \
 	stream.c \
 	network.c \
-	upnp_dms.c \
 	upnp_dmr.c \
-
-ifeq ($(HAVE_SQLITE),yes)
-SRCS +=  \
-  db_sqlite.c
-else
-SRCS +=  \
-  dlna_db.c
-endif
 
 EXTRADIST = \
 	dlna.h \

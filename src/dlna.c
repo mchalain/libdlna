@@ -49,7 +49,6 @@
 #endif
 
 #include "dlna_internals.h"
-#include "dlna_db.h"
 #include "upnp_internals.h"
 #include "devices.h"
 #include "vfs.h"
@@ -143,8 +142,6 @@ dlna_uninit (dlna_t *dlna)
   dlna->inited = 0;
   dlna_log (dlna, DLNA_MSG_INFO, "DLNA: uninit\n");
   free (dlna->interface);
-
-  dms_db_close (dlna);
 
   /* Internal HTTP Server */
   if (dlna->http_callback)

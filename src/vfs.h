@@ -52,6 +52,18 @@ typedef struct vfs_item_s {
   UT_hash_handle hh;
 } vfs_item_t;
 
+struct dlna_vfs_s
+{
+  /* VFS for Content Directory */
+  dlna_dms_storage_type_t storage_type;
+  struct vfs_item_s *vfs_root;
+  uint32_t vfs_items;
+#ifdef HAVE_SQLITE
+  void *db;
+#endif /* HAVE_SQLITE */
+  int mode;
+};
+
 vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
 vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);

@@ -375,9 +375,8 @@ get_iface_address (char *interface)
 static int
 upnp_service_init (void *cookie, dlna_service_t *service)
 {
-  dlna_t *dlna = (dlna_t *)cookie;
   if (service->init)
-    return service->init (dlna);
+    return service->init (service);
   return 0;
 }
 
@@ -398,7 +397,7 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
 
     for (i = 0; service->statevar[i].name; i++)
     {
-      const char *value = NULL;
+      char *value = NULL;
       if (service->statevar[i].eventing && service->statevar[i].get)
        value = service->statevar[i].get (dlna, service);
       if (value && (service->last_change < service->statevar[i].eventing))

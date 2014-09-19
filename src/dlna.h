@@ -606,7 +606,7 @@ void dlna_item_free (dlna_item_t *item);
  * 
  * @return mime type of the item
  */
-char *dlna_item_mime (dlna_item_t * item);
+const char *dlna_item_mime (dlna_item_t * item);
 
 /**
  * Create a new VFS object for CD Service.

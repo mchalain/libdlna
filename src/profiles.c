@@ -30,8 +30,6 @@
 #include "vfs.h"
 #include "network.h"
 
-extern dlna_item_t *dms_db_get (dlna_t *dlna, uint32_t id);
-
 static int
 dlna_list_length (void *list)
 {
@@ -170,6 +168,8 @@ dlna_item_new (dlna_t *dlna, const char *filename)
       if (item->profile)
         break;
     }
+    if (reader->length > 0)
+      item->filesize = reader->length;
     stream_close (reader);
   }
 
@@ -224,7 +224,7 @@ dlna_item_free (dlna_item_t *item)
   free (item);
 }
 
-char *
+const char *
 dlna_item_mime (dlna_item_t * item)
 {
   return item->profile->mime;
@@ -233,7 +233,7 @@ dlna_item_mime (dlna_item_t * item)
 dlna_item_t *
 dlna_item_get(dlna_t *dlna, vfs_item_t *item)
 {
-	if (!item->u.resource.item)
-	  item->u.resource.item = dms_db_get(dlna, item->id);
-	return item->u.resource.item;
+	if (item->type == DLNA_RESOURCE)
+    return item->u.resource.item;
+  return NULL;
 }
