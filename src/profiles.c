@@ -109,7 +109,7 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
 }
 
 dlna_profile_t *
-dlna_get_media_profile (dlna_t *dlna, char *profileid)
+dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid)
 {
   dlna_profiler_list_t *profilerit;
   dlna_profile_t *profile;
@@ -120,7 +120,7 @@ dlna_get_media_profile (dlna_t *dlna, char *profileid)
   {
     profile = profilerit->profiler->get_media_profile (profileid);
     if (profile)
-    break;
+      break;
   }
   return profile;
 }
@@ -228,6 +228,18 @@ const char *
 dlna_item_mime (dlna_item_t * item)
 {
   return item->profile->mime;
+}
+
+dlna_media_class_t
+dlna_item_type (dlna_item_t * item)
+{
+  return item->profile->media_class;
+}
+
+dlna_metadata_t *
+dlna_item_metadata (dlna_item_t * item)
+{
+  return item->metadata;
 }
 
 dlna_item_t *

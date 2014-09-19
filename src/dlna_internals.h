@@ -151,18 +151,6 @@ struct dlna_s {
 /*                                                                         */
 /***************************************************************************/
 
-/**
- * DLNA Media Object item metadata
- */
-typedef struct dlna_metadata_s {
-  char     *title;                /* <dc:title> */
-  char     *author;               /* <dc:artist> */
-  char     *comment;              /* <upnp:longDescription> */
-  char     *album;                /* <upnp:album> */
-  uint32_t track;                 /* <upnp:originalTrackNumber> */
-  char     *genre;                /* <upnp:genre> */
-} dlna_metadata_t;
-
 #define DLNA_PROPERTIES_DURATION_MAX_SIZE 64
 #define DLNA_PROPERTIES_RESOLUTION_MAX_SIZE 64
 /**
@@ -274,7 +262,7 @@ extern  dlna_verbosity_level_t dlna_verbosity;
 void dlna_log (dlna_verbosity_level_t level,
                const char *format, ...);
 
-dlna_profile_t *dlna_get_media_profile (dlna_t *dlna, char *profileid);
+dlna_profile_t *dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid);
 
 extern dlna_profiler_t upnpav_profiler;
 
