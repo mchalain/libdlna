@@ -143,14 +143,10 @@ dlna_uninit (dlna_t *dlna)
   dlna_log (DLNA_MSG_INFO, "DLNA: uninit\n");
   free (dlna->interface);
 
-  /* Internal HTTP Server */
-  if (dlna->http_callback)
-    free (dlna->http_callback);
-
   dlna_remove_profilers (dlna);
   /* UPnP Properties */
   if (dlna->device)
-	dlna_device_free (dlna->device);
+	  dlna_device_free (dlna->device);
 
   free (dlna);
 }
