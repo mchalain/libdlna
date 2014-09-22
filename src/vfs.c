@@ -153,11 +153,13 @@ vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
         return item;
       break;
     case DLNA_RESOURCE:
-      if ((!item->u.resource.item->metadata || !item->u.resource.item->metadata->title) &&
-          !strcmp (basename (item->u.resource.item->filename), name))
-        return item;
-      else if (!strcmp (item->u.resource.item->metadata->title, name))
-        return item;
+      {
+        dlna_metadata_t *metadata = dlna_item_metadata (item->u.resource.item);
+        if (metadata && metadata->title && !strcmp (metadata->title, name))
+          return item;
+        else if (!strcmp (basename (item->u.resource.item->filename), name))
+          return item;
+      }
       break;
     }
   }
@@ -290,7 +292,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   HASH_ADD_INT (vfs->vfs_root, id, item);
   
   dlna_log (DLNA_MSG_INFO, "New resource id #%u (%s)\n",
-            item->id, dlna_item->metadata->title);
+            item->id, dlna_item->filename);
   item->u.resource.fd = -1;
 
   /* check for a valid parent id */
