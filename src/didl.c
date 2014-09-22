@@ -39,6 +39,7 @@
 #define DIDL_ITEM_RESTRICTED                  "restricted"
 #define DIDL_ITEM_CLASS                       "upnp:class"
 #define DIDL_ITEM_TITLE                       "dc:title"
+#define DIDL_ITEM_CREATOR                     "dc:creator"
 //#define DIDL_ITEM_ARTIST                      "dc:artist"
 #define DIDL_ITEM_ARTIST                      "upnp:artist"
 #define DIDL_ITEM_DESCRIPTION                 "dc:description"
@@ -142,16 +143,18 @@ didl_add_value (buffer_t *out, char *param, uint32_t value)
 
 void
 didl_add_short_item (buffer_t *out,
-    uint32_t id, dlna_item_t *item, uint32_t containerid)
+    uint32_t id, dlna_item_t *item,
+    uint32_t containerid, uint32_t restricted)
 {
   dlna_metadata_t *metadata;
 
   buffer_appendf (out, "<%s", DIDL_ITEM);
   didl_add_value (out, DIDL_ITEM_ID, id);
   didl_add_value (out, DIDL_ITEM_PARENT_ID, containerid);
+  didl_add_value (out, DIDL_ITEM_RESTRICTED, restricted?1:0);
   buffer_append (out, ">");
 
-  metadata = item->metadata;
+  metadata = dlna_item_metadata (item);
 
   if (metadata)
     didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
@@ -171,7 +174,7 @@ didl_add_short_item (buffer_t *out,
 void
 didl_add_item (buffer_t *out, 
     uint32_t id, dlna_item_t *item, uint32_t containerid,
-    char *restricted, char *filter, char *protocol_info)
+    uint32_t restricted, char *filter, char *protocol_info)
 {
   char *class;
   int add_item_name;
@@ -179,46 +182,53 @@ didl_add_item (buffer_t *out,
   buffer_appendf (out, "<%s", DIDL_ITEM);
   didl_add_value (out, DIDL_ITEM_ID, id);
   didl_add_value (out, DIDL_ITEM_PARENT_ID, containerid);
-  didl_add_param (out, DIDL_ITEM_RESTRICTED, restricted);
+  didl_add_value (out, DIDL_ITEM_RESTRICTED, restricted?1:0);
   buffer_append (out, ">");
 
   if (item)
   {
-    class = dlna_profile_upnp_object_item (item->profile);
+    dlna_metadata_t *metadata;
+
+    metadata = dlna_item_metadata (item);
 
     add_item_name = 1;
-    if (item->metadata)
-      add_item_name = didl_add_tag (out, DIDL_ITEM_TITLE, item->metadata->title);
+    if (metadata)
+      add_item_name = didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
     if (add_item_name)
       didl_add_tag (out, DIDL_ITEM_TITLE, basename (item->filename));
-  
+
+    class = dlna_profile_upnp_object_item (item->profile);
     didl_add_tag (out, DIDL_ITEM_CLASS, class);
 
-    if (item->metadata)
+    if (metadata)
     {
-      if (filter_has_val (filter, DIDL_ITEM_ARTIST) && protocol_info)
+      if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
       {
-        didl_add_tag (out, DIDL_ITEM_ARTIST, item->metadata->author);
+        didl_add_tag (out, DIDL_ITEM_CREATOR, metadata->author);
       }
-      if (filter_has_val (filter, DIDL_ITEM_DESCRIPTION) && protocol_info)
+      if (!filter || filter_has_val (filter, DIDL_ITEM_ARTIST))
       {
-        didl_add_tag (out, DIDL_ITEM_DESCRIPTION, item->metadata->comment);
+        didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
       }
-      if (filter_has_val (filter, DIDL_ITEM_ALBUM) && protocol_info)
+      if (!filter || filter_has_val (filter, DIDL_ITEM_DESCRIPTION))
       {
-        didl_add_tag (out, DIDL_ITEM_ALBUM, item->metadata->album);
+        didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
       }
-      if (filter_has_val (filter, DIDL_ITEM_TRACK) && protocol_info)
+      if (!filter || filter_has_val (filter, DIDL_ITEM_ALBUM))
       {
-        didl_add_value (out, DIDL_ITEM_TRACK, item->metadata->track);
+        didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
       }
-      if (filter_has_val (filter, DIDL_ITEM_GENRE) && protocol_info)
+      if (!filter || filter_has_val (filter, DIDL_ITEM_TRACK))
       {
-        didl_add_tag (out, DIDL_ITEM_GENRE, item->metadata->genre);
+        didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_GENRE))
+      {
+        didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
       }
     }
   
-    if (filter_has_val (filter, DIDL_RES) && protocol_info)
+    if ((!filter || filter_has_val (filter, DIDL_RES)) && protocol_info)
     {
       buffer_appendf (out, "<%s", DIDL_RES);
       didl_add_param (out, DIDL_RES_INFO, protocol_info);

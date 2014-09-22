@@ -36,11 +36,12 @@ void
 didl_add_value (struct buffer_s *out, char *param, uint32_t value);
 void
 didl_add_short_item (buffer_t *out,
-    uint32_t id, dlna_item_t *item, uint32_t containerid);
+    uint32_t id, dlna_item_t *item, uint32_t containerid,
+    uint32_t restricted);
 void
 didl_add_item (struct buffer_s *out,  
     uint32_t id, dlna_item_t *item, uint32_t containerid,
-    char *restricted, char *filter, char *protocol_info);
+    uint32_t restricted, char *filter, char *protocol_info);
 void
 didl_add_container (struct buffer_s *out, struct vfs_item_s *item,
                     char *restricted, char *searchable, char *class);
