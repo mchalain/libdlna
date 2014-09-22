@@ -239,7 +239,12 @@ dlna_item_type (dlna_item_t * item)
 dlna_metadata_t *
 dlna_item_metadata (dlna_item_t * item)
 {
-  return item->metadata;
+  if (item->metadata)
+    return item->metadata;
+  else if (item->profile->get_metadata)
+    return item->profile->get_metadata (item);
+  else
+    return NULL;
 }
 
 dlna_item_t *
