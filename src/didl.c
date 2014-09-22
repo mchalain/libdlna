@@ -162,10 +162,12 @@ didl_add_short_item (buffer_t *out,
     didl_add_tag (out, DIDL_ITEM_TITLE, basename(item->filename));
   if (metadata)
   {
+    char track[10];
     didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
     didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
     didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
-    didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
+    snprintf(track,9,"%u", metadata->track);
+    didl_add_tag (out, DIDL_ITEM_TRACK, track);
     didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
   }
   buffer_appendf (out, "</%s>", DIDL_ITEM);
@@ -202,7 +204,7 @@ didl_add_item (buffer_t *out,
 
     if (metadata)
     {
-      if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
+      //if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
       {
         didl_add_tag (out, DIDL_ITEM_CREATOR, metadata->author);
       }
@@ -220,7 +222,9 @@ didl_add_item (buffer_t *out,
       }
       if (!filter || filter_has_val (filter, DIDL_ITEM_TRACK))
       {
-        didl_add_value (out, DIDL_ITEM_TRACK, metadata->track);
+        char track[10];
+        snprintf(track,9,"%u", metadata->track);
+        didl_add_tag (out, DIDL_ITEM_TRACK, track);
       }
       if (!filter || filter_has_val (filter, DIDL_ITEM_GENRE))
       {
