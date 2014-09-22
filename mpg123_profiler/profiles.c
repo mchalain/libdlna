@@ -28,8 +28,8 @@
 #include <mpg123.h>
 
 #include "dlna_internals.h"
-#include "sound_module.h"
-#include "network.h"
+
+#include "mpg123app.h"
 
 //#define dbgprintf(...)
 #define dbgprintf printf
@@ -123,6 +123,18 @@ struct profile_data_s
 static mpg123_profiler_data_t *g_profiler = NULL;
 static mpg123_handle *g_profiler_handle = NULL;
 struct sound_module *g_profiler_sound = NULL;
+audio_output_t *g_ao = NULL;
+struct parameter param = {
+  .outmode = DECODE_AUDIO,
+  .quiet = 1,
+  .verbose = 0,
+  .output_module = "tinyalsa",
+  .output_device = "",
+  .output_flags = 0,
+  .force_rate = 44100,
+  .force_encoding = "s16",
+  .gain = 0,
+};
 
 #define ONLY_ONE
 //#define SELECT_DECODER "generic"
@@ -136,7 +148,7 @@ mpg123_profiler_init ()
 
   mpg123_init ();
 
-  g_profiler_sound = sound_module_get();
+  init_output (&g_ao);
   decoderslist = mpg123_decoders();
   while (*decoderslist)
   {
@@ -244,6 +256,7 @@ mpg123_profiler_free ()
   }
   mpg123_delete (g_profiler_handle);
   mpg123_exit ();
+  exit_output (g_ao, 0);
 }
 
 static void
@@ -282,11 +295,11 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
 
   mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
 
-	if(mpg123_open_handle(g_profiler_handle, reader) != MPG123_OK)
-	{
+  if(mpg123_open_handle(g_profiler_handle, reader) != MPG123_OK)
+  {
     dbgprintf ("%s 1: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-		return NULL;
-	}
+    return NULL;
+  }
   if (mpg123_scan(g_profiler_handle) != MPG123_OK && 
       mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK && 
       mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK_FROM_END)
@@ -335,15 +348,15 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   data->profiler = profiler;
 
   /* check the possible output */
-	mpg123_format_none(g_profiler_handle);
-	mpg123_format(g_profiler_handle, rate, (int)channels, encoding);
+  mpg123_format_none(g_profiler_handle);
+  mpg123_format(g_profiler_handle, rate, (int)channels, encoding);
 
 	if (mpg123_getformat(g_profiler_handle, &rate, (int *)&channels, &encoding) != MPG123_OK)
-	{
+  {
     dbgprintf ("%s 5: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
     mpg123_close(g_profiler_handle);
-		return NULL;
-	}
+    return NULL;
+  }
   data->buffsize = mpg123_outblock(g_profiler_handle);
 
   /* properties setup */
@@ -436,9 +449,10 @@ static int
 item_prepare_stream (dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
-  int  channels = 2, encoding = MPG123_ENC_SIGNED_32;
+  int  channels = 2, encoding = MPG123_ENC_SIGNED_16;
   long rate = 44100;
 
+  encoding = audio_enc_name2code(param.force_encoding);
   mpg123_replace_reader_handle (g_profiler_handle, item->stream->read, item->stream->lseek, item->stream->cleanup);
 
   if (mpg123_open_handle (g_profiler_handle, item->stream))
@@ -462,7 +476,11 @@ item_prepare_stream (dlna_item_t *item)
     return -1;
   }
 
-  g_profiler_sound->open (channels, encoding, rate);
+  printf ("rate %u channels %d format 0x%X\n", rate, channels, encoding);
+  g_ao->rate = rate;
+  g_ao->channels = channels;
+  g_ao->format = encoding;
+  open_output (g_ao);
   cookie->buffer = calloc (1, cookie->buffsize);
   cookie->offset = 0;
   return 0;
@@ -490,7 +508,7 @@ item_read_stream (dlna_item_t *item)
   if (err == MPG123_OK)
   {
     cookie->offset += done;
-    err = g_profiler_sound->write (cookie->buffer, cookie->buffsize);
+    err = flush_output (g_ao, cookie->buffer, cookie->buffsize);
     if (err <  0)
        dbgprintf ("%s: %d %d\n", __FUNCTION__, err, done);
   }
@@ -504,7 +522,7 @@ item_close_stream (dlna_item_t *item)
   mpg123_profiler_data_t *profiler = cookie->profiler;
 
   mpg123_close(g_profiler_handle);
-  g_profiler_sound->close ();
+  close_output (g_ao);
 }
 
 dlna_profile_t *

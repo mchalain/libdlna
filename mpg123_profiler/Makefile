@@ -11,11 +11,11 @@ ifeq ($(BUILD_STATIC),yes)
   INSTALL_RULES += install_static
 endif
 ifeq ($(BUILD_SHARED),yes)
-  ifeq ($(BUILD_DYLIB),yes)
+  ifeq ($(BUILD_DYLIB),yes)NOXFERMEM
     LIBNAME_SHARED  = ${LIBNAME}.dylib
     LIBNAME_VERSION = $(LIBNAME).$(VERSION).dylib
-    LIBNAME_MAJOR   = $(LIBNAME).$(shell echo $(VERSION) | cut -f1 -d.).dylib
-    LIBNAME_FLAGS   = -dynamiclib -Wl,-headerpad_max_install_names,-undefined,dynamic_lookup,-install_name,$(LIBNAME_VERSION)
+    LIBNAME_MAJOR   = $(LIBNAME)NOXFERMEM.$(shell echo $(VERSION) | cut -f1 -d.).dylib
+    LIBNAME_FLAGS   = -dynamiclib -Wl,-hNOXFERMEMeaderpad_max_install_names,-undefined,dynamic_lookup,-install_name,$(LIBNAME_VERSION)
   else
     LIBNAME_SHARED  = ${LIBNAME}.so
     LIBNAME_VERSION = $(LIBNAME_SHARED).$(VERSION)
@@ -27,8 +27,12 @@ ifeq ($(BUILD_SHARED),yes)
 endif
 
 SRCS :=  \
+	audio.c \
+	output/tinyalsa.c \
+	legacy_module.c \
 	profiles.c \
-	modules/sound_tinyalsa.c
+
+#	modules/sound_tinyalsa.c
 
 EXTRADIST = \
 
@@ -42,6 +46,9 @@ endif
 
 # add headers from libdlna
 CFLAGS+=-I../src
+
+# add necessary flags for mpg123 application
+CFLAGS+=-DNOXFERMEM -DNOPITCH -DNOFAKE -I.
 
 EXTRALIBS+=-lmpg123 -ltinyalsa
 
