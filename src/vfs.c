@@ -279,12 +279,6 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   item->type = DLNA_RESOURCE;
   
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
-  if (!dlna_item->metadata)
-  {
-    dlna_item->metadata = calloc (1, sizeof (dlna_metadata_t));
-  }
-  if (!dlna_item->metadata->title)
-    dlna_item->metadata->title = strdup (name);
 
   item->u.resource.item = dlna_item;
   item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
