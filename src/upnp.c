@@ -281,16 +281,22 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
         ar->ActionResult = UpnpMakeActionResponse (
                               ar->ActionName, service->type, 0, NULL);
       }
+      if (dlna_verbosity == DLNA_MSG_INFO)
+      {
+        DOMString str = ixmlPrintDocument (ar->ActionResult);
+        dlna_log (DLNA_MSG_INFO, "Action Result:\n%s", str);
+        dlna_log (DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (DLNA_MSG_INFO, "\n");
+        ixmlFreeDOMString (str);
+      }
     }
-
-    if (dlna_verbosity == DLNA_MSG_INFO)
+    else if (dlna_verbosity == DLNA_MSG_INFO)
     {
-      DOMString str = ixmlPrintDocument (ar->ActionResult);
-      dlna_log (DLNA_MSG_INFO, "Action Result:\n%s", str);
-      dlna_log (DLNA_MSG_INFO,
-                "***************************************************\n");
-      dlna_log (DLNA_MSG_INFO, "\n");
-      ixmlFreeDOMString (str);
+        dlna_log (DLNA_MSG_INFO, "Action Error: %d\n", ar->ErrCode);
+        dlna_log (DLNA_MSG_INFO,
+                  "***************************************************\n");
+        dlna_log (DLNA_MSG_INFO, "\n");
     }
       
     return;
