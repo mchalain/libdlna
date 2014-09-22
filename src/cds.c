@@ -391,12 +391,9 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = CDS_ERR_PROCESS_REQUEST;
     goto browse_err;
   }
-  free (flag);
 
   /* find requested item in VFS */
   item = vfs_get_item_by_id (vfs, id);
-  if (!item)
-    item = vfs_get_item_by_id (vfs, 0);
 
   if (!item)
   {
@@ -408,13 +405,15 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     cds_browse_metadata (dlna, ev, item, filter) :
     cds_browse_directchildren (dlna, ev, index, count, item, filter);
   
-  free (filter);
-
   if (result_count < 0)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     goto browse_err;
   }
+
+  free (flag);
+  free (filter);
+  free (sort);
 
   return ev->status;
 
@@ -423,6 +422,8 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     free (flag);
   if (filter)
     free (filter);
+  if (sort)
+    free (sort);
 
   return 0;
 }
@@ -582,9 +583,9 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   didl_add_footer (out);
 
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
-  sprintf (tmp, "%d", result_count);
+  sprintf (tmp, "%u", result_count);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
-  sprintf (tmp, "%d", result_count);
+  sprintf (tmp, "%u", result_count);
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
   buffer_free (out);
 
@@ -663,6 +664,7 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 
   free (search_criteria);
   free (filter);
+  free (sort);
 
   return ev->status;
 
@@ -671,6 +673,8 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
     free (search_criteria);
   if (filter)
     free (filter);
+  if (sort)
+    free (sort);
 
   return 0;
 }
