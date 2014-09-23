@@ -678,7 +678,7 @@ upnp_get_ui4 (struct dlna_Action_Request *ar, const char *key)
   if (!value)
     return 0;
 
-  val = atoi (value);
+  val = strtoul (value, NULL, 10);
   free (value);
 
   return val;

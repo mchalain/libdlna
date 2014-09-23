@@ -383,7 +383,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
       goto browse_err;
     }
     meta = 1;
-    }
+  }
   else if (!strcmp (flag, CDS_BROWSE_CHILDREN))
     meta = 0;
   else
