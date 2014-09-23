@@ -29,14 +29,6 @@ endif
 SRCS :=  \
 	profiles.c
 
-ifeq ($(CONFIG_ALSA),yes)
-SRCS += output/alsa.c
-OUTPUT:=$(OUTPUT:%=%,)alsa
-endif
-ifeq ($(CONFIG_TINYALSA),yes)
-SRCS += output/tinyalsa.c
-OUTPUT:=$(OUTPUT:%=%,)tinyalsa
-endif
 #	modules/sound_tinyalsa.c
 
 EXTRADIST = \
@@ -55,7 +47,18 @@ CFLAGS+=-I../src
 # add necessary flags for mpg123 application
 CFLAGS+=-I. -DOUTPUT=\"$(OUTPUT)\"
 
-EXTRALIBS+=-lmpg123 -ltinyalsa
+EXTRALIBS+=-lmpg123
+
+ifeq ($(CONFIG_ALSA),yes)
+SRCS += output/alsa.c
+OUTPUT:=$(OUTPUT:%=%,)alsa
+EXTRALIBS+=-lasound
+endif
+ifeq ($(CONFIG_TINYALSA),yes)
+SRCS += output/tinyalsa.c
+OUTPUT:=$(OUTPUT:%=%,)tinyalsa
+EXTRALIBS+=-ltinyalsa
+endif
 
 OBJS = $(SRCS:.c=.o)
 LOBJS = $(SRCS:.c=.lo)
@@ -115,6 +118,7 @@ tags:
 
 clean:
 	-$(RM) -f *.o *.lo *.a *.so*
+	-$(RM) -f output/*.o output/*.lo output/*.a output/*.so*
 	-$(RM) -f .depend
 	-$(RM) -f tags TAGS
 
