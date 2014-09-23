@@ -117,7 +117,6 @@ clean:
 	-$(RM) -f *.o *.lo *.a *.so*
 	-$(RM) -f .depend
 	-$(RM) -f tags TAGS
-	-$(MAKE) -C modules clean
 
 install_static: lib_static
 	$(INSTALL) -d $(libdir)
@@ -131,7 +130,6 @@ install_shared: lib_shared
 
 install: $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)
-#	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
