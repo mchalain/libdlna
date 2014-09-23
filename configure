@@ -376,6 +376,9 @@ libupnp="auto"
 libavcodec="auto"
 libavformat="auto"
 libmpg123="auto"
+alsa="auto"
+tinyalsa="auto"
+esd="auto"
 profilers=
 utils=
 cc="gcc"
@@ -776,7 +779,7 @@ if [ "$libavcodec" = yes -a "$libavcodec" = yes ]; then
 fi
 
 #################################################
-#   check for ffmpeg libavformat
+#   check for mpg123 library
 #################################################
 if [ "$libmpg123" = auto -o "$libmpg123" = yes ]; then
   if [ "$libmpg123" = auto ]; then
@@ -793,6 +796,29 @@ if [ "$libmpg123" = yes ]; then
   profilers="$profilers mpg123_profiler"
   utils="$utils dlna-dmr dlna-dms"
 fi
+
+#################################################
+#   check for sound output
+#################################################
+sounds="alsa tinyalsa"
+checks_alsa="alsa/pcm.h snd_pcm_open -lalsa"
+checks_tinyalsa="tinyalsa/asoundlib.h pcm_open -ltinyalsa"
+
+for sound in $sounds
+do
+eval "state=\${$sound}"
+if [ "${state}" = auto -o "${state}" = yes ]; then
+  if [ "${state}" = auto ]; then
+    eval "${sound}=yes"
+    falsereturn="set_all no $sound"
+  else
+    falsereturn="die \"Error, can't find $sound !\""
+  fi
+  echolog "Checking for $sound ..."
+  eval "check=\${checks_${sound}}"
+  check_lib $check || ${falsereturn}
+fi
+done
 
 #################################################
 #   check for Portable UPnP
@@ -898,6 +924,8 @@ append_config "DEBUG=$debug"
 append_config "HAVE_EXTERNAL_LIBUPNP=$libupnp"
 append_config "PROFILERS=$profilers"
 append_config "UTILS=$utils"
+append_config "CONFIG_TINYALSA=$tinyalsa"
+append_config "CONFIG_ALSA=$alsa"
 
 #################################################
 #   make pkg-config files

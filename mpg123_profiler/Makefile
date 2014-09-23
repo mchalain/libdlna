@@ -28,10 +28,17 @@ endif
 
 SRCS :=  \
 	audio.c \
-	output/tinyalsa.c \
 	legacy_module.c \
 	profiles.c \
 
+ifeq ($(CONFIG_ALSA),yes)
+SRCS += output/alsa.c
+OUTPUT:=$(OUTPUT:%=%,)alsa
+endif
+ifeq ($(CONFIG_TINYALSA),yes)
+SRCS += output/tinyalsa.c
+OUTPUT:=$(OUTPUT:%=%,)tinyalsa
+endif
 #	modules/sound_tinyalsa.c
 
 EXTRADIST = \
@@ -48,7 +55,7 @@ endif
 CFLAGS+=-I../src
 
 # add necessary flags for mpg123 application
-CFLAGS+=-DNOXFERMEM -DNOPITCH -DNOFAKE -I.
+CFLAGS+=-DNOXFERMEM -DNOPITCH -DNOFAKE -I. -DOUTPUT=\"$(OUTPUT)\"
 
 EXTRALIBS+=-lmpg123 -ltinyalsa
 
