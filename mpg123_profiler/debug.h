@@ -6,4 +6,5 @@
 #define error3 printf
 #define debug	printf
 #define debug1 printf
+#define debug2 printf
 #endif
