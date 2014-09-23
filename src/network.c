@@ -39,15 +39,14 @@
 #include "config.h"
 #endif
 
-int http_get_transaction(int fd, char *page, struct http_info *info)
+static int http_request_get (int fd, char *page)
 {
 	int ret = -1;
 	int len;
-
+	char *wbuff;
 	/**
 	 * generate the request
 	 **/
-	char *wbuff;
 	wbuff = malloc(1024 + 1);
 	len = 0;
 	sprintf(wbuff+len, "GET %s HTTP/1.0\r\n", page);
@@ -68,10 +67,12 @@ int http_get_transaction(int fd, char *page, struct http_info *info)
 	 **/
 	ret = write(fd, wbuff, len);
 	free(wbuff);
+  return ret;
+}
 
-	/**
-	 * look for bytes available on the connection
-	 **/
+static int http_wait (int fd)
+{
+	int ret = -1;
 	int bytesAv = 0;
 	//int ret;
 	fd_set rfds;
@@ -88,51 +89,89 @@ int http_get_transaction(int fd, char *page, struct http_info *info)
 		ioctl (fd,FIONREAD,&bytesAv);
 		ret = bytesAv;
 	}
+  return ret;
+}
 
-	/**
-	 * allocate buffer with enought space for the header
-	 **/
-	char *rbuff;
-	rbuff = malloc(bytesAv + 1);
-	char *it = rbuff;
-	memset(rbuff, 0, bytesAv + 1);
-	while (ret > 0)
+static int http_recieve_header (int fd, char *header, int len)
+{
+  int i = 0, j = 0;
+
+	for (i = 0; i < len; i++)
 	{
-		len = bytesAv;
-		ret = recv(fd, rbuff, len, 0);
+		int ret = -1;
+		ret = recv(fd, header + i, 1, 0);
 		if (ret < 0)
 		{
 			LOG_ERROR("read from socket error %d %s", ret, strerror(errno));
 			return -1;
 		}
-		it[ret] = 0;
-		if (strstr(rbuff, "\r\n\r\n"))
+		/* search end of header */
+		/* od value for i*/
+		if ((j & 0x01) == 0x1)
 		{
+			if (header[i] == '\n')
+				j ++;
+			else
+				j = 0;
+		}
+		else
+		{
+			if (header[i] == '\r')
+				j ++;
+			else
+				j = 0;
+		}
+		if (j == 4)
 			break;
 		}
-		it += ret;
-		if (it >= rbuff + sizeof(rbuff) - len)
-		{
-			memcpy(rbuff, it - ret, ret);
-			it = rbuff + ret;
-		}			
-	}
+		header[i] = 0;
+		return i;
+}
+
+static int parse_header (char *header, struct http_info *info)
+{
 	/**
 	 * parse the header
 	 **/
-        if (info)
-        {
-                char *value;
-                if ((value = strstr(rbuff, "CONTENT-LENGTH: ")))
-                {
-                        sscanf(value,"CONTENT-LENGTH: %u[^\r]", &info->length);
-                }
-                if ((value = strstr(rbuff, "CONTENT-TYPE: ")))
-                {
-                        sscanf(value,"CONTENT-TYPE: %99[^\r]", info->mime);
-                }
-        }
+	char *value;
 
+	info->mime[0] = 0;
+	info->length = 0;
+	if ((value = strcasestr(header, "CONTENT-LENGTH: ")))
+	{
+		sscanf(value + 16,"%u[^\r]", &info->length);
+	}
+	if ((value = strcasestr(header, "CONTENT-TYPE: ")))
+	{
+		sscanf(value + 14,"%99[^\r]", info->mime);
+	}
+	return (value - header);
+}
+
+int http_get_transaction(int fd, char *page, struct http_info *info)
+{
+	int ret = -1;
+	char *rbuff;
+
+	ret = http_request_get (fd, page);
+	if (ret < 0)
+		return -1;
+
+	ret = http_wait (fd);
+	if (ret < 0)
+		return ret;
+
+	rbuff = calloc(ret + 1, sizeof (char));
+	ret = http_recieve_header (fd, rbuff, ret);
+	if (ret < 0)
+	{
+		free (rbuff);
+		return ret;
+	}
+
+	if (info)
+		parse_header (rbuff, info);
+	free (rbuff);
 	return ret;
 }
 
