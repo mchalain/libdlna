@@ -199,15 +199,15 @@ dbuffer_fillbuffer (void *opaque, char *buffer)
 {
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
-  ssize_t len;
+  ssize_t len = 0, total = 0;
 
-	len = read (file->fd, buffer, data->buffersize);
-  if (len < 0)
-    return;
-	while (len < data->buffersize)
-	{
-		len += read (file->fd, buffer + len, data->buffersize - len);
-	}
+  while (total < data->buffersize)
+  {
+    len = read (file->fd, buffer, data->buffersize);
+    if (len <= 0)
+      return;
+    total += len;
+  }
 }
 
 static void
