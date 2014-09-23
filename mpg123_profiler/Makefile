@@ -27,9 +27,7 @@ ifeq ($(BUILD_SHARED),yes)
 endif
 
 SRCS :=  \
-	audio.c \
-	legacy_module.c \
-	profiles.c \
+	profiles.c
 
 ifeq ($(CONFIG_ALSA),yes)
 SRCS += output/alsa.c
@@ -55,7 +53,7 @@ endif
 CFLAGS+=-I../src
 
 # add necessary flags for mpg123 application
-CFLAGS+=-DNOXFERMEM -DNOPITCH -DNOFAKE -I. -DOUTPUT=\"$(OUTPUT)\"
+CFLAGS+=-I. -DOUTPUT=\"$(OUTPUT)\"
 
 EXTRALIBS+=-lmpg123 -ltinyalsa
 
