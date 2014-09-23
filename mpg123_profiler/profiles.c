@@ -154,7 +154,8 @@ init_audio_output(mpg123_module_t *module)
 	ao->flush = NULL;
 	ao->close = NULL;
 	ao->deinit = NULL;
-	
+
+  ao->module->init_output (ao);
 	return ao;
 }
 
@@ -215,9 +216,7 @@ mpg123_profiler_init ()
   const char **decoderslist;
 
   mpg123_init ();
-
-  g_ao = init_audio_output (&mpg123_output_module_info);
-  g_ao->module->init_output (g_ao);
+  
   decoderslist = mpg123_decoders();
   while (*decoderslist)
   {
@@ -545,7 +544,10 @@ item_prepare_stream (dlna_item_t *item)
   }
 
   printf ("rate %u channels %d format 0x%X\n", rate, channels, encoding);
-  open_audio_output (g_ao, rate, channels, encoding);
+  if( !g_ao)
+    g_ao = init_audio_output (&mpg123_output_module_info);
+  if (g_ao)
+    open_audio_output (g_ao, rate, channels, encoding);
   cookie->buffer = calloc (1, cookie->buffsize);
   cookie->offset = 0;
   return 0;
@@ -587,7 +589,12 @@ item_close_stream (dlna_item_t *item)
   mpg123_profiler_data_t *profiler = cookie->profiler;
 
   mpg123_close(g_profiler_handle);
-  close_audio_output (g_ao);
+  if (g_ao)
+  {
+    close_audio_output (g_ao);
+    deinit_audio_output (g_ao);
+    g_ao = NULL;
+  }
 }
 
 dlna_profile_t *
