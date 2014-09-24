@@ -36,6 +36,7 @@
 
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
+#define AVTS_ERR_NO_CONTENTS                   702
 #define AVTS_ERR_NOT_IMPLEMENTED               710
 #define AVTS_ERR_ILLEGAL_MIME                  714
 #define AVTS_ERR_SPEED_NOT_SUPPORTED           717
@@ -1178,6 +1179,12 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
     return 0;
   }
+  if (!instance->playlist)
+  {
+    ev->ar->ErrCode = AVTS_ERR_NO_CONTENTS;
+    return 0;
+  }
+  
   avts_request_event (instance->service);
 
   return ev->status;
