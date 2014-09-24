@@ -41,6 +41,8 @@ struct dlna_device_s {
   char *serial_number;
   char *uuid;
   char *presentation_url;
+  char *dlnadoc;
+  char *dlnacap;
 };
 
 dlna_device_t *dlna_device_new ();
@@ -68,14 +70,23 @@ void dlna_device_free (dlna_device_t *device);
 #define DLNA_DEVICE_PRESENTATION \
 "    <presentationURL>%s</presentationURL>"
 
-#define DLNA_DLNADOC_DMR_DESCRIPTION \
-"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">DMR-1.00</dlna:X_DLNADOC>"
+#define DLNA_DLNADOC_DESCRIPTION \
+"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">%s-1.00</dlna:X_DLNADOC>"
 
-#define DLNA_DLNADOC_DMS_DESCRIPTION \
-"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">DMS-1.00</dlna:X_DLNADOC>"
+#define DLNA_DLNADOC_M_DESCRIPTION \
+"    <dlna:X_DLNADOC xmlns:dlna=\"urn:schemas-dlna-org:device-1-0\">M-%s-1.00</dlna:X_DLNADOC>"
 
 #define DLNA_ICONLIST_HEADER \
 "    <iconList>"
+
+#define DLNA_ICON_DESCRIPTION \
+"    <icon>" \
+"      <mimetype>%s</mimetype>" \
+"      <width>%d</width>" \
+"      <height>%d</height>" \
+"      <depth>%d</depth>" \
+"      <url>%s</url>" \
+"    </icon>"
 
 #define DLNA_ICONLIST_FOOTER \
 "    </iconList>"

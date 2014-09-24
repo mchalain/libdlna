@@ -96,7 +96,7 @@ dlna_init (void)
 
   dlna = calloc (1, sizeof (dlna_t));
   dlna->inited = 1;
-  dlna->mode = DLNA_CAPABILITY_DLNA;
+  dlna->mode = 0;
   dlna->check_extensions = 1;
   dlna->flags = 0;
 
@@ -197,7 +197,7 @@ dlna_set_capability_mode (dlna_t *dlna, dlna_capability_mode_t mode)
 
   dlna->mode = mode;
 
-  if (dlna->mode != DLNA_CAPABILITY_DLNA)
+  if (dlna->mode & DLNA_CAPABILITY_DLNA)
     dlna->check_extensions = 1;
 }
 
@@ -216,7 +216,7 @@ dlna_set_extension_check (dlna_t *dlna, int level)
   if (!dlna)
     return;
 
-  if (dlna->mode != DLNA_CAPABILITY_DLNA)
+  if (dlna->mode & DLNA_CAPABILITY_DLNA)
     return;
   
   dlna->check_extensions = level;
@@ -363,7 +363,7 @@ dlna_write_protocol_info (dlna_t *dlna, dlna_protocol_info_type_t type,
   strcat (protocol, p->mime);
   strcat (protocol, ":");
 
-  if (dlna->mode != DLNA_CAPABILITY_DLNA && p->id)
+  if ((dlna->mode & DLNA_CAPABILITY_DLNA) && p->id)
   {
     sprintf (dlna_info, "%s=%d;%s=%d;%s=%.2x;%s=%s;%s=%.8x%.24x",
              "DLNA.ORG_PS", speed, "DLNA.ORG_CI", ci,

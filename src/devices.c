@@ -96,8 +96,13 @@ dlna_device_set_type (dlna_device_t *device, char *str, char *short_str)
   if (device->urn_type)
     free (device->urn_type);
   device->urn_type = strdup (str);
+  if (!strncasecmp (device->urn_type, DLNA_DEVICE_TYPE_DMS, sizeof (DLNA_DEVICE_TYPE_DMS) - 2))
+    device->dlnadoc = strdup ("DMS");
+  else if (!strncasecmp (device->urn_type, DLNA_DEVICE_TYPE_DMR, sizeof (DLNA_DEVICE_TYPE_DMR) - 2))
+    device->dlnadoc = strdup ("DMR");
+  else if (short_str)
+    device->dlnadoc = strdup (short_str);
 }
-
 
 void
 dlna_device_set_friendly_name (dlna_device_t *device, char *str)
@@ -210,6 +215,11 @@ dlna_device_set_presentation_url (dlna_device_t *device, char *str)
   device->presentation_url = strdup (str);
 }
 
+void
+dlna_device_add_capabilities (dlna_device_t *device, char *capability)
+{
+}
+
 static int
 device_add_service (void *cookie, dlna_service_t *service)
 {
@@ -236,7 +246,7 @@ dlna_device_get_description (dlna_t *dlna)
 
   device = dlna->device;
 
-  if (dlna->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
+  if (dlna->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
   {
     model_name =
       malloc (strlen (XBOX_MODEL_NAME) + strlen (device->model_name) + 4);
@@ -259,8 +269,14 @@ dlna_device_get_description (dlna_t *dlna)
   if (device->presentation_url)
     buffer_appendf (b, DLNA_DEVICE_PRESENTATION, device->presentation_url);
 
-  if (dlna->mode & DLNA_CAPABILITY_DLNA)
-    buffer_append (b, DLNA_DLNADOC_DMS_DESCRIPTION);
+  if (dlna->mode & DLNA_CAPABILITY_DLNA && device->dlnadoc)
+  {
+    buffer_appendf (b, DLNA_DLNADOC_DESCRIPTION, device->dlnadoc);
+    if (dlna->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
+    {
+      buffer_appendf (b, DLNA_DLNADOC_M_DESCRIPTION, device->dlnadoc);
+    }
+  }
 
   if (device->services)
   {

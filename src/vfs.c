@@ -105,7 +105,7 @@ vfs_provide_next_id (dlna_vfs_t *vfs, char *fullpath)
   uint32_t i;
   uint32_t start = 1;
 
-  if (vfs->mode == DLNA_CAPABILITY_UPNP_AV_XBOX)
+  if (vfs->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
     start += STARTING_ENTRY_ID_XBOX360;
 
 
