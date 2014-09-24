@@ -173,7 +173,7 @@ open_audio_output (audio_output_t * ao, int rate, int channels, long encoding)
   ao->rate = rate;
   ao->channels = channels;
   ao->format = encoding;
-  ao->is_open = ao->open(ao);
+  ao->is_open = !ao->open(ao);
   return ao->is_open;
 }
 int
@@ -324,7 +324,12 @@ mpg123_profiler_free ()
   }
   mpg123_delete (g_profiler_handle);
   mpg123_exit ();
-  deinit_audio_output ( g_ao );
+  if (g_ao)
+  {
+    close_audio_output (g_ao);
+    deinit_audio_output (g_ao);
+    g_ao = NULL;
+  }
 }
 
 static void
@@ -572,7 +577,7 @@ item_read_stream (dlna_item_t *item)
   {
     return -1;
   }
-  if (err == MPG123_OK)
+  if (err == MPG123_OK && g_ao)
   {
     cookie->offset += done;
     err = write_audio_output (g_ao, cookie->buffer, cookie->buffsize);
@@ -592,8 +597,6 @@ item_close_stream (dlna_item_t *item)
   if (g_ao)
   {
     close_audio_output (g_ao);
-    deinit_audio_output (g_ao);
-    g_ao = NULL;
   }
 }
 
