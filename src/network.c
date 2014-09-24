@@ -148,7 +148,8 @@ static int parse_header (char *header, struct http_info *info)
 	return (value - header);
 }
 
-int http_get_transaction(int fd, char *page, struct http_info *info)
+static int
+http_get_transaction(int fd, char *page, struct http_info *info)
 {
 	int ret = -1;
 	char *rbuff;
