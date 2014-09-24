@@ -191,10 +191,11 @@ struct dbuffer_data_s {
   off_t threshold;
   ssize_t buffersize;
   off_t total_offset;
+  off_t end_offset;
   int next_ready;
 };
 
-static void
+static ssize_t
 dbuffer_fillbuffer (void *opaque, char *buffer)
 {
   dlna_stream_t *file = opaque;
@@ -205,9 +206,10 @@ dbuffer_fillbuffer (void *opaque, char *buffer)
   {
     len = read (file->fd, buffer, data->buffersize);
     if (len <= 0)
-      return;
+      return total;
     total += len;
   }
+  return total;
 }
 
 static void
@@ -226,10 +228,15 @@ dbuffer_fillnext (void *opaque)
   dlna_stream_t *file = opaque;
   struct dbuffer_data_s *data = file->private;
   char *buffer;
+  ssize_t len;
 
   buffer = 
     (data->current_buffer == data->buffer[0])? data->buffer[1]:data->buffer[0];
-  dbuffer_fillbuffer (opaque, buffer);
+  len = dbuffer_fillbuffer (opaque, buffer);
+  if (len <= data->buffersize)
+  {
+    data->end_offset = len;
+  }
   data->next_ready = 1;
 }
 
@@ -259,6 +266,7 @@ dbuffer_reset (void *opaque)
     close (file->fd);
     file->fd = http_get (file->url, NULL);
   }
+  data->end_offset = 0;
   data->current_buffer = data->buffer[0];
   dbuffer_fillcurrent (opaque);
 }
@@ -299,6 +307,10 @@ dbuffer_read (void *opaque, void *buf, size_t len)
     {
       dbuffer_nextbuffer (opaque);
     }
+  }
+  if (data->end_offset && !data->next_ready && data->end_offset < data->offset)
+  {
+    return 0;
   }
   if (data->offset >= data->threshold && !data->next_ready)
   {
@@ -434,6 +446,7 @@ dbuffer_open (char *url)
     file->cleanup = dbuffer_cleanup;
     file->close = dbuffer_close;
     strcpy (file->mime, info.mime);
+    file->length = info.length;
 
     data = calloc (1, sizeof (struct dbuffer_data_s));
     data->buffersize = DBUFFER_SIZE;
