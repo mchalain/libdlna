@@ -24,6 +24,7 @@ struct http_info
 {
 	unsigned int length;
 	char mime[100];
+        char location[200];
 };
 
 extern int http_get(char *uri, struct http_info *info);

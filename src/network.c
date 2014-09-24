@@ -39,6 +39,8 @@
 #include "config.h"
 #endif
 
+//#define IPV6
+
 static int http_request_get (int fd, char *page)
 {
 	int ret = -1;
@@ -52,9 +54,9 @@ static int http_request_get (int fd, char *page)
 	sprintf(wbuff+len, "GET %s HTTP/1.0\r\n", page);
 	len += strlen(page) + 15;
 /*
- * 	sprintf(wbuff+len, "User-Agent: mpg123/1.12.1\r\n");
+ 	sprintf(wbuff+len, "User-Agent: mpg123/1.12.1\r\n");
 	len += 27;
-	sprintf(wbuff+len, "Host: 10.1.2.9:49152\r\n");
+	sprintf(wbuff+len, "Host: 10.1.2.9\r\n");
 	len += 22;
 	sprintf(wbuff+len, "Accept: audio/mpeg, audio/x-mpeg, audio/mp3, audio/x-mp3, audio/mpeg3, audio/x-mpeg3, audio/mpg, audio/x-mpg, audio/x-mpegaudio, audio/mpegurl, audio/mpeg-url, audio/x-mpegurl, audio/x-scpls, audio/scpls, application/pls\r\n");
 	len += 227;
@@ -77,12 +79,15 @@ static int http_wait (int fd)
 	//int ret;
 	fd_set rfds;
 	int maxfd;
+	struct timeval timeout = {.tv_sec=3, .tv_usec=0,};
+	struct timeval *ptimeout;
 
 	FD_ZERO(&rfds);
 	FD_SET(fd, &rfds);
 	maxfd = fd +1;
 
-	ret = select(maxfd, &rfds, NULL, NULL, NULL);
+	ptimeout = NULL;
+	ret = select(maxfd, &rfds, NULL, NULL, ptimeout);
 	if (ret > 0 && FD_ISSET(fd, &rfds))
 	{
 		
@@ -100,7 +105,7 @@ static int http_recieve_header (int fd, char *header, int len)
 	{
 		int ret = -1;
 		ret = recv(fd, header + i, 1, 0);
-		if (ret < 0)
+		if (ret <= 0)
 		{
 			LOG_ERROR("read from socket error %d %s", ret, strerror(errno));
 			return -1;
@@ -123,9 +128,9 @@ static int http_recieve_header (int fd, char *header, int len)
 		}
 		if (j == 4)
 			break;
-		}
-		header[i] = 0;
-		return i;
+	}
+	header[i] = 0;
+	return i;
 }
 
 static int parse_header (char *header, struct http_info *info)
@@ -136,6 +141,7 @@ static int parse_header (char *header, struct http_info *info)
 	char *value;
 
 	info->mime[0] = 0;
+	info->location[0] = 0;
 	info->length = 0;
 	if ((value = strcasestr(header, "CONTENT-LENGTH: ")))
 	{
@@ -145,7 +151,14 @@ static int parse_header (char *header, struct http_info *info)
 	{
 		sscanf(value + 14,"%99[^\r]", info->mime);
 	}
-	return (value - header);
+	if ((value = strcasestr(header, "Location: ")))
+	{
+		sscanf(value + 10,"%199[^\r]", info->location);
+	}
+	if (value != NULL)
+		return (value - header);
+	else
+	  return -1;
 }
 
 static int
@@ -156,24 +169,39 @@ http_get_transaction(int fd, char *page, struct http_info *info)
 
 	ret = http_request_get (fd, page);
 	if (ret < 0)
+	{
+		close (fd);
 		return -1;
+	}
 
 	ret = http_wait (fd);
 	if (ret < 0)
+	{
+		close (fd);
 		return ret;
+	}
 
+  /* no data still available */
+  if (ret == 0)
+		ret = 1024;
 	rbuff = calloc(ret + 1, sizeof (char));
 	ret = http_recieve_header (fd, rbuff, ret);
 	if (ret < 0)
 	{
 		free (rbuff);
+		close (fd);
 		return ret;
 	}
 
 	if (info)
 		parse_header (rbuff, info);
 	free (rbuff);
-	return ret;
+	if (info && strlen (info->location) > 0)
+	{
+		close (fd);
+		fd = http_get (info->location, info);
+	}
+	return fd;
 }
 
 int
@@ -188,7 +216,7 @@ http_get(char *uri, struct http_info *info)
 
 	memset(proto, 0, 10);
 	memset(ip, 0, 100);
-	memset(page, 0, 100);
+	memset(page, 0, 200);
 	port = 80;
 
 	page[0]='/';
@@ -201,10 +229,13 @@ http_get(char *uri, struct http_info *info)
 	{
 #ifndef IPV6
 		struct sockaddr_in server;
-		struct in_addr myaddr;
+		struct hostent *entity;
 
 		if((server.sin_addr.s_addr = inet_addr(ip)) == INADDR_NONE)
-		return -1;
+		{
+			entity = gethostbyname (ip);
+			memcpy(&server.sin_addr, entity->h_addr_list[0], entity->h_length);
+		}
 
 		server.sin_port = htons(port);
 		server.sin_family = AF_INET;
@@ -262,7 +293,7 @@ http_get(char *uri, struct http_info *info)
 			return -1;
 #endif
 
-		http_get_transaction(fd, uri, info);
+		fd = http_get_transaction(fd, uri, info);
 
 	}
 	return fd;
