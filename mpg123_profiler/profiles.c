@@ -208,7 +208,7 @@ close_audio_output (audio_output_t * ao)
 #define ONLY_ONE
 //#define SELECT_DECODER "generic"
 int
-mpg123_profiler_init ()
+mpg123_profiler_init (dlna_t *dlna dlna_unused)
 {
   int ret = 0;
   mpg123_profiler_data_t *profiler = NULL;
@@ -311,16 +311,16 @@ mpg123_profiler_get_supported_mime_types ()
 }
 
 static void
-mpg123_profiler_free ()
+mpg123_profiler_free (dlna_profiler_t *profiler dlna_unused)
 {
-  mpg123_profiler_data_t *profiler;
+  mpg123_profiler_data_t *profiler_data;
   while (g_profiler)
   {
-    profiler = g_profiler->next;
+    profiler_data = g_profiler->next;
     if (g_profiler->mimes)
       free (g_profiler->mimes);
     free (g_profiler);
-    g_profiler = profiler;
+    g_profiler = profiler_data;
   }
   mpg123_delete (g_profiler_handle);
   mpg123_exit ();
@@ -591,7 +591,7 @@ static void
 item_close_stream (dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
-  mpg123_profiler_data_t *profiler = cookie->profiler;
+  //mpg123_profiler_data_t *profiler = cookie->profiler;
 
   mpg123_close(g_profiler_handle);
   if (g_ao)
@@ -619,6 +619,7 @@ mpg123_profiler_get_media_profile (char *profileid)
 
 
 const dlna_profiler_t mpg123_profiler = {
+  .init = mpg123_profiler_init,
   .guess_media_profile = mpg123_profiler_guess_media_profile,
   .get_media_profile = mpg123_profiler_get_media_profile,
   .get_supported_mime_types = mpg123_profiler_get_supported_mime_types,

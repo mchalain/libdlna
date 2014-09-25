@@ -53,21 +53,20 @@ extern registered_profile_t dlna_profile_av_wmv9;
 static ffmpeg_profiler_data_t *g_profiler = NULL;
 
 static ffmpeg_profiler_data_t *
-ffmpeg_profiler_init ()
+ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
 {
-  ffmpeg_profiler_data_t *data;
-
   /* register all FFMPEG demuxers */
   av_register_all ();
   //avdevice_register_all();
   avcodec_register_all();
   avformat_network_init();
 
-  data = calloc( 1, sizeof(ffmpeg_profiler_data_t));
-  data->first_profile = NULL;
-  data->inited = 1;
+  g_profiler = calloc( 1, sizeof(ffmpeg_profiler_data_t));
+  g_profiler->first_profile = NULL;
+  g_profiler->inited = 1;
+  ffmpeg_profiler_register_all_media_profiles ();
 
-  return data;
+  return 0;
 }
 
 static void
@@ -90,7 +89,7 @@ void
 ffmpeg_profiler_register_all_media_profiles ()
 {
   if (!g_profiler || !g_profiler->inited)
-    g_profiler = ffmpeg_profiler_init ();
+    return ;
 
   register_profile (g_profiler, &dlna_profile_image_jpeg);
   register_profile (g_profiler, &dlna_profile_image_png);
@@ -112,7 +111,7 @@ void
 ffmpeg_profiler_register_media_profile (ffmpeg_profiler_media_profile_t profile)
 {
   if (!g_profiler || !g_profiler->inited)
-    g_profiler = ffmpeg_profiler_init ();
+    return;
 
   switch (profile)
   {
@@ -214,7 +213,7 @@ ffmpeg_profiler_get_supported_mime_types ()
   char **mimes;
 
   if (!g_profiler || !g_profiler->inited)
-    g_profiler = ffmpeg_profiler_init ();
+    return NULL;
 
   if (g_profiler->mimes)
     return g_profiler->mimes;
@@ -366,7 +365,7 @@ ffmpeg_profiler_get_media_profile (char *profileid)
   int i = 0;
 
   if (!g_profiler || !g_profiler->inited)
-    g_profiler = ffmpeg_profiler_init ();
+    return NULL;
 
   p = g_profiler->first_profile;
   while (p)
@@ -389,7 +388,7 @@ ffmpeg_profiler_get_media_profile (char *profileid)
 }
 
 static void
-ffmpeg_profiler_free ()
+ffmpeg_profiler_free (dlna_profiler_t *profiler dlna_unused)
 {
   if (g_profiler)
   {
@@ -420,7 +419,7 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   char check_extensions = 1;
 
   if (!g_profiler || !g_profiler->inited)
-    g_profiler = ffmpeg_profiler_init ();
+    return NULL;
 
   if (avformat_open_input (&ctx, reader->url, NULL, NULL) != 0)
   {
@@ -791,6 +790,7 @@ ffmpeg_read_stream (dlna_item_t *item)
 }
 */
 const dlna_profiler_t ffmpeg_profiler = {
+  .init = ffmpeg_profiler_init,
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,
   .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,

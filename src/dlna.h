@@ -381,6 +381,7 @@ char * dlna_write_protocol_info (dlna_t *dlna,
                                  dlna_profile_t *p);
 
 typedef struct dlna_profiler_s {
+  int (*init) (dlna_t *dlna);
 /**
  * Output the table of mime type supported by the profiler.
  *
@@ -405,7 +406,7 @@ typedef struct dlna_profiler_s {
 /**
  * free data used by the profiler
  **/
- void (*free) ();
+ void (*free) (struct dlna_profiler_s *profiler);
 } dlna_profiler_t;
 
 /**

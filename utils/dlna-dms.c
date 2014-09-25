@@ -217,12 +217,10 @@ main (int argc, char **argv)
   /* init Media profiler */
 #ifdef MPG123
   profiler = &mpg123_profiler;
-  mpg123_profiler_init ();
   dlna_add_profiler (dlna, profiler);
 #endif
 #ifdef FFMPEG
   profiler = &ffmpeg_profiler;
-  ffmpeg_profiler_register_all_media_profiles ();
   dlna_add_profiler (dlna, profiler);
 #endif
 

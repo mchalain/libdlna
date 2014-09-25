@@ -76,6 +76,11 @@ dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
     profilers_list->next = dlna->profilers;
     dlna->profilers = profilers_list;
   }
+
+  /* use internal function to initialize the profiler */
+  if (profiler->init)
+	profiler->init (dlna);
+
   char **mimelist;
   char **iterator;
 
@@ -125,7 +130,7 @@ dlna_remove_profilers (dlna_t *dlna)
     dlna_profiler_list_t *profilers_list = dlna->profilers->next;
 
     if (dlna->profilers->profiler->free)
-      dlna->profilers->profiler->free ();
+      dlna->profilers->profiler->free (dlna->profilers->profiler);
     free (dlna->profilers);
     dlna->profilers = profilers_list;
   }

@@ -126,7 +126,6 @@ main (int argc, char **argv)
   /* init Media profiler */
 #ifdef MPG123
   profiler = &mpg123_profiler;
-  mpg123_profiler_init ();
   dlna_add_profiler (dlna, profiler);
 #endif
 
