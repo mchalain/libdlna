@@ -234,6 +234,8 @@ http_get(char *uri, struct http_info *info)
 		if((server.sin_addr.s_addr = inet_addr(ip)) == INADDR_NONE)
 		{
 			entity = gethostbyname (ip);
+			if (!entity)
+				return -1;
 			memcpy(&server.sin_addr, entity->h_addr_list[0], entity->h_length);
 		}
 
