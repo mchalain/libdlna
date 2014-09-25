@@ -44,6 +44,6 @@ didl_add_item (struct buffer_s *out,
     uint32_t restricted, char *filter, char *protocol_info);
 void
 didl_add_container (struct buffer_s *out, struct vfs_item_s *item,
-                    char *restricted, char *searchable, char *class);
+                    char *restricted, char *searchable);
 
 #endif

@@ -35,6 +35,7 @@
 #define DIDL_LITE                             "DIDL-Lite"
 #define DIDL_ITEM                             "item"
 #define DIDL_ITEM_ID                          "id"
+#define DIDL_ITEM_REFID                       "refID"
 #define DIDL_ITEM_PARENT_ID                   "parentID"
 #define DIDL_ITEM_RESTRICTED                  "restricted"
 #define DIDL_ITEM_CLASS                       "upnp:class"
@@ -204,7 +205,7 @@ didl_add_item (buffer_t *out,
 
     if (metadata)
     {
-      //if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
+      if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
       {
         didl_add_tag (out, DIDL_ITEM_CREATOR, metadata->author);
       }
@@ -274,7 +275,7 @@ didl_add_item (buffer_t *out,
 
 void
 didl_add_container (buffer_t *out, vfs_item_t *item,
-                    char *restricted, char *searchable, char *class)
+                    char *restricted, char *searchable)
 {
   buffer_appendf (out, "<%s", DIDL_CONTAINER);
 
@@ -289,7 +290,7 @@ didl_add_container (buffer_t *out, vfs_item_t *item,
   didl_add_param (out, DIDL_CONTAINER_SEARCH, searchable);
   buffer_append (out, ">");
 
-  didl_add_tag (out, DIDL_CONTAINER_CLASS, class);
+  didl_add_tag (out, DIDL_CONTAINER_CLASS, dlna_upnp_object_type (item->u.container.media_class));
   didl_add_tag (out, DIDL_CONTAINER_TITLE, item->u.container.title);
 
   buffer_appendf (out, "</%s>", DIDL_CONTAINER);
