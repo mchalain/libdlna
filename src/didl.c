@@ -256,9 +256,16 @@ didl_add_item (buffer_t *out,
       }
 
       buffer_append (out, ">");
-      buffer_appendf (out, "http://%s:%d%s/%u",
-                    dlnaGetServerIpAddress (),
-                    dlnaGetServerPort (), VIRTUAL_DIR, id);
+      if (strstr (item->filename, "://") == NULL)
+      {
+        buffer_appendf (out, "http://%s:%d%s/%u",
+                      dlnaGetServerIpAddress (),
+                      dlnaGetServerPort (), VIRTUAL_DIR, id);
+      }
+      else
+      {
+        buffer_appendf (out, item->filename);
+      }
       buffer_appendf (out, "</%s>", DIDL_RES);
     }
   }
