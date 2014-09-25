@@ -79,7 +79,7 @@ extern "C" {
 #define MIME_VIDEO_MPEG_4                 "video/mp4"
 #define MIME_VIDEO_MPEG_TS                "video/vnd.dlna.mpeg-tts"
 #define MIME_VIDEO_WMV                    "video/x-ms-wmv"
-#define MIME_VIDEO_AVI                    "video/avi"
+#define MIME_VIDEO_AVI                    "video/x-msvideo"
 #define MIME_VIDEO_QT                     "video/quicktime"
 
 /* DLNA Labels */
@@ -322,7 +322,12 @@ typedef enum {
   DLNA_CLASS_IMAGE,
   DLNA_CLASS_AUDIO,
   DLNA_CLASS_AV,
-  DLNA_CLASS_COLLECTION
+  DLNA_CLASS_COLLECTION,
+  DLNA_CLASS_RADIO,
+  DLNA_CLASS_TV,
+  DLNA_CLASS_FOLDER,
+  DLNA_CLASS_ALBUM,
+  DLNA_CLASS_LAST
 } dlna_media_class_t;
 
 /**

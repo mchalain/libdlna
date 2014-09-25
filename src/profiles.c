@@ -83,9 +83,25 @@ dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime)
 }
 
 /* UPnP ContentDirectory Object Item */
-#define UPNP_OBJECT_ITEM_PHOTO            "object.item.imageItem.photo"
-#define UPNP_OBJECT_ITEM_AUDIO            "object.item.audioItem.musicTrack"
-#define UPNP_OBJECT_ITEM_VIDEO            "object.item.videoItem.movie"
+static char *upnp_object_type[] = {
+	[DLNA_CLASS_IMAGE] = "object.item.imageItem.photo",
+	[DLNA_CLASS_AUDIO] = "object.item.audioItem.musicTrack",
+	[DLNA_CLASS_AV] = "object.item.videoItem.movie",
+	[DLNA_CLASS_COLLECTION] = "object.container.playlistContainer",
+	[DLNA_CLASS_RADIO] = "object.item.audioItem.audioBroadcast",
+	[DLNA_CLASS_TV] = "object.item.videoItem.videoBroadcast",
+	[DLNA_CLASS_FOLDER] = "object.container.storageFolder",
+	[DLNA_CLASS_ALBUM] = "object.container.album.musicAlbum",
+};
+
+char *
+dlna_upnp_object_type (dlna_media_class_t media_class)
+{
+  if (media_class < DLNA_CLASS_LAST)
+	return upnp_object_type[media_class];
+  else
+    return NULL;
+}
 
 char *
 dlna_profile_upnp_object_item (dlna_profile_t *profile)
@@ -93,19 +109,7 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
   if (!profile)
     return NULL;
 
-  switch (profile->media_class)
-  {
-  case DLNA_CLASS_IMAGE:
-    return UPNP_OBJECT_ITEM_PHOTO;
-  case DLNA_CLASS_AUDIO:
-    return UPNP_OBJECT_ITEM_AUDIO;
-  case DLNA_CLASS_AV:
-    return UPNP_OBJECT_ITEM_VIDEO;
-  default:
-    break;
-  }
-
-  return NULL;
+  return dlna_upnp_object_type (profile->media_class);
 }
 
 dlna_profile_t *
