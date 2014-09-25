@@ -40,69 +40,88 @@ static int item_prepare_stream (dlna_item_t *item);
 static int item_read_stream (dlna_item_t *item);
 static void item_close_stream (dlna_item_t *item);
 
-struct 
+typedef struct mpg123_profile_s mpg123_profile_t;
+struct mpg123_profile_s
 {
+  dlna_profile_t *profile;
   enum mpg123_version version;
   int layer;
-  enum mpg123_mode channels;
-} default_profiles_info[] = {
-  {
+  enum mpg123_channelcount channels;
+} *default_profiles[] = {
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_AUDIO,
+    },
     .version = MPG123_1_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  {
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3X",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_AUDIO,
+    },
     .version = MPG123_2_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  {
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3X",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_AUDIO,
+    },
     .version = MPG123_2_5,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  {
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_RADIO,
+    },
     .version = MPG123_1_0,
     .layer = 3,
-    .channels = MPG123_MONO,
+    .channels = MPG123_STEREO,
   },
-};
-static dlna_profile_t *default_profiles[] = {
-  & (dlna_profile_t) {
-    .id = "MP3",
-    .mime = MIME_AUDIO_MPEG,
-    .label = LABEL_AUDIO_2CH,
-    .media_class = DLNA_CLASS_AUDIO,
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3X",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_RADIO,
+    },
+    .version = MPG123_2_0,
+    .layer = 3,
+    .channels = MPG123_STEREO,
   },
-  & (dlna_profile_t) {
-    .id = "MP3X",
-    .mime = MIME_AUDIO_MPEG,
-    .label = LABEL_AUDIO_2CH,
-    .media_class = DLNA_CLASS_AUDIO,
+  &(mpg123_profile_t) {
+    .profile =   & (dlna_profile_t) {
+      .id = "MP3X",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_RADIO,
+    },
+    .version = MPG123_2_5,
+    .layer = 3,
+    .channels = MPG123_STEREO,
   },
-  & (dlna_profile_t) {
-    .id = "MP3X",
-    .mime = MIME_AUDIO_MPEG,
-    .label = LABEL_AUDIO_2CH,
-    .media_class = DLNA_CLASS_AUDIO,
-  },
-  & (dlna_profile_t) {
-    .id = "MP3",
-    .mime = MIME_AUDIO_MPEG,
-    .label = LABEL_AUDIO_MONO,
-    .media_class = DLNA_CLASS_AUDIO,
-  },
-	NULL
+  NULL
 };
 
 typedef struct mpg123_profiler_data_s mpg123_profiler_data_t;
 struct mpg123_profiler_data_s
 {
   char **mimes;
-  dlna_profile_t *profile;
-  enum mpg123_version version;
-  int layer;
-  enum mpg123_channelcount channels;
+  mpg123_profile_t *profile;
   mpg123_profiler_data_t *next;
   mpg123_profiler_data_t *previous;
 };
@@ -238,9 +257,6 @@ mpg123_profiler_init (dlna_t *dlna dlna_unused)
       profiler = calloc (1, sizeof (mpg123_profiler_data_t));
       mpg123_param(g_profiler_handle, MPG123_RESYNC_LIMIT, -1, 0);
       profiler->profile = default_profiles[i];
-      profiler->version = default_profiles_info[i].version;
-      profiler->layer = default_profiles_info[i].layer;
-      profiler->channels = default_profiles_info[i].channels;
 
       if (!g_profiler)
       {
@@ -303,7 +319,7 @@ mpg123_profiler_get_supported_mime_types ()
   profiler = g_profiler;
   while (profiler)
   {
-    g_profiler->mimes = dlna_list_add (g_profiler->mimes, (char *)profiler->profile->mime);
+    g_profiler->mimes = dlna_list_add (g_profiler->mimes, (char *)profiler->profile->profile->mime);
     profiler = profiler->next;
   }
   g_profiler->mimes = dlna_list_add (g_profiler->mimes, NULL);
@@ -365,6 +381,7 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   int metaflags;
   mpg123_id3v1 *v1 = NULL;
   mpg123_id3v2 *v2 = NULL;
+  dlna_media_class_t class;
 
   mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
 
@@ -402,10 +419,17 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   rate = mpg_info.rate;
   channels = (mpg_info.mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
 
+  if (reader->length < 0)
+    class = DLNA_CLASS_RADIO;
+  else
+    class = DLNA_CLASS_AUDIO;
   profiler = g_profiler;
   while (profiler)
   {
-    if (mpg_info.version == profiler->version && mpg_info.layer == profiler->layer && channels == profiler->channels)
+    if (mpg_info.version == profiler->profile->version && 
+        mpg_info.layer == profiler->profile->layer && 
+        channels == profiler->profile->channels &&
+        class == profiler->profile->profile->media_class)
       break;
     profiler = profiler->next;
   }
@@ -416,7 +440,7 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
     return NULL;
   }
 
-  profile = profiler->profile;
+  profile = profiler->profile->profile;
   data = calloc (1, sizeof (profile_data_t));
   data->profiler = profiler;
 
@@ -562,7 +586,7 @@ static int
 item_read_stream (dlna_item_t *item)
 {
   profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
-  mpg123_profiler_data_t *profiler = cookie->profiler;
+  //mpg123_profiler_data_t *profiler = cookie->profiler;
   size_t done = 0;
   int err;
 
@@ -590,7 +614,7 @@ item_read_stream (dlna_item_t *item)
 static void
 item_close_stream (dlna_item_t *item)
 {
-  profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
+  //profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
   //mpg123_profiler_data_t *profiler = cookie->profiler;
 
   mpg123_close(g_profiler_handle);
@@ -608,9 +632,9 @@ mpg123_profiler_get_media_profile (char *profileid)
   profiler = g_profiler;
   while (profiler)
   {
-    if (!strcmp(profileid, profiler->profile->id))
+    if (!strcmp(profileid, profiler->profile->profile->id))
     {
-      return profiler->profile;
+      return profiler->profile->profile;
     }
     profiler = profiler->next;
   }
