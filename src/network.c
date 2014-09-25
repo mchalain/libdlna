@@ -142,7 +142,7 @@ static int parse_header (char *header, struct http_info *info)
 
 	info->mime[0] = 0;
 	info->location[0] = 0;
-	info->length = 0;
+	info->length = -1;
 	if ((value = strcasestr(header, "CONTENT-LENGTH: ")))
 	{
 		sscanf(value + 16,"%u[^\r]", &info->length);
