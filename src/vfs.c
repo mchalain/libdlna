@@ -22,6 +22,9 @@
 
 #include <stdlib.h>
 #include <limits.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "upnp_internals.h"
 #include "vfs.h"
@@ -205,7 +208,8 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
                         uint32_t object_id, uint32_t container_id)
 {
   vfs_item_t *item;
-  
+  struct stat st;
+
   if (!vfs || !name)
     return 0;
 
@@ -214,10 +218,10 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   item = calloc (1, sizeof (vfs_item_t));
 
   item->type = DLNA_CONTAINER;
-  
+
   /* is requested 'object_id' available ? */
   if (object_id == 0)
-    item->id = vfs_provide_next_id (vfs, name);
+    item->id = vfs_provide_next_id (vfs, basename (name));
   else if (vfs_is_id_registered (vfs, object_id) == DLNA_ST_OK)
     return object_id;
   else
@@ -229,7 +233,11 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
             "New container id (asked for #%u, granted #%u)\n",
             object_id, item->id);
 
-  item->u.container.title = strdup (name);
+  if (stat (name, &st) == 0 && S_ISDIR (st.st_mode))
+    item->u.container.media_class = DLNA_CLASS_FOLDER;
+  else
+    item->u.container.media_class = DLNA_CLASS_COLLECTION;
+  item->u.container.title = strdup (basename (name));
   item->u.container.children = calloc (1, sizeof (vfs_item_t *));
   *(item->u.container.children) = NULL;
   item->u.container.children_count = 0;
