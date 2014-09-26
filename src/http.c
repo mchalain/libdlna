@@ -61,6 +61,28 @@ typedef struct http_file_handler_s {
   } detail;
 } http_file_handler_t;
 
+vfs_resource_t *
+dlna_http_create_resource (vfs_item_t *item)
+{
+  vfs_resource_t *resource;
+  dlna_item_t *dlna_item;
+  char *url;
+
+  resource = calloc (1, sizeof (vfs_resource_t));
+  url = malloc (1024);
+  sprintf (url, "http://%s:%d%s/%u",
+                      dlnaGetServerIpAddress (),
+                      dlnaGetServerPort (), VIRTUAL_DIR, item->id);
+  resource->url = strdup (url);
+  free (url);
+  
+  dlna_item = item->u.resource.item;
+  resource->profile = dlna_item->profile;
+  memcpy (&resource->properties, dlna_item->properties, sizeof (dlna_properties_t));
+  resource->protocolid = RESOURCE_HTTP;
+  return resource;
+}
+
 static inline void
 set_service_http_info (struct File_Info *info,
                        const size_t length,

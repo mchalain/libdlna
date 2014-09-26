@@ -23,6 +23,20 @@
 #ifndef VFS_H
 #define VFS_H
 
+typedef enum vfs_resource_protocol_e
+{
+	RESOURCE_INTERNAL,
+	RESOURCE_HTTP,
+} vfs_resource_protocol_t;
+
+typedef struct vfs_resource_s {
+  char *url;
+  vfs_resource_protocol_t protocolid;
+  dlna_properties_t properties;
+  dlna_profile_t *profile;
+  struct vfs_resource_s *next;
+} vfs_resource_t;
+
 typedef struct vfs_item_s {
   uint32_t id;
 
@@ -34,6 +48,7 @@ typedef struct vfs_item_s {
   union {
     struct {
       dlna_item_t *item;
+      vfs_resource_t *resources;
       dlna_org_conversion_t cnv;
       char *fullpath;
       char *url;

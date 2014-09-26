@@ -310,7 +310,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   /* add new child to parent */
   vfs_item_add_child (item->parent, item);
   vfs->vfs_items++;
-  
+
+  item->u.resource.resources = dlna_http_create_resource (item);
   return item->id;
 }
 
