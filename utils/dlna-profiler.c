@@ -79,7 +79,8 @@ main (int argc, char **argv)
     dlna_item_free (item);
   }
   
-  p = ffmpeg_profiler.guess_media_profile (argv[1], &cookie);
+  dlna_stream_t *stream = stream_open (argv[1]);
+  p = ffmpeg_profiler.guess_media_profile (stream, &cookie);
   if (p)
   {
     char *protocol_info;
@@ -101,6 +102,7 @@ main (int argc, char **argv)
   else
     printf ("Unknown format\n");
 
+  stream_close (stream);
   dlna_uninit (dlna);
   
   return 0;
