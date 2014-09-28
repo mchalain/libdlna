@@ -97,6 +97,12 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   free (item);
 }
 
+inline vfs_resource_t * 
+vfs_resource_get (vfs_item_t *item) 
+{
+  return item->u.resource.resources;
+}
+
 static dlna_status_code_t
 vfs_is_id_registered (dlna_vfs_t *vfs, uint32_t id)
 {
