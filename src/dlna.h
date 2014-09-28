@@ -269,14 +269,6 @@ void dlna_set_verbosity (dlna_t *dlna, dlna_verbosity_level_t level);
 void dlna_set_capability_mode (dlna_t *dlna, dlna_capability_mode_t mode);
 
 /**
- * Set library's mask of flags.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] flags Mask of flags to be set
- */
-void dlna_set_org_flags (dlna_t *dlna, dlna_org_flags_t flags);
-
-/**
  * Set library's check level on files extension.
  *
  * @param[in] dlna  The DLNA library's controller.
@@ -641,6 +633,14 @@ dlna_metadata_t *dlna_item_metadata (dlna_item_t * item);
  * @return A new VFS object if compatible, NULL otherwise.
  */
 dlna_vfs_t *dlna_vfs_new (dlna_t *dlna);
+
+/**
+ * Set library's mask of flags.
+ *
+ * @param[in] vfs     The VFS.
+ * @param[in] flags   Mask of flags to be set
+ */
+void dlna_vfs_set_mode (dlna_vfs_t *vfs, dlna_org_flags_t dlna_flags);
 
 /**
  * Free an existing DLNA media object item.

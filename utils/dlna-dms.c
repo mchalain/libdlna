@@ -209,7 +209,6 @@ main (int argc, char **argv)
   
   /* init DLNA stack */
   dlna = dlna_init ();
-  dlna_set_org_flags (dlna, flags);
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   dlna_set_capability_mode (dlna, cap);
   dlna_set_extension_check (dlna, 1);
@@ -235,6 +234,7 @@ main (int argc, char **argv)
 
   dlna_service_register (device, cms_service_new(dlna));
   vfs = dlna_vfs_new (dlna);
+  dlna_vfs_set_mode (vfs, flags);
   dlna_service_register (device, cds_service_new(dlna, vfs));
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
     dlna_service_register (device, msr_service_new(dlna));

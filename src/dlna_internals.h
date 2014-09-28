@@ -118,8 +118,6 @@ struct dlna_s {
   dlna_capability_mode_t mode;
   /* defines flexibility on file extension's check */
   int check_extensions;
-  /* DLNA flags*/
-  int flags;
 
   /* Internal HTTP Server */
   dlna_http_callback_t *http_callback;

@@ -50,7 +50,6 @@ main (int argc, char **argv)
 {
   dlna_t *dlna;
   dlna_device_t *device;
-  dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
   char *interface = NULL;
   const dlna_profiler_t *profiler;
@@ -66,11 +65,6 @@ main (int argc, char **argv)
 
   printf ("libdlna Digital Media Renderer (DMR) API example\n");
   printf ("Using %s\n", LIBDLNA_IDENT);
-
-  flags = DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
-    DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE |
-    DLNA_ORG_FLAG_CONNECTION_STALL |
-    DLNA_ORG_FLAG_DLNA_V15;
 
   cap = DLNA_CAPABILITY_DLNA;
 
@@ -118,7 +112,6 @@ main (int argc, char **argv)
 
   /* init DLNA stack */
   dlna = dlna_init ();
-  dlna_set_org_flags (dlna, flags);
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   dlna_set_capability_mode (dlna, cap);
   dlna_set_extension_check (dlna, 1);

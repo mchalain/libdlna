@@ -49,6 +49,14 @@ dlna_vfs_new (dlna_t *dlna dlna_unused)
 }
 
 void
+dlna_vfs_set_mode (dlna_vfs_t *vfs, int dlna_flags)
+{
+  if (dlna_flags != 0)
+    vfs->mode |= DLNA_CAPABILITY_DLNA;
+  vfs->flags = dlna_flags;
+}
+
+void
 dlna_vfs_free (dlna_vfs_t *vfs)
 {
   vfs_item_free (vfs, vfs->vfs_root);

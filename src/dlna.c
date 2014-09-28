@@ -103,7 +103,6 @@ dlna_init (void)
   dlna->inited = 1;
   dlna->mode = 0;
   dlna->check_extensions = 1;
-  dlna->flags = 0;
 
   /* Internal HTTP Server */
   dlna->http_callback = NULL;
@@ -204,15 +203,6 @@ dlna_set_capability_mode (dlna_t *dlna, dlna_capability_mode_t mode)
 
   if (dlna->mode & DLNA_CAPABILITY_DLNA)
     dlna->check_extensions = 1;
-}
-
-void
-dlna_set_org_flags (dlna_t *dlna, dlna_org_flags_t flags)
-{
-  if (!dlna)
-    return;
-
-  dlna->flags = flags;
 }
 
 void

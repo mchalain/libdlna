@@ -127,6 +127,7 @@
 #define CDS_ERR_ACESS_DENIED_DESTINATION      719
 #define CDS_ERR_PROCESS_REQUEST               720
 
+dlna_org_flags_t cds_flags;
 /*
  * GetSearchCapabilities:
  *   This action returns the searching capabilities that
@@ -216,7 +217,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
                                 item->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
-                                dlna->flags, dlna_item_get(dlna, item)->profile);
+                                cds_flags, dlna_item_get(dlna, item)->profile);
     didl_add_item (out, item->id, dlna_item_get(dlna, item), 
             item->parent ? item->parent->id : 0, 1, filter, protocol_info);
     free (protocol_info);
@@ -252,6 +253,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
                            vfs_item_t *item, char *filter)
 {
   vfs_item_t **items;
+  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   int s, result_count = 0;
   char tmp[32];
   char *updateID;
@@ -296,7 +298,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
                                 (*items)->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
-                                dlna->flags, dlna_item->profile);
+                                cds_flags, dlna_item->profile);
         didl_add_item (out, (*items)->id, dlna_item, 
             (*items)->parent ? (*items)->parent->id : 0, 1, filter, protocol_info);
         free (protocol_info);
@@ -472,7 +474,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
                               DLNA_ORG_PLAY_SPEED_NORMAL,
                               item->u.resource.cnv,
                               DLNA_ORG_OPERATION_RANGE,
-                              dlna->flags, dlna_item->profile);
+                              cds_flags, dlna_item->profile);
 
   object_type = dlna_profile_upnp_object_item (dlna_item->profile);
   
@@ -530,7 +532,7 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
                                 (*items)->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
-                                dlna->flags, dlna_item_get(dlna, *items)->profile);
+                                cds_flags, dlna_item_get(dlna, *items)->profile);
           didl_add_item (out, (*items)->id, dlna_item_get(dlna, *items), 
             (*items)->parent ? (*items)->parent->id : 0, 1, filter, protocol_info);
           result_count++;
@@ -887,5 +889,6 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
   service->last_change  = 1;
 
   service->cookie = vfs;
+  cds_flags = vfs->flags;
   return service;
 };

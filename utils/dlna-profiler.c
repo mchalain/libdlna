@@ -49,7 +49,6 @@ main (int argc, char **argv)
   printf ("Using %s\n", LIBDLNA_IDENT);
   
   dlna = dlna_init ();
-  dlna_set_org_flags (dlna, flags);
   dlna_set_verbosity (dlna, DLNA_MSG_INFO);
   ffmpeg_profiler_register_all_media_profiles ();
   dlna_add_profiler (dlna, &ffmpeg_profiler);
