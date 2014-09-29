@@ -1036,23 +1036,28 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   else
     upnp_add_response (ev, AVTS_ARG_TRACK_URI, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
-  if (plitem && plitem->item->properties && plitem->item->properties->bps && plitem->item->properties->sample_frequency)
+  if (plitem && plitem->item->properties && 
+      plitem->item->properties->spf && 
+      plitem->item->properties->sample_frequency)
   {
     char duration[100];
     uint32_t time, time_s, time_m, time_h;
     long rate = plitem->item->properties->sample_frequency;
 
-    time = instance->counter * plitem->item->properties->spf / rate / plitem->item->properties->bps * 8;
+    time = instance->counter * plitem->item->properties->spf / rate;
 
     time_h = time / 60 / 60;
     time_m = (time / 60) % 60;
     time_s = time % 60;
     snprintf(duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
     upnp_add_response (ev, AVTS_ARG_RTIME, duration);
+    upnp_add_response (ev, AVTS_ARG_ATIME, duration);
   }
   else
+  {
     upnp_add_response (ev, AVTS_ARG_RTIME, "NOT_IMPLEMENTED");
-  upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
+    upnp_add_response (ev, AVTS_ARG_ATIME, "NOT_IMPLEMENTED");
+  }
   out = buffer_new ();
   buffer_appendf (out, "%u", instance->counter);
   upnp_add_response (ev, AVTS_ARG_RCOUNT, out->buf);
@@ -1427,84 +1432,97 @@ avts_get_actions (dlna_t *dlna, upnp_action_event_t *ev)
   return ev->status;
 }
 
+static IXML_Node *
+event_add_value (IXML_Document *doc, IXML_Node *node, char *argname, uint32_t value)
+{
+  char valuestr[10];
+  IXML_Element *elem;
+
+  elem = ixmlDocument_createElement( doc, argname );
+  sprintf (valuestr, "%9u", value);
+  ixmlElement_setAttribute (elem, "val", valuestr);
+  ixmlNode_appendChild (node, (IXML_Node *)elem);
+  return (IXML_Node *)elem;
+}
+
+static IXML_Node *
+event_add_param (IXML_Document *doc, IXML_Node *node, char *argname, char *valuestr)
+{
+  IXML_Element *elem;
+
+  elem = ixmlDocument_createElement( doc, argname );
+  ixmlElement_setAttribute (elem, "val", valuestr);
+  ixmlNode_appendChild (node, (IXML_Node *)elem);
+  return (IXML_Node *)elem;
+}
+
 static char *
 avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
 {
-  char *value = NULL;
   buffer_t *out;
+  IXML_Document *eventDoc;
+  IXML_Node *first;
   avts_instance_t *instance = NULL;
   avts_instance_t *instances = (avts_instance_t *)service->cookie;
 
   out = buffer_new ();
-  buffer_appendf (out, "<Event xmlns=\"urn:schemas-upnp-org:metadata-1-0/AVT/\">");
+  buffer_append (out, "<Event xmlns=\"urn:schemas-upnp-org:metadata-1-0/AVT/\">");
+  buffer_appendf (out, "</Event>");
+
+  ixmlParseBufferEx( out->buf,&eventDoc);
+  buffer_free (out);
+  
+  first = ixmlNode_getFirstChild( ( IXML_Node * ) eventDoc );
   for (instance = instances; instance; instance = instance->hh.next)
   {
     int index = 0;
     char *val;
     avts_playlist_t *plitem;
+    IXML_Node *instanceNode;
 
     plitem = playlist_current(instance->playlist);
 
-    buffer_appendf (out, "<InstanceID val=\"%d\">",instance->id);
-    buffer_appendf (out, "<TransportState val=\"%s\"/>",g_TransportState[instance->state]);
-    buffer_appendf (out, "<TransportStatus val=\"%s\"/>", AVTS_VAR_STATUS_VAL);
-
+    instanceNode = event_add_value (eventDoc, first, "InstanceID", instance->id);
+    event_add_param (eventDoc, instanceNode, "TransportState", g_TransportState[instance->state]);
+    event_add_param (eventDoc, instanceNode, "TransportStatus", AVTS_VAR_STATUS_VAL);
+    
     val = instance_possible_state(instance);
-    buffer_appendf (out, "<CurrentTransportActions val=\"%s\"/>", val);
+    event_add_param (eventDoc, instanceNode, "CurrentTransportActions", val);
     free (val);
 
     if (plitem)
     {
-      buffer_appendf (out, "<AVTransportURI val=\"%s\"/>", plitem->item->filename);
-/*
+      event_add_param (eventDoc, instanceNode, "AVTransportURI", plitem->item->filename);
       if (plitem->didl)
-        buffer_appendf (out, "<AVTransportURMetaData val=\"%s\"/>", plitem->didl);
+        event_add_param (eventDoc, instanceNode, "AVTransportURIMetaData", plitem->didl);
       else
-        buffer_appendf (out, "<AVTransportURMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
-*/
+        event_add_param (eventDoc, instanceNode, "AVTransportURIMetaData", AVTS_VAR_AVT_URI_VAL_EMPTY);
     }
 
     if (instance->playlist)
-      buffer_appendf (out, "<NumberOfTracks val=\"%u\"/>", playlist_count(instance->playlist));
+      event_add_value (eventDoc, instanceNode, "NumberOfTracks", playlist_count(instance->playlist));
+    event_add_value (eventDoc, instanceNode, "CurrentTrack", index);
     if (instance_get_state (instance) == E_PLAYING)
     {
       index = playlist_index (instance->playlist, plitem) + 1;
       if (plitem)
       {
-        buffer_appendf (out, "<CurrentTrackURI val=\"%s\"/>", plitem->item->filename);
-/*
+        event_add_param (eventDoc, instanceNode, "CurrentTrackURI", plitem->item->filename);
         if (plitem->didl)
-    	  buffer_appendf (out, "<CurrentTrackMetaData val=\"%s\"/>", plitem->didl);
+          event_add_param (eventDoc, instanceNode, "CurrentTrackMetaData", plitem->didl);
         else
-          buffer_appendf (out, "<CurrentTrackMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
-*/
+          event_add_param (eventDoc, instanceNode, "CurrentTrackMetaData", AVTS_VAR_AVT_URI_VAL_EMPTY);
+
+        if (plitem->item->properties )
+        {
+          event_add_param (eventDoc, instanceNode, "CurrentTrackDuration", plitem->item->properties->duration);
+          event_add_param (eventDoc, instanceNode, "CurrentMediaDuration", plitem->item->properties->duration);
+        }
       }
-/*
-      if (plitem && plitem->item->properties )
-        buffer_appendf (out, "<CurrentTrackDuration val=\"%s\">", plitem->item->properties->duration);
-      if (plitem && plitem->item->properties)
-        buffer_appendf (out, "<CurrentMediaDuration val=\"%s\">", plitem->item->properties->duration);
-*/
     }
-    buffer_appendf (out, "<CurrentTrack val=\"%u\"/>", index);
-
-    buffer_appendf (out, "<PlaybackStorageMedium val=\"UNKNOWN\"/>");
-    buffer_appendf (out, "<RecordStorageMedium val=\"%s\"/>",AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<CurrentPlayMode val=\"NORMAL\"/>");
-    buffer_appendf (out, "<TransportPlaySpeed val=\"%s\"/>", AVTS_VAR_PLAY_SPEED_VAL);
-    buffer_appendf (out, "<RecordMediumWriteStatus val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<CurrentRecordQualityMode val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<PossiblePlaybackStorageMedia val=\"%s\"/>", AVTS_VAR_POSSIBLE_PLAY_MEDIA_VAL);
-    buffer_appendf (out, "<PossibleRecordStorageMedia val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "<PossibleRecordQualityModes val=\"%s\"/>", AVTS_VAR_RECORD_VAL);
-    buffer_appendf (out, "</InstanceID>");
   }
-  buffer_appendf (out, "</Event>");
-
-  value = strdup (out->buf);
-  buffer_free (out);
   
-  return value;
+  return ixmlPrintDocument (eventDoc);
 }
 
 /* List of UPnP AVTransport Service actions */
