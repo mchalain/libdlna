@@ -253,6 +253,7 @@ void dlna_log (dlna_verbosity_level_t level,
 dlna_profile_t *dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid);
 char * dlna_upnp_object_type (dlna_media_class_t media_class);
 
+
 extern dlna_profiler_t upnpav_profiler;
 
 #endif /* DLNA_INTERNALS_H */

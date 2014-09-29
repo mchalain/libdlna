@@ -90,4 +90,7 @@ void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
 
+vfs_resource_t *dlna_http_resource_new (vfs_item_t *item);
+
+
 #endif

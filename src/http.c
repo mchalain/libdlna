@@ -95,7 +95,7 @@ http_protocol_info (vfs_resource_t *resource, dlna_org_flags_t flags)
 }
 
 vfs_resource_t *
-dlna_http_create_resource (vfs_item_t *item)
+dlna_http_resource_new (vfs_item_t *item)
 {
   vfs_resource_t *resource;
   dlna_item_t *dlna_item;
