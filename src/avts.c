@@ -1452,11 +1452,12 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
     if (plitem)
     {
       buffer_appendf (out, "<AVTransportURI val=\"%s\"/>", plitem->item->filename);
-      buffer_appendf (out, "<AVTransportURMetaData val=\"");
+/*
       if (plitem->didl)
         buffer_appendf (out, "<AVTransportURMetaData val=\"%s\"/>", plitem->didl);
       else
         buffer_appendf (out, "<AVTransportURMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
+*/
     }
 
     if (instance->playlist)
@@ -1467,10 +1468,12 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
       if (plitem)
       {
         buffer_appendf (out, "<CurrentTrackURI val=\"%s\"/>", plitem->item->filename);
+/*
         if (plitem->didl)
     	  buffer_appendf (out, "<CurrentTrackMetaData val=\"%s\"/>", plitem->didl);
         else
           buffer_appendf (out, "<CurrentTrackMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
+*/
       }
 /*
       if (plitem && plitem->item->properties )
