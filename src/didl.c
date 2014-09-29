@@ -143,38 +143,6 @@ didl_add_value (buffer_t *out, char *param, uint32_t value)
 }
 
 void
-didl_add_short_item (buffer_t *out,
-    uint32_t id, dlna_item_t *item,
-    uint32_t containerid, uint32_t restricted)
-{
-  dlna_metadata_t *metadata;
-
-  buffer_appendf (out, "<%s", DIDL_ITEM);
-  didl_add_value (out, DIDL_ITEM_ID, id);
-  didl_add_value (out, DIDL_ITEM_PARENT_ID, containerid);
-  didl_add_value (out, DIDL_ITEM_RESTRICTED, restricted?1:0);
-  buffer_append (out, ">");
-
-  metadata = dlna_item_metadata (item);
-
-  if (metadata)
-    didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
-  else
-    didl_add_tag (out, DIDL_ITEM_TITLE, basename(item->filename));
-  if (metadata)
-  {
-    char track[10];
-    didl_add_tag (out, DIDL_ITEM_ARTIST, metadata->author);
-    didl_add_tag (out, DIDL_ITEM_DESCRIPTION, metadata->comment);
-    didl_add_tag (out, DIDL_ITEM_ALBUM, metadata->album);
-    snprintf(track,9,"%u", metadata->track);
-    didl_add_tag (out, DIDL_ITEM_TRACK, track);
-    didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
-  }
-  buffer_appendf (out, "</%s>", DIDL_ITEM);
-}
-
-void
 didl_add_item (buffer_t *out, 
     uint32_t id, dlna_item_t *item, uint32_t containerid,
     uint32_t restricted, char *filter, char *protocol_info)

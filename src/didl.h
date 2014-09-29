@@ -35,10 +35,6 @@ didl_add_param (struct buffer_s *out, char *param, char *value);
 void
 didl_add_value (struct buffer_s *out, char *param, uint32_t value);
 void
-didl_add_short_item (buffer_t *out,
-    uint32_t id, dlna_item_t *item, uint32_t containerid,
-    uint32_t restricted);
-void
 didl_add_item (struct buffer_s *out,  
     uint32_t id, dlna_item_t *item, uint32_t containerid,
     uint32_t restricted, char *filter, char *protocol_info);

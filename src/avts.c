@@ -830,7 +830,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   
   if (plitem)
-    didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
@@ -846,7 +846,7 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (plitem)
   {
-    didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
   }
   else
     buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
@@ -914,7 +914,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
 
   out = buffer_new ();
   if (plitem)
-    didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
   buffer_free (out);
 
@@ -932,7 +932,7 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   out = buffer_new ();
   if (plitem)
   {
-    didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
   }
   upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
   buffer_free (out);
@@ -1029,7 +1029,7 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
 
   out = buffer_new ();
   if (plitem)
-    didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
   else
     buffer_appendf (out, "%s", "");
   dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
@@ -1462,7 +1462,7 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
     {
       buffer_appendf (out, "<AVTransportURI val=\"%s\"/>", plitem->item->filename);
       buffer_appendf (out, "<AVTransportURMetaData val=\"");
-      //didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+      //didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
       buffer_appendf (out, "\"/>");
     }
 
@@ -1475,7 +1475,7 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
       {
         buffer_appendf (out, "<CurrentTrackURI val=\"%s\"/>", plitem->item->filename);
         buffer_appendf (out, "<CurrentTrackMetaData val=\"");
-        //didl_add_short_item (out, plitem->id, plitem->item, 0, 1);
+        //didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
         buffer_appendf (out, "\"/>");
       }
 /*
