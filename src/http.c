@@ -61,15 +61,21 @@ typedef struct http_file_handler_s {
   } detail;
 } http_file_handler_t;
 
+struct http_resource_s
+{
+  uint32_t id;
+};
+
 static char *
-http_url (vfs_item_t *item)
+http_url (vfs_resource_t *resource)
 {
   char *url;
+  struct http_resource_s *cookie = resource->cookie;
   
   url = malloc (1024);
   sprintf (url, "http://%s:%d%s/%u",
                       dlnaGetServerIpAddress (),
-                      dlnaGetServerPort (), VIRTUAL_DIR, item->id);
+                      dlnaGetServerPort (), VIRTUAL_DIR, cookie->id);
   printf (url);
   return url;
 }
@@ -79,8 +85,12 @@ dlna_http_create_resource (vfs_item_t *item)
 {
   vfs_resource_t *resource;
   dlna_item_t *dlna_item;
+  struct http_resource_s *cookie;
 
   resource = calloc (1, sizeof (vfs_resource_t));
+  cookie = calloc (1, sizeof (struct http_resource_s));
+  cookie->id = item->id;
+  resource->cookie = cookie;
   resource->url = http_url;
 
   dlna_item = item->u.resource.item;

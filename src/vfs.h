@@ -24,6 +24,7 @@
 #define VFS_H
 
 typedef struct vfs_item_s vfs_item_t;
+typedef struct vfs_resource_s vfs_resource_t;
 
 typedef struct
 {
@@ -33,14 +34,15 @@ typedef struct
   dlna_org_conversion_t cnv:2;
 } vfs_intem_info_t;
 
-typedef struct vfs_resource_s {
-  char *(*url) (vfs_item_t *item);
+struct vfs_resource_s {
+  char *(*url) (vfs_resource_t *resource);
+  void *cookie;
   int64_t size;
   vfs_intem_info_t info;
   dlna_properties_t properties;
   dlna_profile_t *profile;
   struct vfs_resource_s *next;
-} vfs_resource_t;
+};
 
 struct vfs_item_s {
   uint32_t id;

@@ -235,7 +235,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
         didl_add_param (out, DIDL_RES_RESOLUTION, resource->properties.resolution);
 
         buffer_append (out, ">");
-        url = resource->url(item);
+        url = resource->url (resource);
         buffer_appendf (out, url);
         free (url);
         buffer_appendf (out, "</%s>", DIDL_RES);
