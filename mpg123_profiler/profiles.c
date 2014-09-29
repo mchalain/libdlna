@@ -234,6 +234,9 @@ mpg123_profiler_init (dlna_t *dlna dlna_unused)
   mpg123_profiler_data_t *previous = NULL;
   const char **decoderslist;
 
+  if (g_profiler)
+    return ret;
+
   mpg123_init ();
   
   decoderslist = mpg123_decoders();
