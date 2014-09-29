@@ -247,6 +247,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   item = calloc (1, sizeof (vfs_item_t));
 
   item->type = DLNA_CONTAINER;
+  item->restricted = 1;
 
   /* is requested 'object_id' available ? */
   if (object_id == 0)
@@ -314,6 +315,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   item = calloc (1, sizeof (vfs_item_t));
 
   item->type = DLNA_RESOURCE;
+  item->restricted = 1;
   
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
 

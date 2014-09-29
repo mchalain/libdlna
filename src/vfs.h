@@ -36,6 +36,7 @@ typedef struct vfs_resource_s {
 
 struct vfs_item_s {
   uint32_t id;
+  uint32_t restricted;
 
   enum {
     DLNA_RESOURCE,
