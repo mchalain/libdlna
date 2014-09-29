@@ -477,6 +477,7 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   profile->free = media_profile_free;
   //profile->prepare_stream = ffmpeg_prepare_stream;
   //profile->read_stream = ffmpeg_read_stream;
+  //profile->seek_stream = NULL;
 
   ffmpeg_profile_t *fprofile = calloc (1, sizeof (ffmpeg_profile_t));
   fprofile->ctx = ctx;

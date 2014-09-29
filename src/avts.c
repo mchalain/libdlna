@@ -232,11 +232,13 @@ struct avts_instance_s
     E_PAUSING,
     E_RECORDING,
     E_TRANSITIONING,
+    E_SEEK,
   } state;
   ithread_mutex_t state_mutex;
   ithread_cond_t state_change;
   ithread_t playthread;
   uint32_t counter;
+  uint32_t seekframe;
   UT_hash_handle hh;
 };
 
@@ -385,9 +387,18 @@ playitem_prepare (dlna_item_t *item)
 static int
 playitem_decodeframe (dlna_item_t *item)
 {
-  int ret;
+  int ret = -1;
   if (item->profile->read_stream)
     ret = item->profile->read_stream (item);
+  return ret;
+}
+
+static int
+playitem_seekframe (dlna_item_t *item)
+{
+  int ret = -1;
+  if (item->profile->seek_stream)
+    ret = item->profile->seek_stream (item);
   return ret;
 }
 
@@ -455,6 +466,12 @@ instance_change_state (avts_instance_t *instance, int newstate)
     break;
     case E_RECORDING:
       /* recording is not allowed */
+    break;
+    case E_SEEK:
+      if (instance->state != E_PLAYING)
+        break;
+      instance->state = newstate;
+      changed = 1;
     break;
     case E_PLAYING:
       if (instance->state == E_PLAYING)
@@ -532,6 +549,9 @@ avts_thread_play (void *arg)
     case E_SHUTDOWN:
       run = 0;
       break;
+    case E_SEEK:
+      play_frame = 1;
+      break;
     case E_PLAYING:
       play_frame = 1;
       break;
@@ -576,6 +596,17 @@ avts_thread_play (void *arg)
     {
       int ret = 0;
 
+      while (instance->seekframe && instance->seekframe > instance->counter && ret >= 0)
+      {
+        ret = playitem_seekframe (playlist_current(instance->playlist)->item);
+        instance->counter++;
+      }
+      if (instance->seekframe)
+      {
+        instance->seekframe = 0;
+        instance_change_state (instance, E_PLAYING);
+        continue;
+      }
       ret = playitem_decodeframe (playlist_current(instance->playlist)->item);
       instance->counter++;
       if (ret > 0)
@@ -1042,9 +1073,9 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   {
     char duration[100];
     uint32_t time, time_s, time_m, time_h;
-    long rate = plitem->item->properties->sample_frequency;
 
-    time = instance->counter * plitem->item->properties->spf / rate;
+    time = instance->counter * plitem->item->properties->spf;
+    time /= plitem->item->properties->sample_frequency;
 
     time_h = time / 60 / 60;
     time_m = (time / 60) % 60;
@@ -1307,6 +1338,28 @@ avts_seek (dlna_t *dlna, upnp_action_event_t *ev)
     int32_t nbtrack;
     nbtrack = upnp_get_ui4 (ev->ar, AVTS_ARG_SEEK_TARGET);
     instance->playlist->next = playlist_seek (instance->playlist, nbtrack);
+  }
+  else if (!strncmp (unit, "ABS_TIME", 8))
+  {
+    char *time;
+    unsigned int h, m, s;
+    uint32_t second;
+    avts_playlist_t *plitem = NULL;
+
+    time = upnp_get_string (ev->ar, AVTS_ARG_SEEK_TARGET);
+    sscanf (time, "%u:%u:%u", &h, &m, &s);
+    second = (((h * 60) + m) * 60) + s;
+    plitem = playlist_current(instance->playlist);
+    if (plitem)
+    {
+      instance->seekframe = second * plitem->item->properties->sample_frequency;
+      instance->seekframe /= plitem->item->properties->spf;
+    }
+    if (!instance_change_state(instance, E_SEEK))
+    {
+      ev->ar->ErrCode = AVTS_ERR_TRANSITION_NOT_AVAILABLE;
+      return 0;
+    }
   }
   else
   {
@@ -1596,7 +1649,7 @@ char *AVTS_VAR_STATE_allowed[] =
 char *AVTS_VAR_PLAY_MODE_allowed[] =
 {"NORMAL","SHUFFLE","REPEAT_ONE","REPEAT_ALL","RANDOM","DIRECT_1","INTRO",NULL};
 char *AVTS_VAR_A_ARG_TYPE_SEEK_MODE_allowed[] =
-{"TRACK_NR",NULL};
+{"TRACK_NR","ABS_TIME",NULL};
 
 
 upnp_service_statevar_t avts_service_variables[] = {

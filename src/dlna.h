@@ -346,6 +346,7 @@ typedef struct dlna_profile_s {
   void (*free)(struct dlna_item_s *item);
   int (*prepare_stream) (struct dlna_item_s *item);
   int (*read_stream) (struct dlna_item_s *item);
+  int (*seek_stream) (struct dlna_item_s *item);
   void (*close_stream) (struct dlna_item_s *item);
 
 } dlna_profile_t;

@@ -517,6 +517,7 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   profile->get_properties = item_get_properties;
   profile->prepare_stream = item_prepare_stream;
   profile->read_stream = item_read_stream;
+  profile->seek_stream = NULL;
   profile->close_stream = item_close_stream;
 
   return profile;
