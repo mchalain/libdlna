@@ -165,7 +165,7 @@ dlna_http_get_info (void *cookie,
   if (item->type != DLNA_RESOURCE)
     return HTTP_ERROR;
 
-  dlna_item = dlna_item_get(dlna, item);
+  dlna_item = vfs_item_get(item);
   if (!dlna_item)
     return HTTP_ERROR;
 
@@ -315,7 +315,7 @@ dlna_http_open (void *cookie,
   if (!item)
     return NULL;
 
-  dlna_item = dlna_item_get(dlna, item);
+  dlna_item = vfs_item_get(item);
   if (!dlna_item)
     return NULL;
   return http_get_file_local (dlna_item);

@@ -250,11 +250,3 @@ dlna_item_metadata (dlna_item_t * item)
   else
     return NULL;
 }
-
-dlna_item_t *
-dlna_item_get(dlna_t *dlna, vfs_item_t *item)
-{
-	if (item->type == DLNA_RESOURCE)
-    return item->u.resource.item;
-  return NULL;
-}

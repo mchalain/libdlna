@@ -178,16 +178,6 @@ struct dlna_item_s {
   void *profile_cookie;
 };
 
-/**
- * Return the DLNA media object item.
- *
- * @param[in] dlna     The DLNA library's controller.
- * @param[in] item     The VFS item corresponding to the file.
- * @return The DLNA object item if existing, NULL otherwise.
- */
-dlna_item_t *
-dlna_item_get(dlna_t *dlna, struct vfs_item_s *item);
-
 struct dlna_stream_s {
   /**
    * url or filename of the stream

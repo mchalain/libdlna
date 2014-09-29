@@ -212,19 +212,22 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
   switch (item->type)
   {
   case DLNA_RESOURCE:
+  {
+    dlna_item_t *dlna_item = vfs_item_get (item);
+
     protocol_info =
         dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
                                 item->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
-                                cds_flags, dlna_item_get(dlna, item)->profile);
-    didl_add_item (out, item->id, dlna_item_get(dlna, item), 
+                                cds_flags, dlna_item->profile);
+    didl_add_item (out, item->id, dlna_item, 
             item->parent ? item->parent->id : 0, item->restricted,
             filter, protocol_info);
     free (protocol_info);
     snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
-
+  }
   case DLNA_CONTAINER:
     didl_add_container (out, item, item->restricted, 1);
     snprintf (updateID, 255, "%u", item->u.container.updateID);
@@ -294,7 +297,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
         break;
 
       case DLNA_RESOURCE:
-        dlna_item = dlna_item_get(dlna, item);
+        dlna_item = vfs_item_get (item);
         protocol_info =
           dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                                 DLNA_ORG_PLAY_SPEED_NORMAL,
@@ -471,7 +474,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
   else
     strcpy (keyword, SEARCH_OBJECT_KEYWORD);
 
-  dlna_item = dlna_item_get(dlna, item);
+  dlna_item = vfs_item_get (item);
   protocol_info =
     dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
                               DLNA_ORG_PLAY_SPEED_NORMAL,
@@ -530,7 +533,7 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
         if (cds_search_match (dlna, item, search_criteria))
         {
           char *protocol_info;
-          dlna_item_t *dlna_item = dlna_item_get(dlna, item);
+          dlna_item_t *dlna_item = vfs_item_get (item);
 
           protocol_info =
             dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,

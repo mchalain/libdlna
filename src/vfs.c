@@ -64,6 +64,14 @@ dlna_vfs_free (dlna_vfs_t *vfs)
   free (vfs);
 }
 
+dlna_item_t *
+dlna_item_get(vfs_item_t *item)
+{
+	if (item->type == DLNA_RESOURCE)
+    return item->u.resource.item;
+  return NULL;
+}
+
 void
 vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
 {
