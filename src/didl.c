@@ -143,32 +143,36 @@ didl_add_value (buffer_t *out, char *param, uint32_t value)
 }
 
 void
-didl_add_item (buffer_t *out, 
-    uint32_t id, dlna_item_t *item, uint32_t containerid,
-    uint32_t restricted, char *filter, char *protocol_info)
+didl_add_item (buffer_t *out, vfs_item_t *item,
+    char *filter, char *protocol_info)
 {
   char *class;
   int add_item_name;
-     
+  dlna_item_t *dlna_item;
+
+  if (!item)
+    return;
+
   buffer_appendf (out, "<%s", DIDL_ITEM);
-  didl_add_value (out, DIDL_ITEM_ID, id);
-  didl_add_value (out, DIDL_ITEM_PARENT_ID, containerid);
-  didl_add_value (out, DIDL_ITEM_RESTRICTED, restricted?1:0);
+  didl_add_value (out, DIDL_ITEM_ID, item->id);
+  didl_add_value (out, DIDL_ITEM_PARENT_ID, item->parent ? item->parent->id : 0);
+  didl_add_value (out, DIDL_ITEM_RESTRICTED, item->restricted?1:0);
   buffer_append (out, ">");
 
-  if (item)
+  dlna_item = vfs_item_get (item);
+  if (dlna_item)
   {
     dlna_metadata_t *metadata;
 
-    metadata = dlna_item_metadata (item);
+    metadata = dlna_item_metadata (dlna_item);
 
     add_item_name = 1;
     if (metadata)
       add_item_name = didl_add_tag (out, DIDL_ITEM_TITLE, metadata->title);
     if (add_item_name)
-      didl_add_tag (out, DIDL_ITEM_TITLE, basename (item->filename));
+      didl_add_tag (out, DIDL_ITEM_TITLE, basename (dlna_item->filename));
 
-    class = dlna_profile_upnp_object_item (item->profile);
+    class = dlna_profile_upnp_object_item (dlna_item->profile);
     didl_add_tag (out, DIDL_ITEM_CLASS, class);
 
     if (metadata)
@@ -206,34 +210,34 @@ didl_add_item (buffer_t *out,
       buffer_appendf (out, "<%s", DIDL_RES);
       didl_add_param (out, DIDL_RES_INFO, protocol_info);
 
-      if (item->filesize && filter_has_val (filter, "@"DIDL_RES_SIZE))
-        didl_add_value (out, DIDL_RES_SIZE, item->filesize);
+      if ((dlna_item->filesize > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
+        didl_add_value (out, DIDL_RES_SIZE, dlna_item->filesize);
     
-      if (item->properties)
+      if (dlna_item->properties)
       {
         didl_add_param (out, DIDL_RES_DURATION,
-                    item->properties->duration);
+                    dlna_item->properties->duration);
         didl_add_value (out, DIDL_RES_BITRATE,
-                    item->properties->bitrate);
+                    dlna_item->properties->bitrate);
         didl_add_value (out, DIDL_RES_BPS,
-                    item->properties->bps);
+                    dlna_item->properties->bps);
         didl_add_value (out, DIDL_RES_AUDIO_CHANNELS,
-                    item->properties->channels);
-        if (strlen (item->properties->resolution) > 1)
+                    dlna_item->properties->channels);
+        if (strlen (dlna_item->properties->resolution) > 1)
           didl_add_param (out, DIDL_RES_RESOLUTION,
-                      item->properties->resolution);
+                      dlna_item->properties->resolution);
       }
 
       buffer_append (out, ">");
-      if (strstr (item->filename, "://") == NULL)
+      if (strstr (dlna_item->filename, "://") == NULL)
       {
         buffer_appendf (out, "http://%s:%d%s/%u",
                       dlnaGetServerIpAddress (),
-                      dlnaGetServerPort (), VIRTUAL_DIR, id);
+                      dlnaGetServerPort (), VIRTUAL_DIR, item->id);
       }
       else
       {
-        buffer_appendf (out, item->filename);
+        buffer_appendf (out, dlna_item->filename);
       }
       buffer_appendf (out, "</%s>", DIDL_RES);
     }

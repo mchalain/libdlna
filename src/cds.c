@@ -221,9 +221,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
                                 item->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
                                 cds_flags, dlna_item->profile);
-    didl_add_item (out, item->id, dlna_item, 
-            item->parent ? item->parent->id : 0, item->restricted,
-            filter, protocol_info);
+    didl_add_item (out, item, filter, protocol_info);
     free (protocol_info);
     snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
@@ -304,9 +302,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
                                 (*items)->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
                                 cds_flags, dlna_item->profile);
-        didl_add_item (out, item->id, dlna_item, 
-            item->parent ? item->parent->id : 0, item->restricted,
-            filter, protocol_info);
+        didl_add_item (out, item, filter, protocol_info);
         free (protocol_info);
         break;
 
@@ -541,9 +537,7 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
                                 (*items)->u.resource.cnv,
                                 DLNA_ORG_OPERATION_RANGE,
                                 cds_flags, dlna_item->profile);
-          didl_add_item (out, item->id, dlna_item, 
-            item->parent ? item->parent->id : 0, item->restricted,
-            filter, protocol_info);
+          didl_add_item (out, item, filter, protocol_info);
           result_count++;
           free (protocol_info);
         }
