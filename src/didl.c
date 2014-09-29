@@ -275,7 +275,7 @@ didl_add_item (buffer_t *out,
 
 void
 didl_add_container (buffer_t *out, vfs_item_t *item,
-                    char *restricted, char *searchable)
+                    uint32_t restricted, uint32_t searchable)
 {
   buffer_appendf (out, "<%s", DIDL_CONTAINER);
 
@@ -286,8 +286,8 @@ didl_add_container (buffer_t *out, vfs_item_t *item,
   didl_add_value (out, DIDL_CONTAINER_CHILD_COUNT,
                   item->u.container.children_count);
   
-  didl_add_param (out, DIDL_CONTAINER_RESTRICTED, restricted);
-  didl_add_param (out, DIDL_CONTAINER_SEARCH, searchable);
+  didl_add_value (out, DIDL_CONTAINER_RESTRICTED, restricted?1:0);
+  didl_add_value (out, DIDL_CONTAINER_SEARCH, searchable?1:0);
   buffer_append (out, ">");
 
   didl_add_tag (out, DIDL_CONTAINER_CLASS, dlna_upnp_object_type (item->u.container.media_class));

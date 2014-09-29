@@ -225,7 +225,7 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
     break;
 
   case DLNA_CONTAINER:
-    didl_add_container (out, item, "true", "true");
+    didl_add_container (out, item, 1, 1);
     snprintf (updateID, 255, "%u", item->u.container.updateID);
     result_count = 1;
     break;
@@ -288,7 +288,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
       switch ((*items)->type)
       {
       case DLNA_CONTAINER:
-        didl_add_container (out, *items, "true", NULL);
+        didl_add_container (out, *items, 1, 0);
         break;
 
       case DLNA_RESOURCE:
