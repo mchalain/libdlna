@@ -144,7 +144,7 @@ didl_add_value (buffer_t *out, char *param, uint32_t value)
 
 void
 didl_add_item (buffer_t *out, vfs_item_t *item,
-    char *filter, char *protocol_info)
+    char *filter, dlna_org_flags_t flags)
 {
   char *class;
   int add_item_name;
@@ -205,10 +205,20 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
       }
     }
   
-    if ((!filter || filter_has_val (filter, DIDL_RES)) && protocol_info)
+    if ((!filter || filter_has_val (filter, DIDL_RES)))
     {
+      char *protocol_info;
+
       buffer_appendf (out, "<%s", DIDL_RES);
-      didl_add_param (out, DIDL_RES_INFO, protocol_info);
+      protocol_info =
+        dlna_write_protocol_info (NULL, DLNA_PROTOCOL_INFO_TYPE_HTTP,
+                            DLNA_ORG_PLAY_SPEED_NORMAL,
+                            item->u.resource.cnv,
+                            DLNA_ORG_OPERATION_RANGE,
+                            flags, dlna_item->profile);
+      if (protocol_info)
+        didl_add_param (out, DIDL_RES_INFO, protocol_info);
+      free (protocol_info);
 
       if ((dlna_item->filesize > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
         didl_add_value (out, DIDL_RES_SIZE, dlna_item->filesize);

@@ -194,13 +194,12 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static int
-cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
+cds_browse_metadata (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                      vfs_item_t *item, char *filter)
 {
   dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   int result_count = 0;
   char *updateID;
-  char *protocol_info;
   buffer_t *out = NULL;
 
   if (!item)
@@ -212,20 +211,9 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
   switch (item->type)
   {
   case DLNA_RESOURCE:
-  {
-    dlna_item_t *dlna_item = vfs_item_get (item);
-
-    protocol_info =
-        dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
-                                DLNA_ORG_PLAY_SPEED_NORMAL,
-                                item->u.resource.cnv,
-                                DLNA_ORG_OPERATION_RANGE,
-                                cds_flags, dlna_item->profile);
-    didl_add_item (out, item, filter, protocol_info);
-    free (protocol_info);
+    didl_add_item (out, item, filter, cds_flags);
     snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
-  }
   case DLNA_CONTAINER:
     didl_add_container (out, item, item->restricted, 1);
     snprintf (updateID, 255, "%u", item->u.container.updateID);
@@ -250,16 +238,14 @@ cds_browse_metadata (dlna_t *dlna, upnp_action_event_t *ev,
 }
 
 static int
-cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
+cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                            int index, int count, 
                            vfs_item_t *item, char *filter)
 {
   vfs_item_t **items;
-  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
   int s, result_count = 0;
   char tmp[32];
   char *updateID;
-  char *protocol_info;
   buffer_t *out = NULL;
 
   /* browsing direct children only has a sense on containers */
@@ -283,7 +269,6 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   for (; *items; items++)
   {
     vfs_item_t *item = *items;
-    dlna_item_t *dlna_item;
 
     /* only fetch the requested count number or all entries if count = 0 */
     if (count == 0 || result_count < count)
@@ -295,15 +280,7 @@ cds_browse_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
         break;
 
       case DLNA_RESOURCE:
-        dlna_item = vfs_item_get (item);
-        protocol_info =
-          dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
-                                DLNA_ORG_PLAY_SPEED_NORMAL,
-                                (*items)->u.resource.cnv,
-                                DLNA_ORG_OPERATION_RANGE,
-                                cds_flags, dlna_item->profile);
-        didl_add_item (out, item, filter, protocol_info);
-        free (protocol_info);
+        didl_add_item (out, item, filter, cds_flags);
         break;
 
       default:
@@ -528,18 +505,8 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
       case DLNA_RESOURCE:        
         if (cds_search_match (dlna, item, search_criteria))
         {
-          char *protocol_info;
-          dlna_item_t *dlna_item = vfs_item_get (item);
-
-          protocol_info =
-            dlna_write_protocol_info (dlna, DLNA_PROTOCOL_INFO_TYPE_HTTP,
-                                DLNA_ORG_PLAY_SPEED_NORMAL,
-                                (*items)->u.resource.cnv,
-                                DLNA_ORG_OPERATION_RANGE,
-                                cds_flags, dlna_item->profile);
-          didl_add_item (out, item, filter, protocol_info);
+          didl_add_item (out, item, filter, cds_flags);
           result_count++;
-          free (protocol_info);
         }
         break;
 
