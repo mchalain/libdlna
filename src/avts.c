@@ -430,6 +430,8 @@ instance_possible_state (avts_instance_t *instance)
   case E_PAUSING:
     buffer_appendf (out,"STOP,PLAY");
   break;
+  default:
+  break;
   }
   ithread_mutex_unlock (&instance->state_mutex);
   val =strdup (out->buf);
@@ -572,7 +574,9 @@ avts_thread_play (void *arg)
     }
     if (play_frame)
     {
-      int ret = playitem_decodeframe (playlist_current(instance->playlist)->item);
+      int ret = 0;
+
+      ret = playitem_decodeframe (playlist_current(instance->playlist)->item);
       instance->counter++;
       if (ret > 0)
       {
