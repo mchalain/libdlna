@@ -214,19 +214,19 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
         char *protocol_info;
         char *url;
 
-      buffer_appendf (out, "<%s", DIDL_RES);
-      protocol_info =
+        buffer_appendf (out, "<%s", DIDL_RES);
+        protocol_info =
         dlna_write_protocol_info (NULL, resource->protocolid,
                             DLNA_ORG_PLAY_SPEED_NORMAL,
                             item->u.resource.cnv,
                             DLNA_ORG_OPERATION_RANGE,
                             flags, resource->profile);
-      if (protocol_info)
-        didl_add_param (out, DIDL_RES_INFO, protocol_info);
-      free (protocol_info);
+        if (protocol_info)
+          didl_add_param (out, DIDL_RES_INFO, protocol_info);
+        free (protocol_info);
 
-      if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
-        didl_add_value (out, DIDL_RES_SIZE, resource->size);
+        if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
+          didl_add_value (out, DIDL_RES_SIZE, resource->size);
     
         didl_add_param (out, DIDL_RES_DURATION, resource->properties.duration);
         didl_add_value (out, DIDL_RES_BITRATE, resource->properties.bitrate);
@@ -234,11 +234,11 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
         didl_add_value (out, DIDL_RES_AUDIO_CHANNELS, resource->properties.channels);
         didl_add_param (out, DIDL_RES_RESOLUTION, resource->properties.resolution);
 
-      buffer_append (out, ">");
+        buffer_append (out, ">");
         url = resource->url(item);
         buffer_appendf (out, url);
         free (url);
-      buffer_appendf (out, "</%s>", DIDL_RES);
+        buffer_appendf (out, "</%s>", DIDL_RES);
         resource = resource->next;
       }
     }
