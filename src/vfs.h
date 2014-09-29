@@ -27,13 +27,14 @@ typedef struct vfs_item_s vfs_item_t;
 
 typedef struct vfs_resource_s {
   char *(*url) (vfs_item_t *item);
+  int64_t size;
   dlna_protocol_info_type_t protocolid;
   dlna_properties_t properties;
   dlna_profile_t *profile;
   struct vfs_resource_s *next;
 } vfs_resource_t;
 
-typedef struct vfs_item_s {
+struct vfs_item_s {
   uint32_t id;
 
   enum {
@@ -59,7 +60,7 @@ typedef struct vfs_item_s {
   struct vfs_item_s *parent;
 
   UT_hash_handle hh;
-} vfs_item_t;
+};
 
 struct dlna_vfs_s
 {

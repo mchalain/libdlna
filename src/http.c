@@ -79,13 +79,13 @@ dlna_http_create_resource (vfs_item_t *item)
 {
   vfs_resource_t *resource;
   dlna_item_t *dlna_item;
-  char *url;
 
   resource = calloc (1, sizeof (vfs_resource_t));
   resource->url = http_url;
 
   dlna_item = item->u.resource.item;
   resource->profile = dlna_item->profile;
+  resource->size = dlna_item->filesize;
   memcpy (&resource->properties, dlna_item->properties, sizeof (dlna_properties_t));
   resource->protocolid = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   return resource;
