@@ -38,7 +38,6 @@ void
 didl_add_item (struct buffer_s *out, vfs_item_t *item,
     char *filter, dlna_org_flags_t flags);
 void
-didl_add_container (struct buffer_s *out, vfs_item_t *item,
-    uint32_t restricted, uint32_t searchable);
+didl_add_container (struct buffer_s *out, vfs_item_t *item, uint32_t searchable);
 
 #endif
