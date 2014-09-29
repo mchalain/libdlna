@@ -415,7 +415,6 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
   char keyword[256];
   int derived_from = 0, protocol_contains = 0, result = 0;
   char *and_clause = NULL;
-  char *protocol_info;
   char *object_type = NULL;
   dlna_item_t *dlna_item;
   
@@ -448,23 +447,39 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
     strcpy (keyword, SEARCH_OBJECT_KEYWORD);
 
   dlna_item = vfs_item_get (item);
-  protocol_info =
-    dlna_write_protocol_info (DLNA_PROTOCOL_INFO_TYPE_HTTP,
-                              DLNA_ORG_PLAY_SPEED_NORMAL,
-                              item->u.resource.cnv,
-                              DLNA_ORG_OPERATION_RANGE,
-                              cds_flags, dlna_item->profile);
-
   object_type = dlna_profile_upnp_object_item (dlna_item->profile);
   
   if (derived_from && object_type
       && !strncmp (object_type, keyword, strlen (keyword)))
     result = 1;
-  else if (protocol_contains && strstr (protocol_info, keyword))
-    result = 1;
+  else if (protocol_contains)
+  {
+    vfs_resource_t *resource = item->u.resource.resources;
+
+    while (resource)
+    {
+      char *protocol_info;
+      protocol_info =
+        dlna_write_protocol_info (resource->info.protocolid,
+                                  resource->info.speed,
+                                  resource->info.cnv,
+                                  resource->info.op,
+                                  cds_flags, dlna_item->profile);
+
+      if (!protocol_info)
+        break;
+      if ( strstr (protocol_info, keyword))
+      {
+        result = 1;
+        break;
+      }
+      resource = resource->next;
+      free (protocol_info);
+      protocol_info = NULL;
+    }
+  }
   else if (object_type && !strcmp (object_type, keyword))
     result = 1;
-  free (protocol_info);
   
   and_clause = strstr (search_criteria, SEARCH_AND);
   if (and_clause)

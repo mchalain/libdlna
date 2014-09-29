@@ -25,10 +25,18 @@
 
 typedef struct vfs_item_s vfs_item_t;
 
+typedef struct
+{
+  dlna_protocol_info_type_t protocolid:8;
+  dlna_org_operation_t op:8;
+  dlna_org_play_speed_t speed:4;
+  dlna_org_conversion_t cnv:2;
+} vfs_intem_info_t;
+
 typedef struct vfs_resource_s {
   char *(*url) (vfs_item_t *item);
   int64_t size;
-  dlna_protocol_info_type_t protocolid;
+  vfs_intem_info_t info;
   dlna_properties_t properties;
   dlna_profile_t *profile;
   struct vfs_resource_s *next;
@@ -36,7 +44,7 @@ typedef struct vfs_resource_s {
 
 struct vfs_item_s {
   uint32_t id;
-  uint32_t restricted;
+  dlna_restricted_t restricted;
 
   enum {
     DLNA_RESOURCE,
@@ -46,8 +54,7 @@ struct vfs_item_s {
   union {
     struct {
       dlna_item_t *item;
-      vfs_resource_t *resources;
-      dlna_org_conversion_t cnv;
+      vfs_resource_t *resources;        
     } resource;
     struct {
       char *title;

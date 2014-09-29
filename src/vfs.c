@@ -328,7 +328,6 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
 
   item->u.resource.item = dlna_item;
-  item->u.resource.cnv = DLNA_ORG_CONVERSION_NONE;
 
   HASH_ADD_INT (vfs->vfs_root, id, item);
   

@@ -130,16 +130,21 @@ typedef enum {
 
 /* DLNA Capability/Compatibility mode settings */
 typedef enum {
+  DLNA_NO_RESTRICTED = 0,
+  DLNA_RESTRICTED = 0x1,
+} dlna_restricted_t;
+
+typedef enum {
   DLNA_CAPABILITY_UPNP_AV = 0x0,       /* comply with UPnP A/V specifications */
   DLNA_CAPABILITY_DLNA = 0x01,          /* comply with DLNA specifications */
   DLNA_CAPABILITY_UPNP_AV_XBOX= 0x02,  /* UPnP A/V with XboX 360 hacks */
 } dlna_capability_mode_t;
 
 typedef enum {
-  DLNA_PROTOCOL_INFO_TYPE_UNKNOWN,
-  DLNA_PROTOCOL_INFO_TYPE_HTTP,
-  DLNA_PROTOCOL_INFO_TYPE_RTP,
-  DLNA_PROTOCOL_INFO_TYPE_ANY
+  DLNA_PROTOCOL_INFO_TYPE_UNKNOWN = 0,
+  DLNA_PROTOCOL_INFO_TYPE_HTTP = 0x01,
+  DLNA_PROTOCOL_INFO_TYPE_RTP = 0x02,
+  DLNA_PROTOCOL_INFO_TYPE_ANY = 0x03,
 } dlna_protocol_info_type_t;
 
 /* DLNA.ORG_PS: play speed parameter (integer)

@@ -216,10 +216,10 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
 
         buffer_appendf (out, "<%s", DIDL_RES);
         protocol_info =
-        dlna_write_protocol_info (resource->protocolid,
-                            DLNA_ORG_PLAY_SPEED_NORMAL,
-                            item->u.resource.cnv,
-                            DLNA_ORG_OPERATION_RANGE,
+        dlna_write_protocol_info (resource->info.protocolid,
+                            resource->info.speed,
+                            resource->info.cnv,
+                            resource->info.op,
                             flags, resource->profile);
         if (protocol_info)
           didl_add_param (out, DIDL_RES_INFO, protocol_info);

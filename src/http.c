@@ -87,7 +87,10 @@ dlna_http_create_resource (vfs_item_t *item)
   resource->profile = dlna_item->profile;
   resource->size = dlna_item->filesize;
   memcpy (&resource->properties, dlna_item->properties, sizeof (dlna_properties_t));
-  resource->protocolid = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+  resource->info.protocolid = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+  resource->info.cnv = DLNA_ORG_CONVERSION_NONE;
+  resource->info.op = DLNA_ORG_OPERATION_RANGE;
+  resource->info.speed = DLNA_ORG_PLAY_SPEED_NORMAL;
   return resource;
 }
 
