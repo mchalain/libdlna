@@ -438,7 +438,7 @@ typedef enum {
  * create a new device controller
  * 
  **/
-dlna_device_t *dlna_device_new ();
+dlna_device_t *dlna_device_new (dlna_capability_mode_t mode);
 
 /**
  * Set device UPnP device Type URN.

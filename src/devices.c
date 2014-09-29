@@ -33,13 +33,14 @@ static char *
 dlna_device_get_description (dlna_t *dlna);
 
 dlna_device_t *
-dlna_device_new ()
+dlna_device_new (dlna_capability_mode_t mode)
 {
   dlna_device_t *device;
 
   device = calloc (1, sizeof (dlna_device_t));
   
   device->services = NULL;
+  device->mode = mode;
 
   device->friendly_name = strdup ("libdlna");
   device->manufacturer = strdup ("Benjamin Zores");
@@ -246,7 +247,7 @@ dlna_device_get_description (dlna_t *dlna)
 
   device = dlna->device;
 
-  if (dlna->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
+  if (device->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
   {
     model_name =
       malloc (strlen (XBOX_MODEL_NAME) + strlen (device->model_name) + 4);
@@ -269,10 +270,10 @@ dlna_device_get_description (dlna_t *dlna)
   if (device->presentation_url)
     buffer_appendf (b, DLNA_DEVICE_PRESENTATION, device->presentation_url);
 
-  if (dlna->mode & DLNA_CAPABILITY_DLNA && device->dlnadoc)
+  if (device->mode & DLNA_CAPABILITY_DLNA && device->dlnadoc)
   {
     buffer_appendf (b, DLNA_DLNADOC_DESCRIPTION, device->dlnadoc);
-    if (dlna->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
+    if (device->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
     {
       buffer_appendf (b, DLNA_DLNADOC_M_DESCRIPTION, device->dlnadoc);
     }

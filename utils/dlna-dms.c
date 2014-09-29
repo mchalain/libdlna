@@ -227,7 +227,7 @@ main (int argc, char **argv)
   dlna_set_interface (dlna, interface);
 
   /* set some UPnP device properties */
-  device = dlna_device_new ();
+  device = dlna_device_new (cap);
   dlna_device_set_type (device, DLNA_DEVICE_TYPE_DMS,"DMS");
   dlna_device_set_friendly_name (device, "libdlna DMS template");
   dlna_device_set_uuid (device, "123456789");

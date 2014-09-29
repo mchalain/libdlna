@@ -27,6 +27,7 @@ typedef struct dlna_device_s dlna_device_t;
 struct dlna_device_s {
   /* UPnP Services */
   struct dlna_service_list_s *services;
+  dlna_capability_mode_t mode;
 
   char *(*get_description) (dlna_t *);
 
@@ -45,7 +46,7 @@ struct dlna_device_s {
   char *dlnacap;
 };
 
-dlna_device_t *dlna_device_new ();
+dlna_device_t *dlna_device_new (dlna_capability_mode_t mode);
 void dlna_device_free (dlna_device_t *device);
 
 #define DLNA_DESCRIPTION_HEADER \
