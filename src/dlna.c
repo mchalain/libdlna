@@ -54,6 +54,7 @@
 #include "vfs.h"
 
 dlna_verbosity_level_t dlna_verbosity = DLNA_MSG_ERROR;
+dlna_capability_mode_t dlna_mode;
 
 void
 dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
@@ -102,6 +103,7 @@ dlna_init (void)
   dlna = calloc (1, sizeof (dlna_t));
   dlna->inited = 1;
   dlna->mode = 0;
+  dlna_mode = 0;
   dlna->check_extensions = 1;
 
   /* Internal HTTP Server */
@@ -200,6 +202,7 @@ dlna_set_capability_mode (dlna_t *dlna, dlna_capability_mode_t mode)
     return;
 
   dlna->mode = mode;
+  dlna_mode = mode;
 
   if (dlna->mode & DLNA_CAPABILITY_DLNA)
     dlna->check_extensions = 1;
@@ -342,7 +345,8 @@ dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb)
 }
 
 char *
-dlna_write_protocol_info (dlna_t *dlna, dlna_protocol_info_type_t type,
+dlna_write_protocol_info (dlna_t *dlna,
+                          dlna_protocol_info_type_t type,
                           dlna_org_play_speed_t speed,
                           dlna_org_conversion_t ci,
                           dlna_org_operation_t op,
@@ -358,7 +362,7 @@ dlna_write_protocol_info (dlna_t *dlna, dlna_protocol_info_type_t type,
   strcat (protocol, p->mime);
   strcat (protocol, ":");
 
-  if ((dlna->mode & DLNA_CAPABILITY_DLNA) && p->id)
+  if ((dlna_mode & DLNA_CAPABILITY_DLNA) && p->id)
   {
     sprintf (dlna_info, "%s=%d;%s=%d;%s=%.2x;%s=%s;%s=%.8x%.24x",
              "DLNA.ORG_PS", speed, "DLNA.ORG_CI", ci,
