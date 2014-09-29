@@ -23,8 +23,10 @@
 #ifndef VFS_H
 #define VFS_H
 
+typedef struct vfs_item_s vfs_item_t;
+
 typedef struct vfs_resource_s {
-  char *url;
+  char *(*url) (vfs_item_t *item);
   dlna_protocol_info_type_t protocolid;
   dlna_properties_t properties;
   dlna_profile_t *profile;

@@ -106,6 +106,12 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   free (item);
 }
 
+void
+vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
+{
+  item->u.resource.resources = resource;
+}
+
 inline vfs_resource_t * 
 vfs_resource_get (vfs_item_t *item) 
 {

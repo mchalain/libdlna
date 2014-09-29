@@ -61,6 +61,19 @@ typedef struct http_file_handler_s {
   } detail;
 } http_file_handler_t;
 
+static char *
+http_url (vfs_item_t *item)
+{
+  char *url;
+  
+  url = malloc (1024);
+  sprintf (url, "http://%s:%d%s/%u",
+                      dlnaGetServerIpAddress (),
+                      dlnaGetServerPort (), VIRTUAL_DIR, item->id);
+  printf (url);
+  return url;
+}
+
 vfs_resource_t *
 dlna_http_create_resource (vfs_item_t *item)
 {
@@ -69,13 +82,8 @@ dlna_http_create_resource (vfs_item_t *item)
   char *url;
 
   resource = calloc (1, sizeof (vfs_resource_t));
-  url = malloc (1024);
-  sprintf (url, "http://%s:%d%s/%u",
-                      dlnaGetServerIpAddress (),
-                      dlnaGetServerPort (), VIRTUAL_DIR, item->id);
-  resource->url = strdup (url);
-  free (url);
-  
+  resource->url = http_url;
+
   dlna_item = item->u.resource.item;
   resource->profile = dlna_item->profile;
   memcpy (&resource->properties, dlna_item->properties, sizeof (dlna_properties_t));
