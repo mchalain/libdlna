@@ -459,13 +459,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
     while (resource)
     {
       char *protocol_info;
-      protocol_info =
-        dlna_write_protocol_info (resource->info.protocolid,
-                                  resource->info.speed,
-                                  resource->info.cnv,
-                                  resource->info.op,
-                                  cds_flags, dlna_item->profile);
-
+      protocol_info = resource->protocol_info (resource, cds_flags);
       if (!protocol_info)
         break;
       if ( strstr (protocol_info, keyword))

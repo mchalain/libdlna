@@ -80,6 +80,20 @@ http_url (vfs_resource_t *resource)
   return url;
 }
 
+static char *
+http_protocol_info (vfs_resource_t *resource, dlna_org_flags_t flags)
+{
+  char *protocol_info;
+  
+  protocol_info =
+    dlna_write_protocol_info (resource->info.protocolid,
+                      resource->info.speed,
+                      resource->info.cnv,
+                      resource->info.op,
+                      flags, resource->profile);
+  return protocol_info;
+}
+
 vfs_resource_t *
 dlna_http_create_resource (vfs_item_t *item)
 {
@@ -92,6 +106,7 @@ dlna_http_create_resource (vfs_item_t *item)
   cookie->id = item->id;
   resource->cookie = cookie;
   resource->url = http_url;
+  resource->protocol_info = http_protocol_info;
 
   dlna_item = item->u.resource.item;
   resource->profile = dlna_item->profile;

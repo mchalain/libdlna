@@ -215,12 +215,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
         char *url;
 
         buffer_appendf (out, "<%s", DIDL_RES);
-        protocol_info =
-        dlna_write_protocol_info (resource->info.protocolid,
-                            resource->info.speed,
-                            resource->info.cnv,
-                            resource->info.op,
-                            flags, resource->profile);
+        protocol_info = resource->protocol_info (resource, flags);
         if (protocol_info)
           didl_add_param (out, DIDL_RES_INFO, protocol_info);
         free (protocol_info);
