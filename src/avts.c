@@ -257,6 +257,10 @@ playlist_empty (avts_playlist_t *playlist)
 
   for (item = playlist; item; item = item->hh.next)
   {
+    if (item->item)
+      dlna_item_free (item->item);
+    if (item->didl)
+      free (item->didl);
     HASH_DEL (playlist, item);
     free (item);
   }
@@ -264,7 +268,7 @@ playlist_empty (avts_playlist_t *playlist)
 }
 
 static avts_playlist_t *
-playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata dlna_unused)
+playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri_metadata)
 {
   avts_playlist_t *item = NULL;
   uint32_t id;
@@ -288,6 +292,7 @@ playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri
     if (!playlist)
       item->current = item; /* set the first item as the start of the playlist */
     HASH_ADD_INT (playlist, id, item);
+    item->didl = strdup (uri_metadata);
   }
 
   return playlist;
