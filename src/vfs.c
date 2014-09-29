@@ -75,9 +75,20 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   switch (item->type)
   {
   case DLNA_RESOURCE:
+  {
+    vfs_resource_t *resource;
+
     if (item->u.resource.item)
       dlna_item_free (item->u.resource.item);
+    resource = item->u.resource.resources;
+    while (resource)
+    {
+      item->u.resource.resources = resource->next;
+      free (resource);
+      resource = item->u.resource.resources;
+    }
     break;
+  }
   case DLNA_CONTAINER:
   {
     if (item->u.container.title)
