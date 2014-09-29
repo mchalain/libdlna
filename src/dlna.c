@@ -345,8 +345,7 @@ dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb)
 }
 
 char *
-dlna_write_protocol_info (dlna_t *dlna,
-                          dlna_protocol_info_type_t type,
+dlna_write_protocol_info (dlna_protocol_info_type_t type,
                           dlna_org_play_speed_t speed,
                           dlna_org_conversion_t ci,
                           dlna_org_operation_t op,

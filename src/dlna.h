@@ -360,7 +360,6 @@ void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
  * Output the protocol information string that must be send by a DMS to a DMP
  * for the file to be played/recognized.
  *
- * @param[in] dlna    The DLNA library's controller.
  * @param[in] type    Streaming method.
  * @param[in] speed   DLNA.ORG_PS parameter.
  * @param[in] ci      DLNA.ORG_CI parameter.
@@ -369,8 +368,7 @@ void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
  * @param[in] profile The DLNA's file profile that has been guessed.
  * @return            The protocol information string.
  */
-char * dlna_write_protocol_info (dlna_t *dlna, 
-                                 dlna_protocol_info_type_t type,
+char * dlna_write_protocol_info (dlna_protocol_info_type_t type,
                                  dlna_org_play_speed_t speed,
                                  dlna_org_conversion_t ci,
                                  dlna_org_operation_t op,
