@@ -292,7 +292,8 @@ playlist_add_item (avts_playlist_t *playlist, dlna_t *dlna, char *uri, char *uri
     if (!playlist)
       item->current = item; /* set the first item as the start of the playlist */
     HASH_ADD_INT (playlist, id, item);
-    item->didl = strdup (uri_metadata);
+    if (uri_metadata)
+      item->didl = strdup (uri_metadata);
   }
 
   return playlist;
@@ -832,12 +833,10 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
-  out = buffer_new ();
-  
-  if (plitem)
-    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
-  buffer_free (out);
+  if (plitem && plitem->didl)
+    upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, plitem->didl);
+  else
+    upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, "");
 
   out = buffer_new ();
   plitem = playlist_next(instance->playlist);
@@ -848,15 +847,10 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
-  out = buffer_new ();
-  if (plitem)
-  {
-    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-  }
+  if (plitem && plitem->didl)
+    upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, plitem->didl);
   else
-    buffer_appendf (out, "%s", AVTS_VAR_AVT_URI_VAL_EMPTY);
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
-  buffer_free (out);
+    upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
   upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, AVTS_VAR_RECORD_VAL);
@@ -917,11 +911,10 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_CURRENT_URI, out->buf);
   buffer_free (out);
 
-  out = buffer_new ();
-  if (plitem)
-    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-  upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, out->buf);
-  buffer_free (out);
+  if (plitem && plitem->didl)
+    upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, plitem->didl);
+  else
+    upnp_add_response (ev, AVTS_ARG_CURRENT_URI_METADATA, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
   out = buffer_new ();
   plitem = playlist_next(instance->playlist);
@@ -934,13 +927,10 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_NEXT_URI, out->buf);
   buffer_free (out);
 
-  out = buffer_new ();
-  if (plitem)
-  {
-    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-  }
-  upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, out->buf);
-  buffer_free (out);
+  if (plitem && plitem->didl)
+    upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, plitem->didl);
+  else
+    upnp_add_response (ev, AVTS_ARG_NEXT_URI_METADATA, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
   upnp_add_response (ev, AVTS_ARG_PLAY_MEDIUM, "NETWORK");
   upnp_add_response (ev, AVTS_ARG_REC_MEDIUM, AVTS_VAR_RECORD_VAL);
@@ -1032,14 +1022,10 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   else
     upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, AVTS_VAR_TRACK_DURATION_VAL_ZERO);
 
-  out = buffer_new ();
-  if (plitem)
-    didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
+  if (plitem && plitem->didl)
+    upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, plitem->didl);
   else
-    buffer_appendf (out, "%s", "");
-  dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
-  upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, out->buf);
-  buffer_free (out);
+    upnp_add_response (ev, AVTS_ARG_TRACK_METADATA, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
   if (plitem)
     upnp_add_response (ev, AVTS_ARG_TRACK_URI, plitem->item->filename);
@@ -1467,8 +1453,10 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
     {
       buffer_appendf (out, "<AVTransportURI val=\"%s\"/>", plitem->item->filename);
       buffer_appendf (out, "<AVTransportURMetaData val=\"");
-      //didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-      buffer_appendf (out, "\"/>");
+      if (plitem->didl)
+        buffer_appendf (out, "<AVTransportURMetaData val=\"%s\"/>", plitem->didl);
+      else
+        buffer_appendf (out, "<AVTransportURMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
     }
 
     if (instance->playlist)
@@ -1479,9 +1467,10 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
       if (plitem)
       {
         buffer_appendf (out, "<CurrentTrackURI val=\"%s\"/>", plitem->item->filename);
-        buffer_appendf (out, "<CurrentTrackMetaData val=\"");
-        //didl_add_item (out, plitem->id, plitem->item, 0, 1, NULL, NULL);
-        buffer_appendf (out, "\"/>");
+        if (plitem->didl)
+    	  buffer_appendf (out, "<CurrentTrackMetaData val=\"%s\"/>", plitem->didl);
+        else
+          buffer_appendf (out, "<CurrentTrackMetaData val=\""AVTS_VAR_AVT_URI_VAL_EMPTY"\"/>");
       }
 /*
       if (plitem && plitem->item->properties )
