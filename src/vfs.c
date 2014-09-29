@@ -77,8 +77,6 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   case DLNA_RESOURCE:
     if (item->u.resource.item)
       dlna_item_free (item->u.resource.item);
-    if (item->u.resource.url)
-      free (item->u.resource.url);
     break;
   case DLNA_CONTAINER:
   {
@@ -309,7 +307,6 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   
   dlna_log (DLNA_MSG_INFO, "New resource id #%u (%s)\n",
             item->id, dlna_item->filename);
-  item->u.resource.fd = -1;
 
   /* check for a valid parent id */
   item->parent = vfs_get_item_by_id (vfs, container_id);

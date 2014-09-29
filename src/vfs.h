@@ -44,9 +44,6 @@ typedef struct vfs_item_s {
       dlna_item_t *item;
       vfs_resource_t *resources;
       dlna_org_conversion_t cnv;
-      char *fullpath;
-      char *url;
-      int fd;
     } resource;
     struct {
       char *title;
