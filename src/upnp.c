@@ -404,16 +404,19 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
     for (i = 0; service->statevar[i].name; i++)
     {
       char *value = NULL;
-      if (service->statevar[i].eventing && service->statevar[i].get)
-       value = service->statevar[i].get (dlna, service);
-      if (value && (service->last_change < service->statevar[i].eventing))
+      if (service->statevar[i].eventing && 
+          (service->last_change < service->statevar[i].eventing) &&
+          service->statevar[i].get)
       {
-        dlnaAddToPropertySet (&propset, service->statevar[i].name, value);
-        if (last_change < service->statevar[i].eventing)
-          last_change = service->statevar[i].eventing;
+        value = service->statevar[i].get (dlna, service);
+        if (value)
+        {
+          dlnaAddToPropertySet (&propset, service->statevar[i].name, value);
+          if (last_change < service->statevar[i].eventing)
+            last_change = service->statevar[i].eventing;
+          free (value);
+        }
       }
-      if (value)
-        free (value);
     }
 
     if (service->last_change < last_change)
