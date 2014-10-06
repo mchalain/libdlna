@@ -31,7 +31,8 @@
 
 static char *
 dlna_device_get_description (dlna_t *dlna);
-static dlna_stream_t *dlna_device_stream_open (void *cookie, const char *url);
+static dlna_stream_t *
+dlna_device_stream_open (void *cookie, const char *url);
 
 static int
 dlna_device_init (dlna_t *dlna, dlna_device_t *device)
@@ -47,9 +48,42 @@ dlna_device_init (dlna_t *dlna, dlna_device_t *device)
       dlna_log (DLNA_MSG_CRITICAL,
                 "Cannot add virtual directory for services\n");
     }
+    dlna_http_callback_t *callback;
+    callback = calloc (1, sizeof (dlna_http_callback_t));
+    callback->cookie = device;
+    callback->open = dlna_device_stream_open;
+    dlna_set_http_callback (dlna, callback);
   }
 
   return res;
+}
+
+extern dlna_stream_t *
+memoryfile_open (char *url, char *buffer, int length, const char *mime);
+
+static dlna_stream_t *
+dlna_device_stream_open (void *cookie, const char *url)
+{
+  dlna_stream_t * stream;
+  /* look for service directory */
+  if (!strncmp (url, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
+  {
+    dlna_service_t *service;
+    dlna_device_t *device = (dlna_device_t *)cookie;
+
+    /* look for the good service location */
+    service = dlna_service_find_url (device, (char *)url + SERVICES_VIRTUAL_DIR_LEN + 1);
+
+    /* return the service description if available */
+    if (service)
+    {
+      dlnaWebFileHandle ret;
+      char *description = service->get_description (service);
+      stream = memoryfile_open (url, description, strlen (description), SERVICE_CONTENT_TYPE);
+      return stream;
+    }
+  }
+  return NULL;
 }
 
 dlna_device_t *

@@ -31,6 +31,7 @@
 #include "minmax.h"
 
 #define NORMAL_STREAM
+#define MEMORYFILE_STREAM
 //#define FULLLOAD_STREAM
 #define DBUFFER_STREAM
 /***********************************************************************
@@ -165,6 +166,107 @@ fullload_open (char *url)
 
     file->private = data;
   }
+
+  return file;
+}
+#endif
+/***********************************************************************
+ * stream buffer with complete loading into memory of the file
+ * 
+ * advantages:
+ *  it's possible to seek inside the complete file
+ * mistakes:
+ *  it uses a lot of memory and with un-terminated stream an error occures
+ * !!! This version is not a good solution but it's the first one
+ **/
+#ifdef MEMORYFILE_STREAM
+struct memoryfile_data_s {
+  void *buffer;
+  ssize_t size;
+  off_t offset;
+};
+
+static ssize_t
+memoryfile_read (void *opaque, void *buf, size_t len)
+{
+  dlna_stream_t *file = opaque;
+  struct memoryfile_data_s *data = file->private;
+
+  len = (len > data->size - data->offset) ? data->size - data->offset:len;
+  if (len > 0)
+    memcpy (buf, data->buffer + data->offset, len);
+  data->offset += len;
+  return len;
+}
+
+static off_t
+memoryfile_lseek (void *opaque, off_t len, int whence)
+{
+  dlna_stream_t *file = opaque;
+  struct memoryfile_data_s *data = file->private;
+
+  switch (whence)
+  {
+  case SEEK_END:
+    if (len < 0)
+      data->offset = data->size + len;
+    break;
+  case SEEK_SET:
+    if (len <= data->size)
+      data->offset = len;
+    break;
+  case SEEK_CUR:
+    if (data->offset + len <= data->size)
+      data->offset += len;
+    break;
+  }
+  return data->offset;
+}
+
+static void
+memoryfile_cleanup (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct memoryfile_data_s *data = file->private;
+
+  data->size = 0;
+  data->offset = 0;
+}
+
+static void
+memoryfile_close (void *opaque)
+{
+  dlna_stream_t *file = opaque;
+  struct memoryfile_data_s *data = file->private;
+
+  free (file->url);
+  free (data->buffer);
+  data->buffer = NULL;
+  free (data);
+  free (file);
+}
+
+dlna_stream_t *
+memoryfile_open (char *url, char *buffer, int length, const char *mime)
+{
+  dlna_stream_t *file = NULL;
+  struct memoryfile_data_s *data = NULL;
+
+  file = calloc (1, sizeof (dlna_stream_t));
+  file->fd = 0;
+  file->url = strdup (url);
+  file->read = memoryfile_read;
+  file->lseek = memoryfile_lseek;
+  file->cleanup = memoryfile_cleanup;
+  file->close = memoryfile_close;
+  strcpy (file->mime, mime);
+  file->length = length;
+
+  data = calloc (1, sizeof (struct memoryfile_data_s));
+  data->size = length;
+  data->buffer = buffer;
+
+  file->private = data;
 
   return file;
 }
