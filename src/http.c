@@ -38,24 +38,6 @@
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */
 
-typedef struct http_file_handler_s {
-  char *fullpath;
-  off_t pos;
-  enum {
-    HTTP_FILE_LOCAL,
-    HTTP_FILE_MEMORY
-  } type;
-  union {
-    struct {
-      int fd;
-    } local;
-    struct {
-      char *content;
-      off_t len;
-    } memory;
-  } detail;
-} http_file_handler_t;
-
 struct http_resource_s
 {
   uint32_t id;
@@ -142,7 +124,6 @@ dlna_http_get_info (void *cookie,
                     struct File_Info *info)
 {
   dlna_t *dlna;
-  dlna_service_t *service;
   
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
@@ -167,80 +148,7 @@ dlna_http_get_info (void *cookie,
     }
   }
   
-  /* look for service directory */
-  if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
-  {
-    /* look for the good service location */
-    service = dlna_service_find_url (dlna->device, (char *)filename + SERVICES_VIRTUAL_DIR_LEN + 1);
-
-    /* return the service description if available */
-    if (service)
-    {
-      char *description = service->get_description (service);
-
-      set_service_http_info (info, strlen(description), SERVICE_CONTENT_TYPE);
-      free (description);
-      return HTTP_OK;
-    }
-  }
-
   return HTTP_ERROR;
-}
-
-static dlnaWebFileHandle
-http_get_file_from_memory (const char *fullpath,
-                           const char *description,
-                           const size_t length)
-{
-  dlna_http_file_handler_t *dhdl;
-  http_file_handler_t *hdl;
-
-  if (!fullpath || !description || length == 0)
-    return NULL;
-  
-  hdl                        = malloc (sizeof (http_file_handler_t));
-  hdl->fullpath              = strdup (fullpath);
-  hdl->pos                   = 0;
-  hdl->type                  = HTTP_FILE_MEMORY;
-  hdl->detail.memory.content = strdup (description);
-  hdl->detail.memory.len     = length;
-
-  dhdl                       = malloc (sizeof (dlna_http_file_handler_t));
-  dhdl->external             = 0;
-  dhdl->priv                 = hdl;
-  
-  return ((dlnaWebFileHandle) dhdl);
-}
-
-static dlnaWebFileHandle
-http_get_file_local (dlna_item_t *dlna_item)
-{
-  dlna_http_file_handler_t *dhdl;
-  http_file_handler_t *hdl;
-  int fd;
-  
-  if (!dlna_item)
-    return NULL;
-
-  if (!dlna_item->filename)
-    return NULL;
-  
-  fd = open (dlna_item->filename,
-             O_RDONLY | O_NONBLOCK | O_SYNC | O_NDELAY);
-  if (fd < 0)
-    return NULL;
-  
-  hdl                        = malloc (sizeof (http_file_handler_t));
-  hdl->fullpath              = strdup (dlna_item->filename);
-  hdl->pos                   = 0;
-  hdl->type                  = HTTP_FILE_LOCAL;
-  hdl->detail.local.fd       = fd;
-
-  dhdl                       = malloc (sizeof (dlna_http_file_handler_t));
-  dhdl->external             = 0;
-  dhdl->priv                 = hdl;
-
-  return ((dlnaWebFileHandle) dhdl);
 }
 
 static dlnaWebFileHandle
@@ -278,26 +186,6 @@ dlna_http_open (void *cookie,
     }
   }
   
-  /* look for service directory */
-  if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
-  {
-    dlna_service_t *service;
-
-    /* look for the good service location */
-    service = dlna_service_find_url (dlna->device, (char *)filename + SERVICES_VIRTUAL_DIR_LEN + 1);
-
-    /* return the service description if available */
-    if (service)
-    {
-      dlnaWebFileHandle ret;
-      char *description = service->get_description (service);
-
-      ret = http_get_file_from_memory (filename, description, strlen(description));
-      free (description);
-      return ret;
-    }
-  }
-
   return NULL;
 }
 
@@ -307,15 +195,11 @@ dlna_http_read (void *cookie,
                 char *buf,
                 size_t buflen)
 {
-  dlna_t *dlna;
   dlna_http_file_handler_t *dhdl;
-  http_file_handler_t *hdl;
-  ssize_t len = -1;
 
   if (!cookie || !fh)
     return HTTP_ERROR;
 
-  dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
@@ -331,30 +215,7 @@ dlna_http_read (void *cookie,
       return res;
   }
 
-  hdl = (http_file_handler_t *) dhdl->priv;
-  
-  switch (hdl->type)
-  {
-  case HTTP_FILE_LOCAL:
-    dlna_log (DLNA_MSG_INFO, "Read local file.\n");
-    len = read (hdl->detail.local.fd, buf, buflen);
-    break;
-  case HTTP_FILE_MEMORY:
-    dlna_log (DLNA_MSG_INFO, "Read file from memory.\n");
-    len = (ssize_t) MIN ((ssize_t)buflen, hdl->detail.memory.len - hdl->pos);
-    memcpy (buf, hdl->detail.memory.content + hdl->pos, (ssize_t) len);
-    break;
-  default:
-    dlna_log (DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
-    break;
-  }
-
-  if (len > 0)
-    hdl->pos += len;
-
-  dlna_log (DLNA_MSG_INFO, "Read %zd bytes.\n", len);
-
-  return len;
+  return -1;
 }
 
 static int
@@ -363,10 +224,8 @@ dlna_http_write (void *cookie,
                  char *buf,
                  size_t buflen)
 {
-  dlna_t *dlna;
   dlna_http_file_handler_t *dhdl;
 
-  dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
   /* trap application-level HTTP callback */
@@ -389,15 +248,11 @@ dlna_http_seek (void *cookie,
                 off_t offset,
                 int origin)
 {
-  dlna_t *dlna;
   dlna_http_file_handler_t *dhdl;
-  http_file_handler_t *hdl;
-  off_t newpos = -1;
   
   if (!cookie || !fh)
     return HTTP_ERROR;
 
-  dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
@@ -413,90 +268,18 @@ dlna_http_seek (void *cookie,
       return res;
   }
 
-  hdl = (http_file_handler_t *) dhdl->priv;
-  
-  switch (origin)
-  {
-  case SEEK_SET:
-    dlna_log (DLNA_MSG_INFO,
-              "Attempting to seek to %lld (was at %lld) in %s\n",
-              offset, hdl->pos, hdl->fullpath);
-    newpos = offset;
-    break;
-  case SEEK_CUR:
-    dlna_log (DLNA_MSG_INFO,
-              "Attempting to seek by %lld from %lld in %s\n",
-              offset, hdl->pos, hdl->fullpath);
-    newpos = hdl->pos + offset;
-    break;
-  case SEEK_END:
-    dlna_log (DLNA_MSG_INFO,
-              "Attempting to seek by %lld from end (was at %lld) in %s\n",
-              offset, hdl->pos, hdl->fullpath);
-
-    if (hdl->type == HTTP_FILE_LOCAL)
-    {
-      struct stat sb;
-      if (stat (hdl->fullpath, &sb) < 0)
-      {
-        dlna_log (DLNA_MSG_ERROR,
-                  "%s: cannot stat: %s\n", hdl->fullpath, strerror (errno));
-        return HTTP_ERROR;
-      }
-      newpos = sb.st_size + offset;
-    }
-    else if (hdl->type == HTTP_FILE_MEMORY)
-      newpos = hdl->detail.memory.len + offset;
-    break;
-  }
-
-  switch (hdl->type)
-  {
-  case HTTP_FILE_LOCAL:
-    /* Just make sure we cannot seek before start of file. */
-    if (newpos < 0)
-    {
-      dlna_log (DLNA_MSG_ERROR,
-                "%s: cannot seek: %s\n", hdl->fullpath, strerror (EINVAL));
-      return HTTP_ERROR;
-    }
-
-    /* Don't seek with origin as specified above, as file may have
-       changed in size since our last stat. */
-    if (lseek (hdl->detail.local.fd, newpos, SEEK_SET) == -1)
-    {
-      dlna_log (DLNA_MSG_ERROR,
-                "%s: cannot seek: %s\n", hdl->fullpath, strerror (errno));
-      return HTTP_ERROR;
-    }
-    break;
-  case HTTP_FILE_MEMORY:
-    if (newpos < 0 || newpos > hdl->detail.memory.len)
-    {
-      dlna_log (DLNA_MSG_ERROR,
-                "%s: cannot seek: %s\n", hdl->fullpath, strerror (EINVAL));
-      return HTTP_ERROR;
-    }
-    break;
-  }
-
-  /* everything went well ... */
-  hdl->pos = newpos;
-  return HTTP_OK;
+  return HTTP_ERROR;
 }
 
 static int
 dlna_http_close (void *cookie,
                  dlnaWebFileHandle fh)
 {
-  dlna_t *dlna;
   dlna_http_file_handler_t *dhdl;
-  http_file_handler_t *hdl;
   
   if (!cookie || !fh)
     return HTTP_ERROR;
 
-  dlna = (dlna_t *) cookie;
   dhdl = (dlna_http_file_handler_t *) fh;
   
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
@@ -510,28 +293,6 @@ dlna_http_close (void *cookie,
     free (dhdl);
     return 0;
   }
-
-  hdl = (http_file_handler_t *) dhdl->priv;
-  
-  switch (hdl->type)
-  {
-  case HTTP_FILE_LOCAL:
-    close (hdl->detail.local.fd);
-    break;
-  case HTTP_FILE_MEMORY:
-    /* no close operation is needed, just free file content */
-    if (hdl->detail.memory.content)
-      free (hdl->detail.memory.content);
-    break;
-  default:
-    dlna_log (DLNA_MSG_ERROR, "Unknown HTTP file type.\n");
-    break;
-  }
-
-  if (hdl->fullpath)
-    free (hdl->fullpath);
-  free (hdl);
-  free (dhdl);
 
   return HTTP_OK;
 }
