@@ -121,6 +121,7 @@ http_protocol_new (dlna_t *dlna)
   protocol = calloc (1, sizeof (dlna_protocol_t));
   protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   protocol->create_resource = dlna_http_resource_new;
+  return protocol;
 }
 
 static inline void
@@ -141,10 +142,6 @@ dlna_http_get_info (void *cookie,
                     struct File_Info *info)
 {
   dlna_t *dlna;
-  uint32_t id;
-  vfs_item_t *item;
-  dlna_item_t *dlna_item;
-  struct stat st;
   dlna_service_t *service;
   
   if (!cookie || !filename || !info)
@@ -187,48 +184,7 @@ dlna_http_get_info (void *cookie,
     }
   }
 
-  dlna_vfs_t *vfs = dlna_service_find_id (dlna->device, DLNA_SERVICE_CONTENT_DIRECTORY)->cookie;
-
-  /* ask for anything else ... */
-  id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
-  item = vfs_get_item_by_id (vfs, id);
-  if (!item)
-    return HTTP_ERROR;
-
-  if (item->type != DLNA_RESOURCE)
-    return HTTP_ERROR;
-
-  dlna_item = vfs_item_get(item);
-  if (!dlna_item)
-    return HTTP_ERROR;
-
-  if (!dlna_item->filename)
-    return HTTP_ERROR;
-
-  if (stat (dlna_item->filename, &st) < 0)
-    return HTTP_ERROR;
-
-  info->is_readable = 1;
-  if (access (dlna_item->filename, R_OK) < 0)
-  {
-    if (errno != EACCES)
-      return HTTP_ERROR;
-    info->is_readable = 0;
-  }
-
-  /* file exist and can be read */
-  info->file_length = st.st_size;
-  info->last_modified = st.st_mtime;
-  info->is_directory = S_ISDIR (st.st_mode);
-
-  if (dlna_item->profile->mime)
-  {
-    info->content_type = ixmlCloneDOMString (dlna_item->profile->mime);
-  }
-  else
-    info->content_type = ixmlCloneDOMString ("");
-  
-  return HTTP_OK;
+  return HTTP_ERROR;
 }
 
 static dlnaWebFileHandle
@@ -293,11 +249,6 @@ dlna_http_open (void *cookie,
                 enum dlnaOpenFileMode mode)
 {
   dlna_t *dlna;
-  uint32_t id;
-  vfs_item_t *item;
-  dlna_item_t *dlna_item;
-  dlna_service_t *service;
-  dlna_service_list_t *it;
 
   if (!cookie || !filename)
     return NULL;
@@ -330,6 +281,8 @@ dlna_http_open (void *cookie,
   /* look for service directory */
   if (!strncmp (filename, SERVICES_VIRTUAL_DIR, SERVICES_VIRTUAL_DIR_LEN))
   {
+    dlna_service_t *service;
+
     /* look for the good service location */
     service = dlna_service_find_url (dlna->device, (char *)filename + SERVICES_VIRTUAL_DIR_LEN + 1);
 
@@ -345,21 +298,7 @@ dlna_http_open (void *cookie,
     }
   }
 
-  dlna_vfs_t *vfs;
-  int cdsid = DLNA_SERVICE_CONTENT_DIRECTORY;
-  HASH_FIND_INT(dlna->device->services, &cdsid, it);
-  vfs = (dlna_vfs_t *)it->service->cookie;
-
-  /* ask for anything else ... */
-  id = strtoul (strrchr (filename, '/') + 1, NULL, 10);
-  item = vfs_get_item_by_id (vfs, id);
-  if (!item)
-    return NULL;
-
-  dlna_item = vfs_item_get(item);
-  if (!dlna_item)
-    return NULL;
-  return http_get_file_local (dlna_item);
+  return NULL;
 }
 
 static int
