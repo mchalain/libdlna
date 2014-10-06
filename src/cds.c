@@ -843,6 +843,20 @@ upnp_service_statevar_t cds_service_variables[] = {
   { NULL, 0, 0, NULL, NULL},
 };
 
+static int
+cds_init (dlna_service_t *service dlna_unused)
+{
+  int res;
+
+  res = dlnaAddVirtualDir (VIRTUAL_DIR);
+  if (res != DLNA_E_SUCCESS)
+  {
+    dlna_log (DLNA_MSG_CRITICAL,
+              "Cannot add virtual directory for web server\n");
+  }
+  return res;
+}
+
 static char *
 cds_get_description (dlna_service_t *service dlna_unused)
 {
@@ -864,10 +878,11 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
   service->actions      = cds_service_actions;
   service->statevar     = cds_service_variables;
   service->get_description     = cds_get_description;
-  service->init         = NULL;
+  service->init         = cds_init;
   service->last_change  = 1;
 
   service->cookie = vfs;
   cds_flags = vfs->flags;
+
   return service;
 };

@@ -528,14 +528,6 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
   
-  res = dlnaAddVirtualDir (VIRTUAL_DIR);
-  if (res != DLNA_E_SUCCESS)
-  {
-    dlna_log (DLNA_MSG_CRITICAL,
-              "Cannot add virtual directory for web server\n");
-    goto upnp_init_err;
-  }
-
   dlna_service_foreach (dlna->device, upnp_service_init, dlna);
   res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
   if (res != DLNA_E_SUCCESS)
