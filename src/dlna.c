@@ -335,16 +335,6 @@ dlna_set_port (dlna_t *dlna, int port)
   dlna->port = port;
 }
 
-void
-dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb)
-{
-  if (!dlna)
-    return;
-
-  cb->next = dlna->http_callback;
-  dlna->http_callback = cb;
-}
-
 char *
 dlna_write_protocol_info (dlna_protocol_info_type_t type,
                           dlna_org_play_speed_t speed,

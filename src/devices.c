@@ -52,7 +52,7 @@ dlna_device_init (dlna_t *dlna, dlna_device_t *device)
     callback = calloc (1, sizeof (dlna_http_callback_t));
     callback->cookie = device;
     callback->open = dlna_device_stream_open;
-    dlna_set_http_callback (dlna, callback);
+    dlna_http_set_callback (dlna, callback);
   }
 
   return res;

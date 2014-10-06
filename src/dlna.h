@@ -750,15 +750,6 @@ struct dlna_http_callback_s {
   struct dlna_http_callback_s *next;
 };
 
-/**
- * Set library's WebServer Callback routines.
- *   This is used by application to overload default's HTTP routines.
- *
- * @param[in] dlna  The DLNA library's controller.
- * @param[in] cb    Structure with HTTP callbacks.
- */
-void dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb);
-
 #ifdef __cplusplus
 #if 0 /* avoid EMACS indent */
 {

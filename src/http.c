@@ -297,6 +297,17 @@ dlna_http_close (void *cookie,
   return HTTP_OK;
 }
 
+void
+dlna_http_set_callback (dlna_t *dlna, dlna_http_callback_t *cb)
+{
+  if (!dlna)
+    return;
+
+  cb->next = dlna->http_callback;
+  dlna->http_callback = cb;
+}
+
+
 #ifndef HAVE_EXTERNAL_LIBUPNP
 struct dlnaVirtualDirCallbacks virtual_dir_callbacks = {
   .cookie = NULL,
