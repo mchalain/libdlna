@@ -31,11 +31,13 @@
 
 static char *
 dlna_device_get_description (dlna_t *dlna);
+static dlna_stream_t *dlna_device_stream_open (void *cookie, const char *url);
 
 static int
-dlna_device_init (dlna_t *dlna, dlna_device_t *device dlna_unused)
+dlna_device_init (dlna_t *dlna, dlna_device_t *device)
 {
   int res = 0;
+
   /* check if it is the main device */
   if (device == dlna->device)
   {
@@ -46,6 +48,7 @@ dlna_device_init (dlna_t *dlna, dlna_device_t *device dlna_unused)
                 "Cannot add virtual directory for services\n");
     }
   }
+
   return res;
 }
 

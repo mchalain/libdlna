@@ -529,8 +529,9 @@ dlna_start (dlna_t *dlna)
   }
   
   if (dlna->device->init)
-    dlna->device->init (dlna->device);
+    dlna->device->init (dlna, dlna->device);
   dlna_service_foreach (dlna->device, upnp_service_init, dlna);
+
   res = dlnaRegisterRootDevice2 (DLNAREG_BUF_DESC, description, 0, 1,
                                  device_callback_event_handler,
                                  dlna, &(dlna->dev));
