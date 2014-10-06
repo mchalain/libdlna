@@ -106,9 +106,6 @@ dlna_init (void)
   dlna_mode = 0;
   dlna->check_extensions = 1;
 
-  /* Internal HTTP Server */
-  dlna->http_callback = NULL;
-
   dlna->interface = strdup ("lo"); /* bind to loopback as a default */
   dlna->port = 0;
   

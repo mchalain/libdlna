@@ -38,6 +38,9 @@
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */
 
+/* Internal HTTP Server */
+dlna_http_callback_t *dlna_http_callback = NULL;
+
 struct http_resource_s
 {
   uint32_t id;
@@ -135,7 +138,7 @@ dlna_http_get_info (void *cookie,
 
   /* trap application-level HTTP callback */
   dlna_http_callback_t *http_callback;
-  for (http_callback = dlna->http_callback; http_callback; http_callback = http_callback->next)
+  for (http_callback = dlna_http_callback; http_callback; http_callback = http_callback->next)
   {
     dlna_stream_t *stream = NULL;
     if (http_callback->open)
@@ -171,7 +174,7 @@ dlna_http_open (void *cookie,
 
   /* trap application-level HTTP callback */
   dlna_http_callback_t *http_callback;
-  for (http_callback = dlna->http_callback; http_callback; http_callback = http_callback->next)
+  for (http_callback = dlna_http_callback; http_callback; http_callback = http_callback->next)
   {
     dlna_stream_t *stream = NULL;
     if (http_callback->open)
@@ -298,13 +301,13 @@ dlna_http_close (void *cookie,
 }
 
 void
-dlna_http_set_callback (dlna_t *dlna, dlna_http_callback_t *cb)
+dlna_http_set_callback (dlna_http_callback_t *cb)
 {
   if (!dlna)
     return;
 
-  cb->next = dlna->http_callback;
-  dlna->http_callback = cb;
+  cb->next = dlna_http_callback;
+  dlna_http_callback = cb;
 }
 
 

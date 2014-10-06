@@ -81,7 +81,7 @@ dlna_vfs_new (dlna_t *dlna)
   callback = calloc (1, sizeof (dlna_http_callback_t));
   callback->cookie = vfs;
   callback->open = dlna_vfs_stream_open;
-  dlna_http_set_callback (dlna, callback);
+  dlna_http_set_callback (callback);
 
   return vfs;
 }
