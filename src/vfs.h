@@ -73,11 +73,20 @@ struct vfs_item_s {
   UT_hash_handle hh;
 };
 
+struct dlna_protocol_s
+{
+  dlna_protocol_info_type_t type;
+  vfs_resource_t *(*create_resource)(vfs_item_t *item);
+  void *cookie;
+  dlna_protocol_t *next;
+};
+
 struct dlna_vfs_s
 {
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
   struct vfs_item_s *vfs_root;
+  dlna_protocol_t *protocols;
   uint32_t vfs_items;
   /* DLNA flags*/
   dlna_org_flags_t flags;
@@ -89,8 +98,5 @@ vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
-
-vfs_resource_t *dlna_http_resource_new (vfs_item_t *item);
-
 
 #endif

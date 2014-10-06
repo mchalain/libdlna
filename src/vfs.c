@@ -57,6 +57,13 @@ dlna_vfs_set_mode (dlna_vfs_t *vfs, int dlna_flags)
 }
 
 void
+dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
+{
+  protocol->next = vfs->protocols;
+  vfs->protocols= protocol;
+}
+
+void
 dlna_vfs_free (dlna_vfs_t *vfs)
 {
   vfs_item_free (vfs, vfs->vfs_root);
@@ -117,6 +124,7 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
 void
 vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
 {
+  resource->next = item->u.resource.resources;
   item->u.resource.resources = resource;
 }
 
@@ -309,6 +317,7 @@ uint32_t
 dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
                        dlna_item_t *dlna_item, uint32_t container_id)
 {
+  dlna_protocol_t *protocol;
   vfs_item_t *item;
   
   if (!vfs || !name || !dlna_item)
@@ -348,7 +357,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   vfs_item_add_child (item->parent, item);
   vfs->vfs_items++;
 
-  item->u.resource.resources = dlna_http_resource_new (item);
+  for (protocol = vfs->protocols; protocol; protocol = protocol->next)
+    vfs_resource_add (item, protocol->create_resource (item));
   return item->id;
 }
 

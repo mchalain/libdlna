@@ -94,7 +94,7 @@ http_protocol_info (vfs_resource_t *resource, dlna_org_flags_t flags)
   return protocol_info;
 }
 
-vfs_resource_t *
+static vfs_resource_t *
 dlna_http_resource_new (vfs_item_t *item)
 {
   vfs_resource_t *resource;
@@ -117,6 +117,16 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->info.op = DLNA_ORG_OPERATION_RANGE;
   resource->info.speed = DLNA_ORG_PLAY_SPEED_NORMAL;
   return resource;
+}
+
+dlna_protocol_t *
+http_protocol_new (dlna_t *dlna)
+{
+  dlna_protocol_t *protocol;
+
+  protocol = calloc (1, sizeof (dlna_protocol_t));
+  protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+  protocol->create_resource = dlna_http_resource_new;
 }
 
 static inline void

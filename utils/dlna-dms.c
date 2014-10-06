@@ -235,6 +235,7 @@ main (int argc, char **argv)
   dlna_service_register (device, cms_service_new(dlna));
   vfs = dlna_vfs_new (dlna);
   dlna_vfs_set_mode (vfs, flags);
+  dlna_vfs_add_protocol (vfs, http_protocol_new(dlna));
   dlna_service_register (device, cds_service_new(dlna, vfs));
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)
     dlna_service_register (device, msr_service_new(dlna));

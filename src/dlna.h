@@ -567,6 +567,15 @@ extern dlna_service_t *avts_service_new (dlna_t*dlna);
 extern dlna_service_t *msr_service_new (dlna_t*dlna);
 /***************************************************************************/
 /*                                                                         */
+/* DLNA Transfert Protocol Management                                      */
+/*  Optional: Routines to manage differents protocols.                     */
+/*                                                                         */
+/***************************************************************************/
+struct dlna_protocol_s;
+typedef struct dlna_protocol_s dlna_protocol_t;
+extern dlna_protocol_t *http_protocol_new (dlna_t *dlna);
+/***************************************************************************/
+/*                                                                         */
 /* DLNA UPnP Virtual File System (VFS) Management                          */
 /*  Optional: Routines to add/remove element from VFS.                     */
 /*                                                                         */
@@ -645,6 +654,14 @@ dlna_vfs_t *dlna_vfs_new (dlna_t *dlna);
  * @param[in] flags   Mask of flags to be set
  */
 void dlna_vfs_set_mode (dlna_vfs_t *vfs, dlna_org_flags_t dlna_flags);
+
+/**
+ * Set library's mask of flags.
+ *
+ * @param[in] vfs     The VFS.
+ * @param[in] protocol Protocol object to add
+ */
+void dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol);
 
 /**
  * Free an existing DLNA media object item.
