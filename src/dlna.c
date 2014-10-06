@@ -341,6 +341,7 @@ dlna_set_http_callback (dlna_t *dlna, dlna_http_callback_t *cb)
   if (!dlna)
     return;
 
+  cb->next = dlna->http_callback;
   dlna->http_callback = cb;
 }
 
