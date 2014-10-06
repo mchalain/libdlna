@@ -38,11 +38,6 @@
 #define PROTOCOL_TYPE_PRE_SZ  11   /* for the str length of "http-get:*:" */
 #define PROTOCOL_TYPE_SUFF_SZ 2    /* for the str length of ":*" */
 
-typedef enum {
-  HTTP_ERROR = -1,
-  HTTP_OK    =  0,
-} http_error_code_t;
-
 typedef struct http_file_handler_s {
   char *fullpath;
   off_t pos;
@@ -76,7 +71,6 @@ http_url (vfs_resource_t *resource)
   sprintf (url, "http://%s:%d%s/%u",
                       dlnaGetServerIpAddress (),
                       dlnaGetServerPort (), VIRTUAL_DIR, cookie->id);
-  printf (url);
   return url;
 }
 
@@ -162,15 +156,16 @@ dlna_http_get_info (void *cookie,
             "%s, filename : %s\n", __FUNCTION__, filename);
 
   /* trap application-level HTTP callback */
-  if (dlna->http_callback && dlna->http_callback->get_info)
+  dlna_http_callback_t *http_callback;
+  for (http_callback = dlna->http_callback; http_callback; http_callback = http_callback->next)
   {
-    dlna_http_file_info_t finfo;
-    int err;
-
-    err = dlna->http_callback->get_info (filename, &finfo);
-    if (!err)
+    dlna_stream_t *stream = NULL;
+    if (http_callback->open)
+      stream = http_callback->open (filename);
+    if (stream)
     {
-      set_service_http_info (info, finfo.file_length, finfo.content_type);
+      set_service_http_info (info, stream->length, stream->mime);
+      stream->close (stream);
       return HTTP_OK;
     }
   }
@@ -316,12 +311,20 @@ dlna_http_open (void *cookie,
     return NULL;
 
   /* trap application-level HTTP callback */
-  if (dlna->http_callback && dlna->http_callback->open)
+  dlna_http_callback_t *http_callback;
+  for (http_callback = dlna->http_callback; http_callback; http_callback = http_callback->next)
   {
-    dlna_http_file_handler_t *dhdl;
-    dhdl = dlna->http_callback->open (filename);
-    if (dhdl)
-      return dhdl;
+    dlna_stream_t *stream = NULL;
+    if (http_callback->open)
+      stream = http_callback->open (filename);
+    if (stream)
+    {
+      dlna_http_file_handler_t *dhdl;
+      dhdl = calloc (1, sizeof (dlna_http_file_handler_t));
+      dhdl->external = 1;
+      dhdl->priv = stream;
+      return (dlnaWebFileHandle)dhdl;
+    }
   }
   
   /* look for service directory */
@@ -379,10 +382,12 @@ dlna_http_read (void *cookie,
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
-  if (dhdl->external && dlna->http_callback && dlna->http_callback->read)
+  if (dhdl->external)
   {
     int res;
-    res = dlna->http_callback->read (dhdl->priv, buf, buflen);
+    dlna_stream_t *stream = dhdl->priv;
+    if (stream->read)
+      res = stream->read (stream, buf, buflen);
     if (res > 0)
       return res;
   }
@@ -426,10 +431,12 @@ dlna_http_write (void *cookie,
   dhdl = (dlna_http_file_handler_t *) fh;
   
   /* trap application-level HTTP callback */
-  if (dhdl->external && dlna->http_callback && dlna->http_callback->write)
+  if (dhdl->external)
   {
     int res;
-    res = dlna->http_callback->write (dhdl->priv, buf, buflen);
+    dlna_stream_t *stream = dhdl->priv;
+    if (stream->write)
+      res = stream->write (stream, buf, buflen);
     if (res > 0)
       return res;
   }
@@ -457,11 +464,13 @@ dlna_http_seek (void *cookie,
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
-  if (dhdl->external && dlna->http_callback && dlna->http_callback->seek)
+  if (dhdl->external)
   {
     int res;
-    res = dlna->http_callback->seek (dhdl->priv, offset, origin);
-    if (res == 0)
+    dlna_stream_t *stream = dhdl->priv;
+    if (stream->lseek)
+      res = stream->lseek (stream, offset, origin);
+    if (res > 0)
       return res;
   }
 
@@ -554,15 +563,13 @@ dlna_http_close (void *cookie,
   dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
-  if (dhdl->external && dlna->http_callback && dlna->http_callback->close)
+  if (dhdl->external)
   {
-    int res;
-    res = dlna->http_callback->close (dhdl->priv);
-    if (res == 0)
-    {
-      free (dhdl);
-      return res;
-    }
+    dlna_stream_t *stream = dhdl->priv;
+    if (stream->close)
+      stream->close (stream);
+    free (dhdl);
+    return 0;
   }
 
   hdl = (http_file_handler_t *) dhdl->priv;

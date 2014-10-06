@@ -716,7 +716,12 @@ void dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name);
 /*  Optional: Used to overload the internal HTTP server behavior.          */
 /*                                                                         */
 /***************************************************************************/
+typedef enum {
+  HTTP_ERROR = -1,
+  HTTP_OK    =  0,
+} http_error_code_t;
 
+typedef struct dlna_http_callback_s dlna_http_callback_t;
 /**
  * DLNA Internal WebServer File Handler
  */
@@ -739,14 +744,10 @@ typedef struct dlna_http_file_info_s {
  * DLNA Internal WebServer Operation Callbacks
  *  Return 0 for success, 1 otherwise.
  */
-typedef struct dlna_http_callback_s {
-  int (*get_info) (const char *filename, dlna_http_file_info_t *info);
-  dlna_http_file_handler_t * (*open) (const char *filename);
-  int (*read) (void *hdl, char *buf, size_t len);
-  int (*write) (void *hdl, char *buf, size_t len);
-  int (*seek) (void *hdl, off_t offset, int origin);
-  int (*close) (void *hdl);
-} dlna_http_callback_t;
+struct dlna_http_callback_s {
+  dlna_stream_t * (*open) (const char *filename);
+  struct dlna_http_callback_s *next;
+};
 
 /**
  * Set library's WebServer Callback routines.
