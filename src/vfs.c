@@ -35,13 +35,9 @@ extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
 static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url);
-static dlna_http_callback_t http_callback = 
-{
-  .open = dlna_vfs_stream_open,
-  .next = NULL,
-};
 
-static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url)
+static dlna_stream_t *
+dlna_vfs_stream_open (void *cookie, const char *url)
 {
   uint32_t id;
   vfs_item_t *item;
@@ -80,8 +76,13 @@ dlna_vfs_new (dlna_t *dlna)
   vfs->vfs_items = 0;
   vfs->mode = dlna->mode;
   dlna_vfs_add_container (vfs, "root", 0, 0);
-  http_callback.cookie = vfs;
-  dlna_set_http_callback (dlna, &http_callback);
+
+  dlna_http_callback_t *callback;
+  callback = calloc (1, sizeof (dlna_http_callback_t));
+  callback->cookie = vfs;
+  callback->open = dlna_vfs_stream_open;
+  dlna_set_http_callback (dlna, callback);
+
   return vfs;
 }
 
