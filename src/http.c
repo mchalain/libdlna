@@ -161,7 +161,7 @@ dlna_http_get_info (void *cookie,
   {
     dlna_stream_t *stream = NULL;
     if (http_callback->open)
-      stream = http_callback->open (filename);
+      stream = http_callback->open (http_callback->cookie, filename);
     if (stream)
     {
       set_service_http_info (info, stream->length, stream->mime);
@@ -316,7 +316,7 @@ dlna_http_open (void *cookie,
   {
     dlna_stream_t *stream = NULL;
     if (http_callback->open)
-      stream = http_callback->open (filename);
+      stream = http_callback->open (http_callback->cookie, filename);
     if (stream)
     {
       dlna_http_file_handler_t *dhdl;

@@ -34,8 +34,43 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url);
+static dlna_http_callback_t http_callback = 
+{
+  .open = dlna_vfs_stream_open,
+  .next = NULL,
+};
+
+static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url)
+{
+  uint32_t id;
+  vfs_item_t *item;
+  dlna_item_t *dlna_item;
+  dlna_vfs_t *vfs = (dlna_vfs_t *)cookie;
+
+  if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
+    return NULL;
+  /* ask for anything else ... */
+  id = strtoul (strrchr (url, '/') + 1, NULL, 10);
+  item = vfs_get_item_by_id (vfs, id);
+  if (!item)
+    return NULL;
+
+  if (item->type != DLNA_RESOURCE)
+    return NULL;
+
+  dlna_item = vfs_item_get(item);
+  if (!dlna_item)
+    return NULL;
+
+  if (!dlna_item->filename)
+    return NULL;
+
+  return stream_open (dlna_item->filename);
+}
+
 dlna_vfs_t *
-dlna_vfs_new (dlna_t *dlna dlna_unused)
+dlna_vfs_new (dlna_t *dlna)
 {
   dlna_vfs_t *vfs;
 
@@ -45,6 +80,8 @@ dlna_vfs_new (dlna_t *dlna dlna_unused)
   vfs->vfs_items = 0;
   vfs->mode = dlna->mode;
   dlna_vfs_add_container (vfs, "root", 0, 0);
+  http_callback.cookie = vfs;
+  dlna_set_http_callback (dlna, &http_callback);
   return vfs;
 }
 

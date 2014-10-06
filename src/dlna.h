@@ -745,7 +745,8 @@ typedef struct dlna_http_file_info_s {
  *  Return 0 for success, 1 otherwise.
  */
 struct dlna_http_callback_s {
-  dlna_stream_t * (*open) (const char *filename);
+  void *cookie;
+  dlna_stream_t * (*open) (void *cookie, const char *filename);
   struct dlna_http_callback_s *next;
 };
 
