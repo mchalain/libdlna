@@ -261,7 +261,8 @@ dlna_device_set_uuid (dlna_device_t *device, char *str)
 }
 
 void
-dlna_device_set_presentation_url (dlna_device_t *device, char *str)
+dlna_device_set_presentation_url (dlna_device_t *device, char *str,
+									dlna_http_callback_t *callback)
 {
   if (!device || !str)
     return;
@@ -269,6 +270,8 @@ dlna_device_set_presentation_url (dlna_device_t *device, char *str)
   if (device->presentation_url)
     free (device->presentation_url);
   device->presentation_url = strdup (str);
+  if (callback)
+    dlna_http_set_callback (callback);
 }
 
 void

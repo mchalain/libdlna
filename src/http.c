@@ -303,7 +303,7 @@ dlna_http_close (void *cookie,
 void
 dlna_http_set_callback (dlna_http_callback_t *cb)
 {
-  if (!dlna)
+  if (!cb)
     return;
 
   cb->next = dlna_http_callback;

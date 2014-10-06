@@ -111,6 +111,7 @@ struct dlna_stream_s;
 typedef struct dlna_stream_s dlna_stream_t;
 typedef struct dlna_vfs_s dlna_vfs_t;
 typedef struct dlna_item_s dlna_item_t;
+typedef struct dlna_http_callback_s dlna_http_callback_t;
 
 /* Status code for DLNA related functions */
 typedef enum {
@@ -532,7 +533,8 @@ void dlna_device_set_uuid (dlna_device_t *device, char *str);
  * @param[in] device  The UPnP device controller.
  * @param[in] str   Value to be set.
  */
-void dlna_device_set_presentation_url (dlna_device_t *dlna, char *str);
+void dlna_device_set_presentation_url (dlna_device_t *dlna, char *str,
+									dlna_http_callback_t *callback);
 
 /***************************************************************************/
 /*                                                                         */
@@ -721,7 +723,6 @@ typedef enum {
   HTTP_OK    =  0,
 } http_error_code_t;
 
-typedef struct dlna_http_callback_s dlna_http_callback_t;
 /**
  * DLNA Internal WebServer File Handler
  */
