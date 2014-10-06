@@ -29,6 +29,7 @@ struct dlna_device_s {
   struct dlna_service_list_s *services;
   dlna_capability_mode_t mode;
 
+  int (*init) (dlna_device_t *);
   char *(*get_description) (dlna_t *);
 
   char *urn_type;

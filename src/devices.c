@@ -32,6 +32,23 @@
 static char *
 dlna_device_get_description (dlna_t *dlna);
 
+static int
+dlna_device_init (dlna_t *dlna, dlna_device_t *device dlna_unused)
+{
+  int res = 0;
+  /* check if it is the main device */
+  if (device == dlna->device)
+  {
+    res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
+    if (res != DLNA_E_SUCCESS)
+    {
+      dlna_log (DLNA_MSG_CRITICAL,
+                "Cannot add virtual directory for services\n");
+    }
+  }
+  return res;
+}
+
 dlna_device_t *
 dlna_device_new (dlna_capability_mode_t mode)
 {
@@ -53,6 +70,7 @@ dlna_device_new (dlna_capability_mode_t mode)
   device->uuid = strdup ("01:23:45:67:89");
   device->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
 
+  device->init = dlna_device_init;
   device->get_description = dlna_device_get_description;
   return device;
 }

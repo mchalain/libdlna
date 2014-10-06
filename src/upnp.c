@@ -528,15 +528,9 @@ dlna_start (dlna_t *dlna)
     goto upnp_init_err;
   }
   
+  if (dlna->device->init)
+    dlna->device->init (dlna->device);
   dlna_service_foreach (dlna->device, upnp_service_init, dlna);
-  res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
-  if (res != DLNA_E_SUCCESS)
-  {
-    dlna_log (DLNA_MSG_CRITICAL,
-              "Cannot add virtual directory for services\n");
-    goto upnp_init_err;
-  }
-
   res = dlnaRegisterRootDevice2 (DLNAREG_BUF_DESC, description, 0, 1,
                                  device_callback_event_handler,
                                  dlna, &(dlna->dev));
