@@ -99,7 +99,7 @@ dlna_http_resource_new (vfs_item_t *item)
 }
 
 dlna_protocol_t *
-http_protocol_new (dlna_t *dlna)
+http_protocol_new (dlna_t *dlna dlna_unused)
 {
   dlna_protocol_t *protocol;
 
@@ -126,12 +126,8 @@ dlna_http_get_info (void *cookie,
                     const char *filename,
                     struct File_Info *info)
 {
-  dlna_t *dlna;
-  
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
-
-  dlna = (dlna_t *) cookie;
 
   dlna_log (DLNA_MSG_INFO,
             "%s, filename : %s\n", __FUNCTION__, filename);
@@ -159,12 +155,8 @@ dlna_http_open (void *cookie,
                 const char *filename,
                 enum dlnaOpenFileMode mode)
 {
-  dlna_t *dlna;
-
   if (!cookie || !filename)
     return NULL;
-
-  dlna = (dlna_t *) cookie;
 
   dlna_log (DLNA_MSG_INFO,
             "%s, filename : %s\n", __FUNCTION__, filename);
@@ -222,7 +214,7 @@ dlna_http_read (void *cookie,
 }
 
 static int
-dlna_http_write (void *cookie,
+dlna_http_write (void *cookie dlna_unused,
                  dlnaWebFileHandle fh,
                  char *buf,
                  size_t buflen)
