@@ -855,7 +855,9 @@ avts_get_minfo (dlna_t *dlna, upnp_action_event_t *ev)
 
   plitem = playlist_current(instance->playlist);
 
-  dlna_properties_t *properties = dlna_item_properties (plitem->item);
+  dlna_properties_t *properties = NULL;
+  if (plitem)
+    properties = dlna_item_properties (plitem->item);
   if (plitem && properties)
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, properties->duration);
   else
@@ -934,7 +936,9 @@ avts_get_minfo_ext (dlna_t *dlna, upnp_action_event_t *ev)
   buffer_free (out);
 
   plitem = playlist_current(instance->playlist);
-  dlna_properties_t *properties = dlna_item_properties (plitem->item);
+  dlna_properties_t *properties = NULL;
+  if (plitem)
+    properties = dlna_item_properties (plitem->item);
   if (plitem && properties)
     upnp_add_response (ev, AVTS_ARG_MEDIA_DURATION, properties->duration);
   else
@@ -1054,7 +1058,9 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, AVTS_ARG_TRACK, out->buf);
   buffer_free (out);
 
-  dlna_properties_t *properties = dlna_item_properties (plitem->item);
+  dlna_properties_t *properties = NULL;
+  if (plitem)
+    properties = dlna_item_properties (plitem->item);
   if (plitem && properties)
     upnp_add_response (ev, AVTS_ARG_TRACK_DURATION, properties->duration);
   else
@@ -1353,8 +1359,10 @@ avts_seek (dlna_t *dlna, upnp_action_event_t *ev)
     sscanf (time, "%u:%u:%u", &h, &m, &s);
     second = (((h * 60) + m) * 60) + s;
     plitem = playlist_current(instance->playlist);
-    dlna_properties_t *properties = dlna_item_properties (plitem->item);
+    dlna_properties_t *properties = NULL;
     if (plitem)
+      properties = dlna_item_properties (plitem->item);
+    if (plitem && properties)
     {
       instance->seekframe = second * properties->sample_frequency;
       instance->seekframe /= properties->spf;
