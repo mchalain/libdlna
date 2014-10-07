@@ -158,7 +158,12 @@ A_ARG_TYPE_URI,
 };
 upnp_service_statevar_t cds_service_variables[];
 
-dlna_org_flags_t cds_flags;
+struct cds_data_s
+{
+  dlna_org_flags_t flags;
+  dlna_vfs_t *vfs;
+};
+typedef struct cds_data_s cds_data_t;
 /*
  * GetSearchCapabilities:
  *   This action returns the searching capabilities that
@@ -228,7 +233,8 @@ static int
 cds_browse_metadata (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                      vfs_item_t *item, char *filter)
 {
-  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
+  cds_data_t *cds_data = (cds_data_t *)ev->service->cookie;
+  dlna_vfs_t *vfs = cds_data->vfs;
   int result_count = 0;
   char *updateID;
   buffer_t *out = NULL;
@@ -242,7 +248,7 @@ cds_browse_metadata (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   switch (item->type)
   {
   case DLNA_RESOURCE:
-    didl_add_item (out, item, filter, cds_flags);
+    didl_add_item (out, item, filter, cds_data->flags);
     snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
   case DLNA_CONTAINER:
@@ -273,6 +279,7 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                            int index, int count, 
                            vfs_item_t *item, char *filter)
 {
+  cds_data_t *cds_data = (cds_data_t *)ev->service->cookie;
   vfs_item_t **items;
   int s, result_count = 0;
   char tmp[32];
@@ -311,7 +318,7 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
         break;
 
       case DLNA_RESOURCE:
-        didl_add_item (out, item, filter, cds_flags);
+        didl_add_item (out, item, filter, cds_data->flags);
         break;
 
       default:
@@ -349,7 +356,8 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
 static int
 cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
+  cds_data_t *cds_data = (cds_data_t *)ev->service->cookie;
+  dlna_vfs_t *vfs = cds_data->vfs;
   /* input arguments */
   uint32_t id, index, count;
   char *flag = NULL, *filter = NULL, *sort = NULL;
@@ -441,7 +449,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 }
 
 static int
-cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
+cds_search_match (cds_data_t *cds_data, vfs_item_t *item, char *search_criteria)
 {
   char keyword[256];
   int derived_from = 0, protocol_contains = 0, result = 0;
@@ -490,7 +498,7 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
     while (resource)
     {
       char *protocol_info;
-      protocol_info = resource->protocol_info (resource, cds_flags);
+      protocol_info = resource->protocol_info (resource, cds_data->flags);
       if (!protocol_info)
         break;
       if ( strstr (protocol_info, keyword))
@@ -508,14 +516,14 @@ cds_search_match (dlna_t *dlna, vfs_item_t *item, char *search_criteria)
   
   and_clause = strstr (search_criteria, SEARCH_AND);
   if (and_clause)
-    return (result && cds_search_match (dlna, item,
+    return (result && cds_search_match (cds_data, item,
                                         and_clause + strlen (SEARCH_AND) -1));
 
   return 1;
 }
 
 static int
-cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
+cds_search_recursive (cds_data_t *cds_data, vfs_item_t *item, buffer_t *out,
                       int count, char *filter, char *search_criteria)
 {
   vfs_item_t **items;
@@ -537,15 +545,15 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
       {
       case DLNA_CONTAINER:
         result_count +=
-          cds_search_recursive (dlna, item, out,
+          cds_search_recursive (cds_data, item, out,
                                 (count == 0) ? 0 : (count - result_count),
                                 filter, search_criteria);
         break;
 
       case DLNA_RESOURCE:        
-        if (cds_search_match (dlna, item, search_criteria))
+        if (cds_search_match (cds_data, item, search_criteria))
         {
-          didl_add_item (out, item, filter, cds_flags);
+          didl_add_item (out, item, filter, cds_data->flags);
           result_count++;
         }
         break;
@@ -560,7 +568,7 @@ cds_search_recursive (dlna_t *dlna, vfs_item_t *item, buffer_t *out,
 }
 
 static int
-cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
+cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                            vfs_item_t *item, int index,
                            int count, char *filter, char *search_criteria)
 {
@@ -568,6 +576,7 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
   int i, result_count = 0;
   char tmp[32];
   buffer_t *out = NULL;
+  cds_data_t *cds_data = (cds_data_t *)ev->service->cookie;
 
   index = 0;
 
@@ -590,7 +599,7 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
     count = item->u.container.children_count;
 
   result_count =
-    cds_search_recursive (dlna, item, out, count, filter, search_criteria);
+    cds_search_recursive (cds_data, item, out, count, filter, search_criteria);
 
   didl_add_footer (out);
 
@@ -614,7 +623,8 @@ cds_search_directchildren (dlna_t *dlna, upnp_action_event_t *ev,
 static int
 cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  dlna_vfs_t *vfs = (dlna_vfs_t *)ev->service->cookie;
+  cds_data_t *cds_data = (cds_data_t *)ev->service->cookie;
+  dlna_vfs_t *vfs = cds_data->vfs;
   /* input arguments */
   uint32_t index, count, id;
   char *search_criteria = NULL, *filter = NULL, *sort = NULL;
@@ -921,8 +931,10 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
   service->init         = cds_init;
   service->last_change  = 1;
 
-  service->cookie = vfs;
-  cds_flags = vfs->flags;
+  cds_data_t *cds_data = calloc (1, sizeof (cds_data_t));
+  service->cookie = cds_data;
+  cds_data->vfs = vfs;
+  cds_data->flags = vfs->flags;
 
   return service;
 };
