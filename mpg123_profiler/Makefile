@@ -134,6 +134,7 @@ install_shared: lib_shared
 
 install: $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)/upnp
+	$(INSTALL) -m 644 mpg123_profiler.h $(includedir)/upnp
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
