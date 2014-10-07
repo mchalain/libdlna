@@ -341,6 +341,12 @@ typedef struct dlna_profile_s {
   const char *label;
   /* Profile type: IMAGE / AUDIO / AV */
   dlna_media_class_t media_class;
+  struct
+  {
+	uint32_t store_metadata:1;
+	uint32_t store_properties:1;
+	uint32_t playable:1;
+  } features;
   /* properties extraction callback */
   struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
   struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);

@@ -472,6 +472,9 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   if (!profile)
     return NULL;
 
+  profile->features.playable = 0;
+  profile->features.store_metadata = 1;
+  profile->features.store_properties = 1;
   profile->get_properties = item_get_properties;
   profile->get_metadata = item_get_metadata;
   profile->free = media_profile_free;

@@ -184,9 +184,9 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     free (item);
     return NULL;
   }
-  if (item->profile->get_properties)
+  if (item->profile->get_properties && item->profile->features.store_properties)
     item->properties = item->profile->get_properties (item);
-  if (item->profile->get_metadata)
+  if (item->profile->get_metadata && item->profile->features.store_metadata)
     item->metadata   = item->profile->get_metadata (item);
   return item;
 }

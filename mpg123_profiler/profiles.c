@@ -512,6 +512,9 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   *cookie = data;
   mpg123_close(g_profiler_handle);
 
+  profile->features.playable = 1;
+  profile->features.store_metadata = 0;
+  profile->features.store_properties = 0;
   profile->free = profile_free;
   profile->get_metadata = item_get_metadata;
   profile->get_properties = item_get_properties;
