@@ -158,10 +158,19 @@ A_ARG_TYPE_URI,
 };
 upnp_service_statevar_t cds_service_variables[];
 
+typedef struct cds_feature_s cds_feature_t;
+
+struct cds_feature_s
+{
+  char *name;
+  cds_feature_t *next;
+};
+
 struct cds_data_s
 {
   dlna_org_flags_t flags;
   dlna_vfs_t *vfs;
+  cds_feature_t *features;
 };
 typedef struct cds_data_s cds_data_t;
 /*
@@ -714,6 +723,8 @@ cds_get_feature_list (dlna_t *dlna dlna_unused, upnp_action_event_t *ev)
 static char *
 cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
 {
+  cds_data_t *cds_data = (cds_data_t *)service->cookie;
+  cds_feature_t *feature;
   buffer_t *out;
   IXML_Document *featurelistDoc;
   IXML_Node *first;
@@ -728,6 +739,14 @@ cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
   buffer_free (out);
   
   first = ixmlNode_getFirstChild( ( IXML_Node * ) featurelistDoc );
+  for (feature = cds_data->features; feature; feature = feature->next)
+  {
+    IXML_Element *elem;
+
+    elem = ixmlDocument_createElement( featurelistDoc, "Feature" );
+    ixmlElement_setAttribute (elem, "name", feature->name);
+    ixmlNode_appendChild (first, (IXML_Node *)elem);
+  }
   return ixmlPrintDocument (featurelistDoc);
 }
 
