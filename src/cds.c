@@ -64,6 +64,7 @@
 #define CDS_ACTION_GET_PROGRESS       "GetTransferProgress"
 #define CDS_ACTION_DELETE_RES         "DeleteResource"
 #define CDS_ACTION_CREATE_REF         "CreateReference"
+#define CDS_ACTION_GET_FEATURE_LIST   "GetFeatureList"
 
 /* CDS Arguments */
 #define CDS_ARG_SEARCH_CAPS           "SearchCaps"
@@ -84,6 +85,7 @@
 #define CDS_ARG_UPDATE_ID             "UpdateID"
 
 #define CDS_ARG_CONTAINER_ID          "ContainerID"
+#define CDS_ARG_FEATURE_LIST          "FeatureList"
 
 /* CDS Argument Values */
 #define CDS_ROOT_OBJECT_ID            "0"
@@ -726,6 +728,8 @@ upnp_service_action_arg_t browse_args[] =
   },
 };
 
+upnp_service_action_arg_t getfeaturelist_args[] =
+{{.name=CDS_ARG_FEATURE_LIST, .dir=E_OUTPUT, .relation=&cds_service_variables[FeatureList]},{.name=NULL,}};
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {
   /* CDS Required Actions */
@@ -769,6 +773,10 @@ upnp_service_action_t cds_service_actions[] = {
     ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID") ,
     .args_s = NULL,
     .cb = cds_search },
+  { .name = CDS_ACTION_GET_FEATURE_LIST,
+    .args = NULL,
+    .args_s = getfeaturelist_args,
+    .cb = NULL },
   { .name = CDS_ACTION_CREATE_OBJ,
     .args = NULL,
     .args_s = NULL,
