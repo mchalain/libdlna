@@ -601,6 +601,21 @@ typedef struct dlna_metadata_s {
 } dlna_metadata_t;
 
 /**
+ * DLNA Media Object item properties
+ */
+#define DLNA_PROPERTIES_DURATION_MAX_SIZE 64
+#define DLNA_PROPERTIES_RESOLUTION_MAX_SIZE 64
+typedef struct dlna_properties_s {
+  char     duration[DLNA_PROPERTIES_DURATION_MAX_SIZE];          /* res@duration */
+  uint32_t bitrate;               /* res@bitrate */
+  uint32_t sample_frequency;      /* res@sampleFrequency */
+  uint32_t bps;                   /* res@bitsPerSample */
+  uint32_t spf;                   /* sample per frame */
+  uint32_t channels;              /* res@nrAudioChannels */
+  char     resolution[DLNA_PROPERTIES_RESOLUTION_MAX_SIZE];        /* res@resolution */
+} dlna_properties_t;
+
+/**
  * Create a new DLNA media object item.
  *
  * @param[in] dlna     The DLNA library's controller.
@@ -646,6 +661,16 @@ dlna_media_class_t dlna_item_type (dlna_item_t * item);
  * @return metadata
  */
 dlna_metadata_t *dlna_item_metadata (dlna_item_t * item);
+
+/**
+ * Returns properties about item
+ * 
+ * @warning This function returns a pointer, do _NOT_ free it.
+ * @param[in] item     The DLNA object item to be freed.
+ * 
+ * @return properties
+ */
+dlna_properties_t *dlna_item_properties (dlna_item_t * item);
 
 /**
  * Create a new VFS object for CD Service.

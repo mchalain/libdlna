@@ -146,21 +146,6 @@ struct dlna_s {
 /*                                                                         */
 /***************************************************************************/
 
-#define DLNA_PROPERTIES_DURATION_MAX_SIZE 64
-#define DLNA_PROPERTIES_RESOLUTION_MAX_SIZE 64
-/**
- * DLNA Media Object item properties
- */
-typedef struct dlna_properties_s {
-  char     duration[DLNA_PROPERTIES_DURATION_MAX_SIZE];          /* res@duration */
-  uint32_t bitrate;               /* res@bitrate */
-  uint32_t sample_frequency;      /* res@sampleFrequency */
-  uint32_t bps;                   /* res@bitsPerSample */
-  uint32_t spf;                   /* sample per frame */
-  uint32_t channels;              /* res@nrAudioChannels */
-  char     resolution[DLNA_PROPERTIES_RESOLUTION_MAX_SIZE];        /* res@resolution */
-} dlna_properties_t;
-
 /**
  * DLNA Media Object item
  */

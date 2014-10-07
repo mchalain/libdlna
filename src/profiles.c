@@ -250,3 +250,14 @@ dlna_item_metadata (dlna_item_t * item)
   else
     return NULL;
 }
+
+dlna_properties_t *
+dlna_item_properties (dlna_item_t * item)
+{
+  if (item->properties)
+    return item->properties;
+  else if (item->profile->get_properties)
+    return item->profile->get_properties (item);
+  else
+    return NULL;
+}
