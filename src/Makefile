@@ -155,8 +155,8 @@ install_shared: lib_shared
 	$(LN) -sf $(LIBNAME_MAJOR) $(libdir)/$(LIBNAME_SHARED)
 
 install: $(INSTALL_RULES)
-	$(INSTALL) -d $(includedir)
-	$(INSTALL) -m 644 dlna.h $(includedir)
+	$(INSTALL) -d $(includedir)/upnp
+	$(INSTALL) -m 644 dlna.h $(includedir)/upnp
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) \

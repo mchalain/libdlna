@@ -3,7 +3,7 @@ $(error "../config.mak is not present, run configure !")
 endif
 include ../config.mak
 
-LIBNAME = libffmpeg_profiler
+LIBNAME = libdlnaprofiler_ffmpeg
 LIBNAME_STATIC = ${LIBNAME}.a
 
 ifeq ($(BUILD_STATIC),yes)
@@ -134,8 +134,8 @@ install_shared: lib_shared
 	$(LN) -sf $(LIBNAME_MAJOR) $(libdir)/$(LIBNAME_SHARED)
 
 install: $(INSTALL_RULES)
-	$(INSTALL) -d $(includedir)
-	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)
+	$(INSTALL) -d $(includedir)/upnp
+	$(INSTALL) -m 644 ffmpeg_profiler.h $(includedir)/upnp
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) 1>.depend
