@@ -42,7 +42,7 @@ extern "C" {
 #define DLNA_TOSTRING(s) #s
 
 #define LIBDLNA_VERSION_INT  ((0<<16)+(4<<8)+0)
-#define LIBDLNA_VERSION      0.4.0
+#define LIBDLNA_VERSION      0.4.2
 #define LIBDLNA_BUILD        LIBDLNA_VERSION_INT
 
 #define LIBDLNA_IDENT        "DLNA " DLNA_STRINGIFY(LIBDLNA_VERSION)
