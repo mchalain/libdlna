@@ -129,6 +129,35 @@
 #define CDS_ERR_ACESS_DENIED_DESTINATION      719
 #define CDS_ERR_PROCESS_REQUEST               720
 
+enum
+{
+SearchCapabilities,
+SortCapabilities,
+SystemUpdateID,
+ContainerUpdateIDs,
+ServiceResetToken,
+LastChange,
+TransferIDs,
+FeatureList,
+DeviceMode,
+A_ARG_TYPE_ObjectID,
+A_ARG_TYPE_Result,
+A_ARG_TYPE_SearchCriteria,
+A_ARG_TYPE_BrowseFlag,
+A_ARG_TYPE_Filter,
+A_ARG_TYPE_SortCriteria,
+A_ARG_TYPE_Index,
+A_ARG_TYPE_Count,
+A_ARG_TYPE_UpdateID,
+A_ARG_TYPE_TransferID,
+A_ARG_TYPE_TransferStatus,
+A_ARG_TYPE_TransferLength,
+A_ARG_TYPE_TransferTotal,
+A_ARG_TYPE_TagValueList,
+A_ARG_TYPE_URI,
+};
+upnp_service_statevar_t cds_service_variables[];
+
 dlna_org_flags_t cds_flags;
 /*
  * GetSearchCapabilities:
@@ -662,34 +691,36 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   return 0;
 }
 
-enum
+/*
+ * GetFeatureList:
+ */
+static int
+cds_get_feature_list (dlna_t *dlna dlna_unused, upnp_action_event_t *ev)
 {
-SearchCapabilities,
-SortCapabilities,
-SystemUpdateID,
-ContainerUpdateIDs,
-ServiceResetToken,
-LastChange,
-TransferIDs,
-FeatureList,
-DeviceMode,
-A_ARG_TYPE_ObjectID,
-A_ARG_TYPE_Result,
-A_ARG_TYPE_SearchCriteria,
-A_ARG_TYPE_BrowseFlag,
-A_ARG_TYPE_Filter,
-A_ARG_TYPE_SortCriteria,
-A_ARG_TYPE_Index,
-A_ARG_TYPE_Count,
-A_ARG_TYPE_UpdateID,
-A_ARG_TYPE_TransferID,
-A_ARG_TYPE_TransferStatus,
-A_ARG_TYPE_TransferLength,
-A_ARG_TYPE_TransferTotal,
-A_ARG_TYPE_TagValueList,
-A_ARG_TYPE_URI,
-};
-upnp_service_statevar_t cds_service_variables[];
+  upnp_add_response (ev, CDS_ARG_FEATURE_LIST,cds_service_variables[FeatureList].get (NULL, ev->service));
+  return ev->status;
+}
+
+static char *
+cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
+{
+  buffer_t *out;
+  IXML_Document *featurelistDoc;
+  IXML_Node *first;
+
+  out = buffer_new ();
+  buffer_append (out, "<Features xmlns=\"urn:schemas-upnp-org:av:avs\" ");
+  buffer_append (out, "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+  buffer_append (out, "xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">");
+  buffer_append (out, "</Features>");
+
+  ixmlParseBufferEx( out->buf,&featurelistDoc);
+  buffer_free (out);
+  
+  first = ixmlNode_getFirstChild( ( IXML_Node * ) featurelistDoc );
+  return ixmlPrintDocument (featurelistDoc);
+}
+
 
 upnp_service_action_arg_t browse_args[] =
 {
@@ -730,6 +761,7 @@ upnp_service_action_arg_t browse_args[] =
 
 upnp_service_action_arg_t getfeaturelist_args[] =
 {{.name=CDS_ARG_FEATURE_LIST, .dir=E_OUTPUT, .relation=&cds_service_variables[FeatureList]},{.name=NULL,}};
+
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {
   /* CDS Required Actions */
@@ -776,7 +808,7 @@ upnp_service_action_t cds_service_actions[] = {
   { .name = CDS_ACTION_GET_FEATURE_LIST,
     .args = NULL,
     .args_s = getfeaturelist_args,
-    .cb = NULL },
+    .cb = cds_get_feature_list },
   { .name = CDS_ACTION_CREATE_OBJ,
     .args = NULL,
     .args_s = NULL,
@@ -831,7 +863,7 @@ upnp_service_statevar_t cds_service_variables[] = {
   [ServiceResetToken] = { "ServiceResetToken", E_STRING, 0, NULL, NULL},
   [LastChange] = { "LastChange", E_STRING, 1, NULL, NULL},
   [TransferIDs] = { "TransferIDs", E_STRING, 1, NULL, NULL},
-  [FeatureList] = { "FeatureList", E_STRING, 0, NULL, NULL},
+  [FeatureList] = { "FeatureList", E_STRING, 0, NULL, cds_feature_list},
   [DeviceMode] = { "DeviceMode", E_STRING, 1, NULL, NULL},
   [A_ARG_TYPE_ObjectID] = { "A_ARG_TYPE_ObjectID", E_STRING, 0, NULL, NULL},
   [A_ARG_TYPE_Result] = { "A_ARG_TYPE_Result", E_STRING, 0, NULL, NULL},
