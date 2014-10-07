@@ -745,6 +745,7 @@ cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
 
     elem = ixmlDocument_createElement( featurelistDoc, "Feature" );
     ixmlElement_setAttribute (elem, "name", feature->name);
+    ixmlElement_setAttribute (elem, "version", "1");
     ixmlNode_appendChild (first, (IXML_Node *)elem);
   }
   return ixmlPrintDocument (featurelistDoc);
