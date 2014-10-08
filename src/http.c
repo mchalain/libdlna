@@ -59,19 +59,7 @@ http_url (vfs_resource_t *resource)
   return url;
 }
 
-static char *
-http_protocol_info (vfs_resource_t *resource, dlna_org_flags_t flags)
-{
-  char *protocol_info;
-  
-  protocol_info =
-    dlna_write_protocol_info (resource->info.protocolid,
-                      resource->info.speed,
-                      resource->info.cnv,
-                      resource->info.op,
-                      flags, resource->profile);
-  return protocol_info;
-}
+static dlna_protocol_t *static_http_protocol = NULL;
 
 static vfs_resource_t *
 dlna_http_resource_new (vfs_item_t *item)
@@ -85,10 +73,14 @@ dlna_http_resource_new (vfs_item_t *item)
   cookie->id = item->id;
   resource->cookie = cookie;
   resource->url = http_url;
-  resource->protocol_info = http_protocol_info;
 
   dlna_item = item->u.resource.item;
   resource->profile = dlna_item->profile;
+
+  resource->protocol_info = calloc (1, sizeof (protocol_info_t));
+  resource->protocol_info->protocol = static_http_protocol;
+  resource->protocol_info->mime = strdup (dlna_item_mime (dlna_item));
+
   resource->size = dlna_item->filesize;
   memcpy (&resource->properties, dlna_item_properties (dlna_item), sizeof (dlna_properties_t));
   resource->info.protocolid = DLNA_PROTOCOL_INFO_TYPE_HTTP;
@@ -113,14 +105,12 @@ http_net ()
 dlna_protocol_t *
 http_protocol_new (dlna_t *dlna dlna_unused)
 {
-  dlna_protocol_t *protocol;
-
-  protocol = calloc (1, sizeof (dlna_protocol_t));
-  protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
-  protocol->create_resource = dlna_http_resource_new;
-  protocol->name = http_name;
-  protocol->net = http_net;
-  return protocol;
+  static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
+  static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+  static_http_protocol->create_resource = dlna_http_resource_new;
+  static_http_protocol->name = http_name;
+  static_http_protocol->net = http_net;
+  return static_http_protocol;
 }
 
 static inline void

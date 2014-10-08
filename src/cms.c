@@ -102,6 +102,17 @@ struct cms_data_s
   protocol_info_t *sinks;
 };
 
+void
+cms_write_protocol_info (buffer_t *out, protocol_info_t *pinfo)
+{
+  if (pinfo->other)
+    buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
+              pinfo->protocol->net (), pinfo->mime, pinfo->other);
+  else
+    buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
+              pinfo->protocol->net (), pinfo->mime);
+}
+
 /*
  * GetProtocolInfo:
  *   Returns the protocol-related info that this ConnectionManager supports in
@@ -123,12 +134,7 @@ cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
     /* format for protocol info is:
      *  <protocol>:<network>:<contentFormat>:<additionalInfo>
      */
-    if (pinfo->other)
-      buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime, pinfo->other);
-    else
-      buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime);
+    cms_write_protocol_info (out, pinfo);
     if (pinfo->next)
       buffer_append (out, ",");
   }
@@ -141,12 +147,7 @@ cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
     /* format for protocol info is:
      *  <protocol>:<network>:<contentFormat>:<additionalInfo>
      */
-    if (pinfo->other)
-      buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime, pinfo->other);
-    else
-      buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime);
+    cms_write_protocol_info (out, pinfo);
     if (pinfo->next)
       buffer_append (out, ",");
   }
@@ -181,22 +182,16 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, CMS_ARG_RCS_ID, CMS_UNKNOW_ID);
   upnp_add_response (ev, CMS_ARG_TRANSPORT_ID, CMS_UNKNOW_ID);
 
-  char protocol[512];
-  protocol[sizeof(protocol)] = 0;
+  buffer_t *out;
   for (pinfo = cms_data->sinks; pinfo; pinfo = pinfo->next)
   {
     /* format for protocol info is:
      *  <protocol>:<network>:<contentFormat>:<additionalInfo>
      */
-    if (pinfo->other)
-      snprintf (protocol, sizeof (protocol) - 1,"%s:%s:%s:%s", 
-                pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime, pinfo->other);
-    else
-      snprintf (protocol, sizeof (protocol) - 1,"%s:%s:%s:*", 
-                pinfo->protocol->name (), 
-                pinfo->protocol->net (), pinfo->mime);
-    upnp_add_response (ev, CMS_ARG_PROT_INFO, protocol);
+    out = buffer_new ();
+    cms_write_protocol_info (out, pinfo);
+    upnp_add_response (ev, CMS_ARG_PROT_INFO, out->buf);
+    buffer_free (out);
   }
 
   upnp_add_response (ev, CMS_ARG_PEER_CON_MANAGER, "");

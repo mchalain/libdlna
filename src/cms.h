@@ -33,5 +33,7 @@
 extern dlna_service_t *cms_service_new (dlna_t*dlna);
 void
 cms_set_protocol_info (dlna_service_t *service, protocol_info_t *pinfolist, int sink);
+void
+cms_write_protocol_info (buffer_t *out, protocol_info_t *pinfo);
 
 #endif /* CMS_H */

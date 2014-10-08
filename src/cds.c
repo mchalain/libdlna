@@ -507,18 +507,16 @@ cds_search_match (cds_data_t *cds_data, vfs_item_t *item, char *search_criteria)
 
     while (resource)
     {
-      char *protocol_info;
-      protocol_info = resource->protocol_info (resource, cds_data->flags);
-      if (!protocol_info)
-        break;
-      if ( strstr (protocol_info, keyword))
+      buffer_t *out;
+      cms_write_protocol_info(out, resource->protocol_info);
+      if ( strstr (out->buf, keyword))
       {
+        buffer_free (out);
         result = 1;
         break;
       }
       resource = resource->next;
-      free (protocol_info);
-      protocol_info = NULL;
+      buffer_free (out);
     }
   }
   else if (object_type && !strcmp (object_type, keyword))

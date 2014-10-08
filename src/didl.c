@@ -25,6 +25,7 @@
 #include "upnp_internals.h"
 #include "vfs.h"
 #include "didl.h"
+#include "cms.h"
 
 /* CDS DIDL Messages */
 #define DIDL_NAMESPACE \
@@ -214,14 +215,11 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
     {
       while (resource)
       {
-        char *protocol_info;
         char *url;
 
-        buffer_appendf (out, "<%s", DIDL_RES);
-        protocol_info = resource->protocol_info (resource, flags);
-        if (protocol_info)
-          didl_add_param (out, DIDL_RES_INFO, protocol_info);
-        free (protocol_info);
+        buffer_appendf (out, "<%s %s=\"", DIDL_RES, DIDL_RES_INFO);
+        cms_write_protocol_info (out, resource->protocol_info);
+        buffer_append (out, "\"");
 
         if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
           didl_add_value (out, DIDL_RES_SIZE, resource->size);

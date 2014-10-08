@@ -409,7 +409,18 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
   {
-    vfs_resource_add (item, protocol->create_resource (item));
+    vfs_resource_t *resource = protocol->create_resource (item);
+    if (vfs->flags && vfs_item_get (item)->profile->id)
+    {
+      resource->protocol_info->other = malloc (256);
+      sprintf (resource->protocol_info->other, "%s=%d;%s=%d;%s=%.2x;%s=%s;%s=%.8x%.24x",
+               "DLNA.ORG_PS", DLNA_ORG_PLAY_SPEED_NORMAL, "DLNA.ORG_CI", DLNA_ORG_CONVERSION_NONE,
+               "DLNA.ORG_OP", DLNA_ORG_OPERATION_RANGE, "DLNA.ORG_PN", dlna_item->profile->id,
+               "DLNA.ORG_FLAGS", vfs->flags, 0);
+    }
+    else
+      resource->protocol_info->other = strdup ("*");
+    vfs_resource_add (item, resource);
     vfs_add_source (vfs, protocol, dlna_item_mime (dlna_item));
   }
   return item->id;

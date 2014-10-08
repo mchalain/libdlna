@@ -36,7 +36,7 @@ typedef struct
 
 struct vfs_resource_s {
   char *(*url) (vfs_resource_t *resource);
-  char *(*protocol_info) (vfs_resource_t *resource, dlna_org_flags_t flags);
+  protocol_info_t *protocol_info;
   void *cookie;
   int64_t size;
   vfs_intem_info_t info;

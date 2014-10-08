@@ -367,25 +367,6 @@ typedef struct dlna_profile_s {
  */
 char *dlna_profile_upnp_object_item (dlna_profile_t *profile);
 
-/**
- * Output the protocol information string that must be send by a DMS to a DMP
- * for the file to be played/recognized.
- *
- * @param[in] type    Streaming method.
- * @param[in] speed   DLNA.ORG_PS parameter.
- * @param[in] ci      DLNA.ORG_CI parameter.
- * @param[in] op      DLNA.ORG_OP parameter.
- * @param[in] flags   DLNA.ORG_FLAGS parameter.
- * @param[in] profile The DLNA's file profile that has been guessed.
- * @return            The protocol information string.
- */
-char * dlna_write_protocol_info (dlna_protocol_info_type_t type,
-                                 dlna_org_play_speed_t speed,
-                                 dlna_org_conversion_t ci,
-                                 dlna_org_operation_t op,
-                                 dlna_org_flags_t flags,
-                                 dlna_profile_t *p);
-
 typedef struct dlna_profiler_s {
   int (*init) (dlna_t *dlna);
 /**

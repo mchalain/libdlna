@@ -133,7 +133,7 @@ dlna_uninit (dlna_t *dlna)
   dlna_remove_profilers (dlna);
   /* UPnP Properties */
   if (dlna->device)
-	  dlna_device_free (dlna->device);
+    dlna_device_free (dlna->device);
 
   free (dlna);
 }
@@ -314,35 +314,4 @@ dlna_set_port (dlna_t *dlna, int port)
     return;
   
   dlna->port = port;
-}
-
-char *
-dlna_write_protocol_info (dlna_protocol_info_type_t type,
-                          dlna_org_play_speed_t speed,
-                          dlna_org_conversion_t ci,
-                          dlna_org_operation_t op,
-                          dlna_org_flags_t flags,
-                          dlna_profile_t *p)
-{
-  char protocol[512];
-  char dlna_info[448];
- 
-  if (type == DLNA_PROTOCOL_INFO_TYPE_HTTP)
-    sprintf (protocol, "http-get:*:");
-
-  strcat (protocol, p->mime);
-  strcat (protocol, ":");
-
-  if ((dlna_mode & DLNA_CAPABILITY_DLNA) && p->id)
-  {
-    sprintf (dlna_info, "%s=%d;%s=%d;%s=%.2x;%s=%s;%s=%.8x%.24x",
-             "DLNA.ORG_PS", speed, "DLNA.ORG_CI", ci,
-             "DLNA.ORG_OP", op, "DLNA.ORG_PN", p->id,
-             "DLNA.ORG_FLAGS", flags, 0);
-    strcat (protocol, dlna_info);
-  }
-  else
-    strcat (protocol, "*");
-
-  return strdup (protocol);
 }
