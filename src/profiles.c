@@ -59,29 +59,6 @@ dlna_list_add (char **list, char *element)
   return l;
 }
 
-void
-dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime)
-{
-  if (sink)
-  {
-    if (!dlna->cms.sinkmimes)
-    {
-      dlna->cms.sinkmimes = malloc (sizeof (char*));
-      *dlna->cms.sinkmimes = NULL;
-	}
-    dlna->cms.sinkmimes = dlna_list_add (dlna->cms.sinkmimes, mime);
-  }
-  else
-  {
-    if (!dlna->cms.sourcemimes)
-    {
-      dlna->cms.sourcemimes = malloc (sizeof (char*));
-      *dlna->cms.sourcemimes = NULL;
-	}
-    dlna->cms.sourcemimes = dlna_list_add (dlna->cms.sourcemimes, mime);
-  }
-}
-
 /* UPnP ContentDirectory Object Item */
 static char *upnp_object_type[] = {
 	[DLNA_CLASS_IMAGE] = "object.item.imageItem.photo",

@@ -31,5 +31,7 @@
 #define CMS_EVENT_URL        "cms_event"
 
 extern dlna_service_t *cms_service_new (dlna_t*dlna);
+void
+cms_set_protocol_info (dlna_service_t *service, protocol_info_t *pinfolist, int sink);
 
 #endif /* CMS_H */

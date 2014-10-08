@@ -77,6 +77,8 @@ struct dlna_protocol_s
 {
   dlna_protocol_info_type_t type;
   vfs_resource_t *(*create_resource)(vfs_item_t *item);
+  const char *(*name)();
+  const char *(*net)();
   void *cookie;
   dlna_protocol_t *next;
 };
@@ -87,6 +89,7 @@ struct dlna_vfs_s
   dlna_dms_storage_type_t storage_type;
   struct vfs_item_s *vfs_root;
   dlna_protocol_t *protocols;
+  protocol_info_t *sources;
   uint32_t vfs_items;
   /* DLNA flags*/
   dlna_org_flags_t flags;

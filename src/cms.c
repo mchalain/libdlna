@@ -32,6 +32,7 @@
 #include "upnp_internals.h"
 #include "services.h"
 #include "cms.h"
+#include "vfs.h"
 
 #define CMS_ARG_CONNECTION_STATUS_ALLOWED \
 "      <allowedValueList>" \
@@ -94,6 +95,13 @@ ACTION_ARG_OUT(CMS_ARG_STATUS,"A_ARG_TYPE_ConnectionStatus") \
 #define CMS_ERR_INVALID_ARGS          402
 #define CMS_ERR_PARAMETER_MISMATCH    706
 
+typedef struct cms_data_s cms_data_t;
+struct cms_data_s
+{
+  protocol_info_t *sources;
+  protocol_info_t *sinks;
+};
+
 /*
  * GetProtocolInfo:
  *   Returns the protocol-related info that this ConnectionManager supports in
@@ -102,38 +110,48 @@ ACTION_ARG_OUT(CMS_ARG_STATUS,"A_ARG_TYPE_ConnectionStatus") \
 static int
 cms_get_protocol_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char **mimes[2];
-  buffer_t *source;
-  char *args[2];
-  int i;
+  cms_data_t *cms_data = (cms_data_t *)ev->service->cookie;
+  protocol_info_t *pinfo;
+  buffer_t *out;
   
   if (!dlna || !ev)
     return 0;
 
-  mimes[0] = dlna->cms.sourcemimes;
-  mimes[1] = dlna->cms.sinkmimes;
-  args[0] = CMS_ARG_SOURCE;
-  args[1] = CMS_ARG_SINK;
-
-  for (i = 0; i < 2; i++)
+  out = buffer_new ();
+  for (pinfo = cms_data->sources; pinfo; pinfo = pinfo->next)
   {
-    if (mimes[i])
-    {
-      source = buffer_new ();
-      while (*mimes[i])
-      {
-        /* we do only support HTTP right now */
-        /* format for protocol info is:
-         *  <protocol>:<network>:<contentFormat>:<additionalInfo>
-         */
-        buffer_appendf (source, "http-get:*:%s:*", *mimes[i]++);
-        if (*mimes[i])
-          buffer_append (source, ",");
-      }
-      upnp_add_response (ev, args[i], source->buf);
-      buffer_free (source);
-    }
+    /* format for protocol info is:
+     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
+     */
+    if (pinfo->other)
+      buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime, pinfo->other);
+    else
+      buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime);
+    if (pinfo->next)
+      buffer_append (out, ",");
   }
+  upnp_add_response (ev, CMS_ARG_SOURCE, out->buf);
+  buffer_free (out);
+
+  out = buffer_new ();
+  for (pinfo = cms_data->sinks; pinfo; pinfo = pinfo->next)
+  {
+    /* format for protocol info is:
+     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
+     */
+    if (pinfo->other)
+      buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime, pinfo->other);
+    else
+      buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime);
+    if (pinfo->next)
+      buffer_append (out, ",");
+  }
+  upnp_add_response (ev, CMS_ARG_SINK, out->buf);
+  buffer_free (out);
 
   return ev->status;
 }
@@ -152,7 +170,8 @@ cms_get_current_connection_ids (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  char **mimes;
+  cms_data_t *cms_data = (cms_data_t *)ev->service->cookie;
+  protocol_info_t *pinfo;
   
   if (!dlna || !ev)
     return 0;
@@ -162,14 +181,21 @@ cms_get_current_connection_info (dlna_t *dlna, upnp_action_event_t *ev)
   upnp_add_response (ev, CMS_ARG_RCS_ID, CMS_UNKNOW_ID);
   upnp_add_response (ev, CMS_ARG_TRANSPORT_ID, CMS_UNKNOW_ID);
 
-  mimes = dlna->cms.sourcemimes;
-
-  while (*mimes)
+  char protocol[512];
+  protocol[sizeof(protocol)] = 0;
+  for (pinfo = cms_data->sinks; pinfo; pinfo = pinfo->next)
   {
-    char protocol[512];
-
-    memset (protocol, '\0', sizeof (protocol));
-    snprintf (protocol, sizeof (protocol), "http-get:*:%s:*", *mimes++);
+    /* format for protocol info is:
+     *  <protocol>:<network>:<contentFormat>:<additionalInfo>
+     */
+    if (pinfo->other)
+      snprintf (protocol, sizeof (protocol) - 1,"%s:%s:%s:%s", 
+                pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime, pinfo->other);
+    else
+      snprintf (protocol, sizeof (protocol) - 1,"%s:%s:%s:*", 
+                pinfo->protocol->name (), 
+                pinfo->protocol->net (), pinfo->mime);
     upnp_add_response (ev, CMS_ARG_PROT_INFO, protocol);
   }
 
@@ -230,6 +256,17 @@ cms_get_description (dlna_service_t *service dlna_unused)
   return dlna_service_get_description (cms_service_actions, cms_service_variables);
 }
 
+void
+cms_set_protocol_info (dlna_service_t *service, protocol_info_t *pinfolist, int sink)
+{
+  cms_data_t *cms_data = (cms_data_t *)service->cookie;
+
+  if (sink)
+    cms_data->sinks = pinfolist;
+  else
+    cms_data->sources = pinfolist;
+}
+
 dlna_service_t *
 cms_service_new (dlna_t *dlna dlna_unused)
 {
@@ -247,6 +284,9 @@ cms_service_new (dlna_t *dlna dlna_unused)
   service->get_description     = cms_get_description;
   service->init         = NULL;
   service->last_change  = 1;
+
+  cms_data_t *data = calloc ( 1, sizeof (cms_data_t));
+  service->cookie = data;
 
   return service;
 };

@@ -81,18 +81,6 @@ dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
   /* use internal function to initialize the profiler */
   if (profiler->init)
 	profiler->init (dlna);
-
-  char **mimelist;
-  char **iterator;
-
-  mimelist = profiler->get_supported_mime_types ();
-  iterator = mimelist;
-  while (*iterator)
-  {
-    dlna_append_supported_mime_types (dlna, 0, *iterator);
-    dlna_append_supported_mime_types (dlna, 1, *iterator);
-    iterator++;
-  }
 }
 
 dlna_t *
@@ -110,8 +98,6 @@ dlna_init (void)
   dlna->port = 0;
   
   dlna_log (DLNA_MSG_INFO, "DLNA: init\n");
-  dlna->cms.sourcemimes = NULL;
-  dlna->cms.sinkmimes = NULL;
 
 //  dlna_add_profiler (dlna, &upnpav_profiler);
   return dlna;
@@ -132,8 +118,6 @@ dlna_remove_profilers (dlna_t *dlna)
     free (dlna->profilers);
     dlna->profilers = profilers_list;
   }
-  free (dlna->cms.sourcemimes);
-  free (dlna->cms.sinkmimes);
 }
 
 void

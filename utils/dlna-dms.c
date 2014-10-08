@@ -86,9 +86,6 @@ add_dir (dlna_t *dlna, dlna_vfs_t *vfs, char *dir, uint32_t id)
       {
         dlna_vfs_add_resource (vfs, basename (fullpath),
                              item, id);
-        /* add the mime to cms source protocol info */
-        dlna_append_supported_mime_types (dlna, 0, (char *)dlna_item_mime (item));
-
       }
     }
     
@@ -259,8 +256,6 @@ main (int argc, char **argv)
     {
       dlna_vfs_add_resource (vfs, basename (content_dir),
                            item, 0);
-      /* add the mime to cms source protocol info */
-      dlna_append_supported_mime_types (dlna, 0, (char *)dlna_item_mime (item));
     }
   }
   

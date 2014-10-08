@@ -367,8 +367,6 @@ typedef struct dlna_profile_s {
  */
 char *dlna_profile_upnp_object_item (dlna_profile_t *profile);
 
-void dlna_append_supported_mime_types (dlna_t *dlna, int sink, char *mime);
-
 /**
  * Output the protocol information string that must be send by a DMS to a DMP
  * for the file to be played/recognized.

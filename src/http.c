@@ -98,6 +98,18 @@ dlna_http_resource_new (vfs_item_t *item)
   return resource;
 }
 
+static const char *
+http_name ()
+{
+  return "http-get";
+}
+
+static const char *
+http_net ()
+{
+  return "*";
+}
+
 dlna_protocol_t *
 http_protocol_new (dlna_t *dlna dlna_unused)
 {
@@ -106,6 +118,8 @@ http_protocol_new (dlna_t *dlna dlna_unused)
   protocol = calloc (1, sizeof (dlna_protocol_t));
   protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   protocol->create_resource = dlna_http_resource_new;
+  protocol->name = http_name;
+  protocol->net = http_net;
   return protocol;
 }
 

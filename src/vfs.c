@@ -159,6 +159,18 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   free (item);
 }
 
+static void
+vfs_add_source (dlna_vfs_t *vfs, dlna_protocol_t *protocol, const char *mime)
+{
+  protocol_info_t *source;
+
+  source = calloc (1, sizeof (protocol_info_t));
+  source->protocol = protocol;
+  source->mime = strdup (mime);
+  source->next = vfs->sources;
+  vfs->sources = source;
+}
+
 void
 vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
 {
@@ -396,7 +408,10 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   vfs->vfs_items++;
 
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
+  {
     vfs_resource_add (item, protocol->create_resource (item));
+    vfs_add_source (vfs, protocol, dlna_item_mime (dlna_item));
+  }
   return item->id;
 }
 

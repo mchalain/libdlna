@@ -33,6 +33,7 @@
 #include "services.h"
 #include "didl.h"
 #include "avts.h"
+#include "cms.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701
@@ -241,6 +242,15 @@ struct avts_instance_s
   uint32_t seekframe;
   UT_hash_handle hh;
 };
+
+typedef struct avts_data_s avts_data_t;
+struct avts_data_s
+{
+  dlna_protocol_t *protocols;
+  protocol_info_t *sinks;
+};
+
+avts_data_t *avts_data = NULL;
 
 char *g_TransportState[] = 
 {
@@ -1720,6 +1730,32 @@ avts_free (dlna_service_t *service)
   }
 }
 
+static int
+avts_init (dlna_service_t *service)
+{
+  dlna_service_t *cms = dlna_service_find_id (service->device, DLNA_SERVICE_CONNECTION_MANAGER);
+  cms_set_protocol_info (cms, avts_data->sinks, 1);
+}
+
+static void
+avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, char *mime)
+{
+  protocol_info_t *sink;
+
+  sink = calloc (1, sizeof (protocol_info_t));
+  sink->protocol = protocol;
+  sink->mime = strdup (mime);
+  sink->next = avts_data->sinks;
+  avts_data->sinks = sink;
+}
+
+static void
+avts_add_protocol (avts_data_t *avts_data, dlna_protocol_t *new)
+{
+  new->next = avts_data->protocols;
+  avts_data->protocols = new;
+}
+
 dlna_service_t *
 avts_service_new (dlna_t *dlna dlna_unused)
 {
@@ -1736,12 +1772,30 @@ avts_service_new (dlna_t *dlna dlna_unused)
   service->actions      = avts_service_actions;
   service->statevar     = avts_service_variables;
   service->get_description     = avts_get_description;
-  service->init         = NULL;
+  service->init         = avts_init;
   service->free         = avts_free;
   service->last_change  = 1;
 
+  avts_data = calloc (1, sizeof (avts_data_t));
   instance = avts_create_instance (service, 0);
   service->cookie = instance;
 
+  avts_add_protocol (avts_data, http_protocol_new (dlna));
+  dlna_protocol_t *proto;
+  for (proto = avts_data->protocols; proto; proto = proto->next)
+  {
+    dlna_profiler_list_t *ite;
+    for (ite = dlna->profilers; ite; ite = ite->next)
+    {
+      char **iterator;
+      char **mimes = ite->profiler->get_supported_mime_types ();
+      iterator = mimes;
+      while (*iterator)
+      {
+        avts_add_sink (avts_data, proto, *iterator);
+        iterator++;
+      }
+    }
+  }
   return service;
 };

@@ -33,6 +33,7 @@
 #include "services.h"
 #include "vfs.h"
 #include "cds.h"
+#include "cms.h"
 #include "minmax.h"
 #include "didl.h"
 
@@ -914,8 +915,9 @@ upnp_service_statevar_t cds_service_variables[] = {
 };
 
 static int
-cds_init (dlna_service_t *service dlna_unused)
+cds_init (dlna_service_t *service)
 {
+  cds_data_t *cds_data = (cds_data_t *)service->cookie;
   int res;
 
   res = dlnaAddVirtualDir (VIRTUAL_DIR);
@@ -924,6 +926,9 @@ cds_init (dlna_service_t *service dlna_unused)
     dlna_log (DLNA_MSG_CRITICAL,
               "Cannot add virtual directory for web server\n");
   }
+  dlna_service_t *cms = dlna_service_find_id (service->device, DLNA_SERVICE_CONNECTION_MANAGER);
+  cms_set_protocol_info (cms, cds_data->vfs->sources, 0);
+
   return res;
 }
 

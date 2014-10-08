@@ -127,11 +127,6 @@ struct dlna_s {
   /* Profilers entries */
   dlna_profiler_list_t *profilers;
 
-  /* cms Service data */
-  struct {
-    char **sourcemimes;
-    char **sinkmimes;
-  } cms;
   /* UPnP Properties */
   char *interface;
   unsigned short port; /* server port */
@@ -174,5 +169,14 @@ char * dlna_upnp_object_type (dlna_media_class_t media_class);
 void dlna_http_set_callback (dlna_http_callback_t *cb);
 
 extern dlna_profiler_t upnpav_profiler;
+
+typedef struct protocol_info_s protocol_info_t;
+struct protocol_info_s
+{
+  dlna_protocol_t *protocol;
+  char *mime;
+  char *other;
+  protocol_info_t *next;
+};
 
 #endif /* DLNA_INTERNALS_H */
