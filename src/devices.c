@@ -77,9 +77,8 @@ dlna_device_stream_open (void *cookie, const char *url)
     /* return the service description if available */
     if (service)
     {
-      dlnaWebFileHandle ret;
       char *description = service->get_description (service);
-      stream = memoryfile_open (url, description, strlen (description), SERVICE_CONTENT_TYPE);
+      stream = memoryfile_open ((char *)url, description, strlen (description), SERVICE_CONTENT_TYPE);
       return stream;
     }
   }
@@ -105,7 +104,6 @@ dlna_device_new (dlna_capability_mode_t mode)
   device->model_url = strdup ("http://libdlna.geexbox.org/");
   device->serial_number = strdup ("libdlna-003");
   device->uuid = strdup ("01:23:45:67:89");
-  device->presentation_url = strdup (SERVICES_VIRTUAL_DIR "/presentation.html");
 
   device->init = dlna_device_init;
   device->get_description = dlna_device_get_description;
@@ -264,18 +262,41 @@ void
 dlna_device_set_presentation_url (dlna_device_t *device, char *str,
 									dlna_http_callback_t *callback)
 {
+  char *fileurl, *baseurl;
   if (!device || !str)
     return;
 
   if (device->presentation_url)
     free (device->presentation_url);
-  device->presentation_url = strdup (str);
+  if (!strncmp (str, "http://", 7))
+  {
+    baseurl = strdup (str);
+    fileurl = strrchr (baseurl, '/');
+    if (!fileurl)
+    {
+      fileurl = baseurl;
+      baseurl = strdup (SERVICES_VIRTUAL_DIR);
+    }
+    else
+    {
+      fileurl[0] = 0;
+      fileurl = strdup (fileurl+1);
+      dlnaAddVirtualDir (baseurl);
+    }
+    device->presentation_url = malloc (strlen (baseurl) + strlen (fileurl) + 2);
+    sprintf (device->presentation_url, "%s/%s", baseurl, fileurl);
+    free (baseurl);
+    free (fileurl);
+  }
+  else
+    device->presentation_url = strdup (str);
+
   if (callback)
     dlna_http_set_callback (callback);
 }
 
 void
-dlna_device_add_capabilities (dlna_device_t *device, char *capability)
+dlna_device_add_capabilities (dlna_device_t *device dlna_unused, char *capability dlna_unused)
 {
 }
 
