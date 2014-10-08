@@ -184,6 +184,7 @@ dlna_service_register (dlna_device_t *device, dlna_service_t *service)
 
   item->id = service->typeid;
   item->service = service;
+  item->service->device = device;
   HASH_ADD_INT (device->services, id, item);
 }
 

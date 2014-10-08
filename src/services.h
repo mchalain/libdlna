@@ -62,6 +62,7 @@ typedef struct dlna_service_list_s dlna_service_list_t;
 
 struct dlna_service_s {
   char *id;
+  dlna_device_t *device;
   dlna_service_type_t typeid;
   char *type;
   char *scpd_url;
