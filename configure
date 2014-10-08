@@ -324,6 +324,7 @@ comment=$2
 version=$3
 libs=$4
 requires=$5
+cflags=$6
 cat <<EOF >$name.pc
 PREFIX=$PREFIX
 libdir=$libdir
@@ -335,7 +336,7 @@ Version: $version
 Requires: $requires
 Conflicts:
 Libs: -L\${libdir} $libs
-Cflags: -I\${includedir}
+Cflags: -I\${includedir} $cflags
 EOF
 }
 
@@ -774,6 +775,7 @@ if [ "$libavcodec" = auto -o "$libavcodec" = yes ]; then
 fi
 if [ "$libavcodec" = yes -a "$libavcodec" = yes ]; then
   add_cflags -DFFMPEG
+  add_extralibs -ldlnaprofiler_ffmpeg
   profilers="$profilers ffmpeg_profiler"
   utils="$utils dlna-profiler dlna-dms"
 fi
@@ -793,6 +795,7 @@ if [ "$libmpg123" = auto -o "$libmpg123" = yes ]; then
 fi
 if [ "$libmpg123" = yes ]; then
   add_cflags -DMPG123
+  add_extralibs -ldlnaprofiler_mpg123
   profilers="$profilers mpg123_profiler"
   utils="$utils dlna-dmr dlna-dms"
 fi
@@ -800,25 +803,27 @@ fi
 #################################################
 #   check for sound output
 #################################################
-sounds="alsa tinyalsa"
-checks_alsa="alsa/pcm.h snd_pcm_open -lalsa"
-checks_tinyalsa="tinyalsa/asoundlib.h pcm_open -ltinyalsa"
+if [ "$libmpg123" = yes ]; then
+  sounds="alsa tinyalsa"
+  checks_alsa="alsa/pcm.h snd_pcm_open -lalsa"
+  checks_tinyalsa="tinyalsa/asoundlib.h pcm_open -ltinyalsa"
 
-for sound in $sounds
-do
-eval "state=\${$sound}"
-if [ "${state}" = auto -o "${state}" = yes ]; then
-  if [ "${state}" = auto ]; then
-    eval "${sound}=yes"
-    falsereturn="set_all no $sound"
-  else
-    falsereturn="die \"Error, can't find $sound !\""
+  for sound in $sounds
+  do
+  eval "state=\${$sound}"
+  if [ "${state}" = auto -o "${state}" = yes ]; then
+    if [ "${state}" = auto ]; then
+      eval "${sound}=yes"
+      falsereturn="set_all no $sound"
+    else
+      falsereturn="die \"Error, can't find $sound !\""
+    fi
+    echolog "Checking for $sound ..."
+    eval "check=\${checks_${sound}}"
+    check_lib $check || ${falsereturn}
   fi
-  echolog "Checking for $sound ..."
-  eval "check=\${checks_${sound}}"
-  check_lib $check || ${falsereturn}
+  done
 fi
-done
 
 #################################################
 #   check for Portable UPnP
@@ -930,7 +935,7 @@ append_config "CONFIG_ALSA=$alsa"
 #################################################
 #   make pkg-config files
 #################################################
-pkgconfig_generate libdlna "DLNA (Digital Living Network Alliance) library" "$VERSION" "-ldlna $extralibs" "libavformat libavcodec"
+pkgconfig_generate libdlna "DLNA (Digital Living Network Alliance) library" "$VERSION" "-ldlna $extralibs" "libavformat libavcodec" "$CFLAGS"
 
 clean
 exit 0

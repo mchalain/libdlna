@@ -174,8 +174,11 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
       didl_add_tag (out, DIDL_ITEM_TITLE, basename (dlna_item->filename));
 
     resource = vfs_resource_get (item);
-    class = dlna_profile_upnp_object_item (resource->profile);
-    didl_add_tag (out, DIDL_ITEM_CLASS, class);
+    if (resource)
+    {
+      class = dlna_profile_upnp_object_item (resource->profile);
+      didl_add_tag (out, DIDL_ITEM_CLASS, class);
+    }
 
     if (metadata)
     {
