@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "upnp_internals.h"
 #include "vfs.h"
@@ -160,13 +161,8 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
 }
 
 static void
-vfs_add_source (dlna_vfs_t *vfs, dlna_protocol_t *protocol, const char *mime)
+vfs_add_source (dlna_vfs_t *vfs, protocol_info_t *source)
 {
-  protocol_info_t *source;
-
-  source = calloc (1, sizeof (protocol_info_t));
-  source->protocol = protocol;
-  source->mime = strdup (mime);
   source->next = vfs->sources;
   vfs->sources = source;
 }
@@ -421,7 +417,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
     else
       resource->protocol_info->other = strdup ("*");
     vfs_resource_add (item, resource);
-    vfs_add_source (vfs, protocol, dlna_item_mime (dlna_item));
+    vfs_add_source (vfs, resource->protocol_info);
   }
   return item->id;
 }
