@@ -53,9 +53,10 @@ http_url (vfs_resource_t *resource)
   struct http_resource_s *cookie = resource->cookie;
   
   url = malloc (1024);
-  sprintf (url, "http://%s:%d%s/%u",
+  sprintf (url, "http://%s:%d%s/%u%s",
                       dlnaGetServerIpAddress (),
-                      dlnaGetServerPort (), VIRTUAL_DIR, cookie->id);
+                      dlnaGetServerPort (), VIRTUAL_DIR, 
+                      cookie->id, resource->profile->ext);
   return url;
 }
 

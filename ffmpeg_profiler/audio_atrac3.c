@@ -28,6 +28,7 @@
 /* Profile for audio media class content */
 static dlna_profile_t atrac3 = {
   .id = "ATRAC3plus",
+  .ext = ".acm",
   .mime = MIME_AUDIO_ATRAC,
   .label = LABEL_AUDIO_2CH_MULTI
 };

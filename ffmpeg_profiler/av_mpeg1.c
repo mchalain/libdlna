@@ -29,6 +29,7 @@
    encapsulated in MPEG-1 system */
 static dlna_profile_t mpeg1 = {
   .id = "MPEG1",
+  .ext = ".mpg",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };

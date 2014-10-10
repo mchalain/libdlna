@@ -28,6 +28,7 @@
 /* Profile for image media class content of small resolution */
 static dlna_profile_t jpeg_sm = {
   .id = "JPEG_SM",
+  .ext = ".jpg",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_PICTURE
 };
@@ -35,6 +36,7 @@ static dlna_profile_t jpeg_sm = {
 /* Profile for image media class content of medium resolution */
 static dlna_profile_t jpeg_med = {
   .id = "JPEG_MED",
+  .ext = ".jpg",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_PICTURE
 };
@@ -42,6 +44,7 @@ static dlna_profile_t jpeg_med = {
 /* Profile for image media class content of high resolution */
 static dlna_profile_t jpeg_lrg = {
   .id = "JPEG_LRG",
+  .ext = ".jpg",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_PICTURE
 };
@@ -49,6 +52,7 @@ static dlna_profile_t jpeg_lrg = {
 /* Profile for image thumbnails */
 static dlna_profile_t jpeg_tn = {
   .id = "JPEG_TN",
+  .ext = ".jpg",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_ICON
 };
@@ -56,6 +60,7 @@ static dlna_profile_t jpeg_tn = {
 /* Profile for small icons */
 static dlna_profile_t jpeg_sm_ico = {
   .id = "JPEG_SM_ICO",
+  .ext = ".ico",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_ICON
 };
@@ -63,6 +68,7 @@ static dlna_profile_t jpeg_sm_ico = {
 /* Profile for large icons */
 static dlna_profile_t jpeg_lrg_ico = {
   .id = "JPEG_LRG_ICO",
+  .ext = ".ico",
   .mime = MIME_IMAGE_JPEG,
   .label = LABEL_IMAGE_ICON
 };

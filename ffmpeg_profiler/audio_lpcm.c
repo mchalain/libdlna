@@ -28,14 +28,30 @@
 /* Profile for audio media class content */
 static dlna_profile_t lpcm = {
   .id = "LPCM",
-  .mime = NULL,
-  .label = LABEL_AUDIO_2CH
+  .ext = ".pcm",
+  .mime = "audio/L16",
+  .label = LABEL_AUDIO_2CH,
 };
 
 static dlna_profile_t lpcm_low = {
   .id = "LPCM_low",
-  .mime = NULL,
-  .label = LABEL_AUDIO_2CH
+  .ext = ".lpcm",
+  .mime = "audio/L16",
+  .label = LABEL_AUDIO_2CH,
+};
+
+static dlna_profile_t lpcm_mono = {
+  .id = "LPCM",
+  .ext = ".pcm",
+  .mime = "audio/L16",
+  .label = LABEL_AUDIO_MONO,
+};
+
+static dlna_profile_t lpcm_low_mono = {
+  .id = "LPCM_low",
+  .ext = ".lpcm",
+  .mime = "audio/L16",
+  .label = LABEL_AUDIO_MONO,
 };
 
 audio_profile_t
@@ -56,7 +72,7 @@ audio_profile_guess_lpcm (AVCodecContext *ac)
   /* supported sampling rate: 8 kHz -> 48 kHz */
   if (ac->sample_rate < 8000 || ac->sample_rate > 48000)
     return AUDIO_PROFILE_INVALID;
-  
+
   return AUDIO_PROFILE_LPCM;
 }
 

@@ -51,6 +51,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3",
+      .ext = ".mp3",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_AUDIO,
@@ -62,6 +63,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3X",
+      .ext = ".mpa",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_AUDIO,
@@ -73,6 +75,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3X",
+      .ext = ".mpa",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_AUDIO,
@@ -84,6 +87,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3",
+      .ext = ".mp3",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_RADIO,
@@ -95,6 +99,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3X",
+      .ext = ".mpa",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_RADIO,
@@ -106,6 +111,7 @@ struct mpg123_profile_s
   &(mpg123_profile_t) {
     .profile =   & (dlna_profile_t) {
       .id = "MP3X",
+      .ext = ".mpa",
       .mime = MIME_AUDIO_MPEG,
       .label = LABEL_AUDIO_2CH,
       .media_class = DLNA_CLASS_RADIO,

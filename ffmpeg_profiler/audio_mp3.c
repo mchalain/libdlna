@@ -28,6 +28,7 @@
 /* Profile for audio media class content */
 static dlna_profile_t mp3 = {
   .id = "MP3",
+  .ext = ".mp3",
   .mime = MIME_AUDIO_MPEG,
   .label = LABEL_AUDIO_2CH
 };
@@ -36,6 +37,7 @@ static dlna_profile_t mp3 = {
    for lower sampling rates and bitrates */
 static dlna_profile_t mp3x = {
   .id = "MP3X",
+  .ext = ".mp3",
   .mime = MIME_AUDIO_MPEG,
   .label = LABEL_AUDIO_2CH
 };

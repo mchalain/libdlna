@@ -28,6 +28,7 @@
 /* Profile for image thumbnails */
 static dlna_profile_t png_tn = {
   .id = "PNG_TN",
+  .ext = ".png",
   .mime = MIME_IMAGE_PNG,
   .label = LABEL_IMAGE_ICON
 };
@@ -35,6 +36,7 @@ static dlna_profile_t png_tn = {
 /* Profile for small icons */
 static dlna_profile_t png_sm_ico = {
   .id = "PNG_SM_ICO",
+  .ext = ".ico",
   .mime = MIME_IMAGE_PNG,
   .label = LABEL_IMAGE_ICON
 };
@@ -42,6 +44,7 @@ static dlna_profile_t png_sm_ico = {
 /* Profile for large icons */
 static dlna_profile_t png_lrg_ico = {
   .id = "PNG_LRG_ICO",
+  .ext = ".ico",
   .mime = MIME_IMAGE_PNG,
   .label = LABEL_IMAGE_ICON
 };
@@ -49,6 +52,7 @@ static dlna_profile_t png_lrg_ico = {
 /* Profile for image class content of high resolution */
 static dlna_profile_t png_lrg = {
   .id = "PNG_LRG",
+  .ext = ".png",
   .mime = MIME_IMAGE_PNG,
   .label = LABEL_IMAGE_PICTURE
 };

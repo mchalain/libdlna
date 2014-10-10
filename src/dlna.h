@@ -341,6 +341,8 @@ typedef struct dlna_profile_s {
   const char *label;
   /* Profile type: IMAGE / AUDIO / AV */
   dlna_media_class_t media_class;
+  /* extension file */
+  const char *ext;
   struct
   {
 	uint32_t store_metadata:1;

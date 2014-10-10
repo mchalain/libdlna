@@ -94,6 +94,7 @@ static wmv9_profile_t wmv9_profile_main_high[] = {
    with baseline WMA audio */
 static dlna_profile_t wmvmed_base = {
   .id = "WMVMED_BASE",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_SD
 };
@@ -102,6 +103,7 @@ static dlna_profile_t wmvmed_base = {
    with full WMA audio */
 static dlna_profile_t wmvmed_full = {
   .id = "WMVMED_FULL",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_SD
 };
@@ -110,6 +112,7 @@ static dlna_profile_t wmvmed_full = {
    with WMA professional audio */
 static dlna_profile_t wmvmed_pro = {
   .id = "WMVMED_PRO",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_HD
 };
@@ -118,6 +121,7 @@ static dlna_profile_t wmvmed_pro = {
    with full WMA audio */
 static dlna_profile_t wmvhigh_full = {
   .id = "WMVHIGH_FULL",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_HD
 };
@@ -126,6 +130,7 @@ static dlna_profile_t wmvhigh_full = {
    with WMA professional audio */
 static dlna_profile_t wmvhigh_pro = {
   .id = "WMVHIGH_PRO",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_HD
 };
@@ -133,6 +138,7 @@ static dlna_profile_t wmvhigh_pro = {
 /* HighMAT profile */
 static dlna_profile_t wmvhm_base dlna_unused = {
   .id = "WMVHM_BASE",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_SD
 };
@@ -141,6 +147,7 @@ static dlna_profile_t wmvhm_base dlna_unused = {
    with baseline WMA audio */
 static dlna_profile_t wmvspll_base = {
   .id = "WMVSPLL_BASE",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -149,6 +156,7 @@ static dlna_profile_t wmvspll_base = {
    with baseline WMA audio */
 static dlna_profile_t wmvspml_base = {
   .id = "WMVSPML_BASE",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_CIF15
 };
@@ -156,6 +164,7 @@ static dlna_profile_t wmvspml_base = {
 /* Low resolution video (Simple Profile at Medium Level) with MP3 audio */
 static dlna_profile_t wmvspml_mp3 = {
   .id = "WMVSPML_MP3",
+  .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
   .label = LABEL_VIDEO_CIF15
 };

@@ -169,6 +169,7 @@ static video_properties_t profile_p2_asp_l5_res[] = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_aac = {
   .id = "MPEG4_P2_MP4_SP_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -177,6 +178,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_aac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_heaac = {
   .id = "MPEG4_P2_MP4_SP_HEAAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -185,6 +187,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_heaac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_atrac3plus = {
   .id = "MPEG4_P2_MP4_SP_ATRAC3plus",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -193,6 +196,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_atrac3plus = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_aac_ltp = {
   .id = "MPEG4_P2_MP4_SP_AAC_LTP",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -201,6 +205,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_aac_ltp = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_l2_aac = {
   .id = "MPEG4_P2_MP4_SP_L2_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF15
 };
@@ -209,6 +214,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_l2_aac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_l2_amr = {
   .id = "MPEG4_P2_MP4_SP_L2_AMR",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF15
 };
@@ -217,6 +223,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_l2_amr = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_vga_aac = {
   .id = "MPEG4_P2_MP4_SP_VGA_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -225,6 +232,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_vga_aac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_sp_vga_heaac = {
   .id = "MPEG4_P2_MP4_SP_VGA_HEAAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -233,6 +241,7 @@ static dlna_profile_t mpeg4_p2_mp4_sp_vga_heaac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_aac = {
   .id = "MPEG4_P2_MP4_ASP_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -241,6 +250,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_aac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_heaac = {
   .id = "MPEG4_P2_MP4_ASP_HEAAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -249,6 +259,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_heaac = {
    multi-channel audio, encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_heaac_mult5 = {
   .id = "MPEG4_P2_MP4_ASP_HEAAC_MULT5",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -257,6 +268,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_heaac_mult5 = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_actrac3plus = {
   .id = "MPEG4_P2_MP4_ASP_ATRAC3plus",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -265,6 +277,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_actrac3plus = {
    with only Simple Object with AAC LC audio, encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_aac = {
   .id = "MPEG4_P2_MP4_ASP_L5_SO_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -273,6 +286,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_aac = {
    with only Simple Object with HEAAC audio, encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_heaac = {
   .id = "MPEG4_P2_MP4_ASP_L5_SO_HEAAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -282,6 +296,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_heaac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_heaac_mult5 = {
   .id = "MPEG4_P2_MP4_ASP_L5_SO_HEAAC_MULT5",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_SD
 };
@@ -290,6 +305,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l5_so_heaac_mult5 = {
    with only Simple Object with AAC LC audio, encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_aac = {
   .id = "MPEG4_P2_MP4_ASP_L4_SO_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -298,6 +314,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_aac = {
    with only Simple Object with HEAAC audio, encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_heaac = {
   .id = "MPEG4_P2_MP4_ASP_L4_SO_HEAAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -307,6 +324,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_heaac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_heaac_mult5 = {
   .id = "MPEG4_P2_MP4_ASP_L4_SO_HEAAC_MULT5",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_4,
   .label = LABEL_VIDEO_CIF30
 };
@@ -315,6 +333,7 @@ static dlna_profile_t mpeg4_p2_mp4_asp_l4_so_heaac_mult5 = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_h263_mp4_p0_l10_aac = {
   .id = "MPEG4_H263_MP4_P0_L10_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -323,6 +342,7 @@ static dlna_profile_t mpeg4_h263_mp4_p0_l10_aac = {
    encapsulated in MP4 */
 static dlna_profile_t mpeg4_h263_mp4_p0_l10_aac_ltp = {
   .id = "MPEG4_H263_MP4_P0_L10_AAC_LTP",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -335,6 +355,7 @@ static dlna_profile_t mpeg4_h263_mp4_p0_l10_aac_ltp = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_aac = {
   .id = "MPEG4_P2_TS_SP_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -343,6 +364,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_aac = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_aac_t = {
   .id = "MPEG4_P2_TS_SP_AAC_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -351,6 +373,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_aac_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_aac_iso = {
   .id = "MPEG4_P2_TS_SP_AAC_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -359,6 +382,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_aac_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3 = {
   .id = "MPEG4_P2_TS_SP_MPEG1_L3",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -367,6 +391,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3_t = {
   .id = "MPEG4_P2_TS_SP_MPEG1_L3_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -375,6 +400,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3_iso = {
   .id = "MPEG4_P2_TS_SP_MPEG1_L3_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -383,6 +409,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg1_l3_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_ac3 = {
   .id = "MPEG4_P2_TS_SP_AC3_L3",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -391,6 +418,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_ac3 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_ac3_t = {
   .id = "MPEG4_P2_TS_SP_AC3_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -399,6 +427,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_ac3_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_ac3_iso = {
   .id = "MPEG4_P2_TS_SP_AC3_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -407,6 +436,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_ac3_iso = {
    multichannel audio, encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2 = {
   .id = "MPEG4_P2_TS_SP_MPEG2_L2",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -416,6 +446,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2_t = {
   .id = "MPEG4_P2_TS_SP_MPEG2_L2_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -425,6 +456,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2_iso = {
   .id = "MPEG4_P2_TS_SP_MPEG2_L2_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -433,6 +465,7 @@ static dlna_profile_t mpeg4_p2_ts_sp_mpeg2_l2_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_aac = {
   .id = "MPEG4_P2_TS_ASP_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_SD
 };
@@ -441,6 +474,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_aac = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_aac_t = {
   .id = "MPEG4_P2_TS_ASP_AAC_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -449,6 +483,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_aac_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_aac_iso = {
   .id = "MPEG4_P2_TS_ASP_AAC_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_SD
 };
@@ -457,6 +492,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_aac_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3 = {
   .id = "MPEG4_P2_TS_ASP_MPEG1_L3",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_SD
 };
@@ -465,6 +501,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3_t = {
   .id = "MPEG4_P2_TS_ASP_MPEG1_L3_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_SD
 };
@@ -473,6 +510,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3_iso = {
   .id = "MPEG4_P2_TS_ASP_MPEG1_L3_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_SD
 };
@@ -482,6 +520,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_mpeg1_l3_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_ac3 = {
   .id = "MPEG4_P2_TS_ASP_AC3_L3",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_SD
 };
@@ -491,6 +530,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_ac3 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_ac3_t = {
   .id = "MPEG4_P2_TS_ASP_AC3_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_SD
 };
@@ -500,6 +540,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_ac3_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_asp_ac3_iso = {
   .id = "MPEG4_P2_TS_ASP_AC3_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_SD
 };
@@ -508,6 +549,7 @@ static dlna_profile_t mpeg4_p2_ts_asp_ac3_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_ac3 = {
   .id = "MPEG4_P2_TS_CO_AC3",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -516,6 +558,7 @@ static dlna_profile_t mpeg4_p2_ts_co_ac3 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_ac3_t = {
   .id = "MPEG4_P2_TS_CO_AC3_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -524,6 +567,7 @@ static dlna_profile_t mpeg4_p2_ts_co_ac3_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_ac3_iso = {
   .id = "MPEG4_P2_TS_CO_AC3_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -532,6 +576,7 @@ static dlna_profile_t mpeg4_p2_ts_co_ac3_iso = {
    encapsulated in MPEG2-TS with a zero timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2 = {
   .id = "MPEG4_P2_TS_CO_MPEG2_L2",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -540,6 +585,7 @@ static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2 = {
    encapsulated in MPEG2-TS with a valid timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2_t = {
   .id = "MPEG4_P2_TS_CO_MPEG2_L2_T",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG_TS,
   .label = LABEL_VIDEO_CIF30
 };
@@ -548,6 +594,7 @@ static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2_t = {
    encapsulated in MPEG2-TS without a timestamp field */
 static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2_iso = {
   .id = "MPEG4_P2_TS_CO_MPEG2_L2_ISO",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_MPEG,
   .label = LABEL_VIDEO_CIF30
 };
@@ -560,6 +607,7 @@ static dlna_profile_t mpeg4_p2_ts_co_mpeg2_l2_iso = {
    encapsulated in ASF */
 static dlna_profile_t mpeg4_p2_asf_sp_g726 = {
   .id = "MPEG4_P2_ASF_SP_G726",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_ASF,
   .label = LABEL_VIDEO_CIF30
 };
@@ -568,6 +616,7 @@ static dlna_profile_t mpeg4_p2_asf_sp_g726 = {
    with only Simple Object with G.726 audio, encapsulated in ASF */
 static dlna_profile_t mpeg4_p2_asf_asp_l5_so_g726 = {
   .id = "MPEG4_P2_ASF_ASP_L5_SO_G726",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_ASF,
   .label = LABEL_VIDEO_SD
 };
@@ -576,6 +625,7 @@ static dlna_profile_t mpeg4_p2_asf_asp_l5_so_g726 = {
    with only Simple Object with G.726 audio, encapsulated in ASF */
 static dlna_profile_t mpeg4_p2_asf_asp_l4_so_g726 = {
   .id = "MPEG4_P2_ASF_ASP_L4_SO_G726",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_ASF,
   .label = LABEL_VIDEO_CIF30
 };
@@ -588,6 +638,7 @@ static dlna_profile_t mpeg4_p2_asf_asp_l4_so_g726 = {
    encapsulated in 3GPP */
 static dlna_profile_t mpeg4_h263_3gpp_p0_l10_amr_wbplus = {
   .id = "MPEG4_H263_3GPP_P0_L10_AMR_WBplus",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -596,6 +647,7 @@ static dlna_profile_t mpeg4_h263_3gpp_p0_l10_amr_wbplus = {
    encapsulated in 3GPP */
 static dlna_profile_t mpeg4_p2_3gpp_sp_l0b_aac = {
   .id = "MPEG4_P2_3GPP_SP_L0B_AAC",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -604,6 +656,7 @@ static dlna_profile_t mpeg4_p2_3gpp_sp_l0b_aac = {
    encapsulated in 3GPP */
 static dlna_profile_t mpeg4_p2_3gpp_sp_l0b_amr = {
   .id = "MPEG4_P2_3GPP_SP_L0B_AMR",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
@@ -612,6 +665,7 @@ static dlna_profile_t mpeg4_p2_3gpp_sp_l0b_amr = {
    encapsulated in 3GPP */
 static dlna_profile_t mpeg4_h263_3gpp_p3_l10_amr = {
   .id = "MPEG4_H263_3GPP_P3_L10_AMR",
+  .ext = ".mp4",
   .mime = MIME_VIDEO_3GP,
   .label = LABEL_VIDEO_QCIF15
 };
