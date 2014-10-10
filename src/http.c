@@ -75,7 +75,7 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->cookie = cookie;
   resource->url = http_url;
 
-  dlna_item = item->u.resource.item;
+  dlna_item = vfs_item_get (item);
   resource->profile = dlna_item->profile;
 
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
