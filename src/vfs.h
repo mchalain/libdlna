@@ -32,14 +32,14 @@ typedef struct
   dlna_org_operation_t op:8;
   dlna_org_play_speed_t speed:4;
   dlna_org_conversion_t cnv:2;
-} vfs_intem_info_t;
+} vfs_item_info_t;
 
 struct vfs_resource_s {
   char *(*url) (vfs_resource_t *resource);
   protocol_info_t *protocol_info;
   void *cookie;
   int64_t size;
-  vfs_intem_info_t info;
+  vfs_item_info_t info;
   dlna_properties_t properties;
   dlna_profile_t *profile;
   struct vfs_resource_s *next;
