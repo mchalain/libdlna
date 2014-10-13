@@ -172,6 +172,8 @@ struct cds_data_s
   dlna_org_flags_t flags;
   dlna_vfs_t *vfs;
   cds_feature_t *features;
+  char *sort_caps;
+  char *search_caps;
 };
 typedef struct cds_data_s cds_data_t;
 /*
@@ -179,16 +181,37 @@ typedef struct cds_data_s cds_data_t;
  *   This action returns the searching capabilities that
  *   are supported by the device.
  */
+static char *
+cds_search_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
+{
+  cds_data_t *cds_data;
+
+  if (!service)
+    return NULL;
+  cds_data = (cds_data_t *)service->cookie;
+  return cds_data->search_caps;
+}
+
 static int
 cds_get_search_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *value = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     return 0;
   }
 
-  upnp_add_response (ev, CDS_ARG_SEARCH_CAPS, "");
+  if (cds_service_variables[SearchCapabilities].get)
+    value = cds_service_variables[SearchCapabilities].get (NULL, ev->service);
+  if (value)
+  {
+    upnp_add_response (ev, CDS_ARG_SEARCH_CAPS, value);
+    free (value);
+  }
+  else
+    upnp_add_response (ev, CDS_ARG_SEARCH_CAPS, "");
   
   return ev->status;
 }
@@ -197,9 +220,22 @@ cds_get_search_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
  * GetSortCapabilities:
  *   Returns the CSV list of meta-data tags that can be used in sortCriteria.
  */
+static char *
+cds_sort_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
+{
+  cds_data_t *cds_data;
+
+  if (!service)
+    return NULL;
+  cds_data = (cds_data_t *)service->cookie;
+  return cds_data->sort_caps;
+}
+
 static int
 cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
 {
+  char *value = NULL;
+
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
@@ -207,9 +243,9 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   if (cds_service_variables[SortCapabilities].get)
-  {
-    char *value;
     value = cds_service_variables[SortCapabilities].get (NULL, ev->service);
+  if (value)
+  {
     upnp_add_response (ev, CDS_ARG_SORT_CAPS, value);
     free (value);
   }
@@ -228,15 +264,17 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
 static char *
 cds_system_update_id (dlna_t *dlna dlna_unused, dlna_service_t *service)
 {
-  char *SystemUpdateID;
+  char *value;
+  cds_data_t *cds_data;
   dlna_vfs_t *vfs;
 
   if (!service)
     return NULL;
-  vfs = (dlna_vfs_t *)service->cookie;
-  SystemUpdateID = calloc (1, 256);
-  snprintf (SystemUpdateID, 255, "%u", vfs->vfs_root->u.container.updateID);
-  return SystemUpdateID;
+  cds_data = (cds_data_t *)service->cookie;
+  vfs = (dlna_vfs_t *) cds_data->vfs;
+  value = calloc (1, 10);
+  snprintf (value, 10, "%9u", vfs->vfs_root->u.container.updateID);
+  return value;
 }
 
 static int
@@ -736,7 +774,21 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cds_get_feature_list (dlna_t *dlna dlna_unused, upnp_action_event_t *ev)
 {
-  upnp_add_response (ev, CDS_ARG_FEATURE_LIST,cds_service_variables[FeatureList].get (NULL, ev->service));
+  if (!dlna || !ev)
+  {
+    ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
+    return 0;
+  }
+
+  if (cds_service_variables[FeatureList].get)
+  {
+    char *value;
+    value = cds_service_variables[FeatureList].get (NULL, ev->service);
+    upnp_add_response (ev, CDS_ARG_FEATURE_LIST, value);
+    free (value);
+  }
+  else
+    upnp_add_response (ev, CDS_ARG_FEATURE_LIST, "");
   return ev->status;
 }
 
@@ -897,8 +949,8 @@ char *A_ARG_TYPE_TransferStatus_allowed[] =
 {"COMPLETED","ERROR","IN_PROGRESS","STOPPED",NULL};
 
 upnp_service_statevar_t cds_service_variables[] = {
-  [SearchCapabilities] = { "SearchCapabilities", E_STRING, 0, NULL, NULL},
-  [SortCapabilities] = { "SortCapabilities", E_STRING, 0, NULL, NULL},
+  [SearchCapabilities] = { "SearchCapabilities", E_STRING, 0, NULL, cds_search_capabilities},
+  [SortCapabilities] = { "SortCapabilities", E_STRING, 0, NULL, cds_sort_capabilities},
   [SystemUpdateID] = { "SystemUpdateID", E_UI4, 1, NULL, cds_system_update_id},
   [ContainerUpdateIDs] = { "ContainerUpdateIDs", E_UI4, 1, NULL, NULL},
   [ServiceResetToken] = { "ServiceResetToken", E_STRING, 0, NULL, NULL},
