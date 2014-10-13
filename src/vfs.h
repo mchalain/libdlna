@@ -44,6 +44,14 @@ struct vfs_resource_s {
   struct vfs_resource_s *next;
 };
 
+typedef struct vfs_items_list_s vfs_items_list_t;
+
+struct vfs_items_list_s {
+  vfs_item_t *item;
+  vfs_items_list_t *next;
+  vfs_items_list_t *previous;
+};
+
 struct vfs_item_s {
   uint32_t id;
   dlna_restricted_t restricted;
@@ -60,7 +68,7 @@ struct vfs_item_s {
     } resource;
     struct {
       char *title;
-      struct vfs_item_s **children;
+      vfs_items_list_t *children;
       uint32_t children_count;
       uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
       dlna_media_class_t media_class;

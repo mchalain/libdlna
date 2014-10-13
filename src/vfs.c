@@ -147,10 +147,12 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   {
     if (item->u.container.title)
       free (item->u.container.title);
-    vfs_item_t **children;
-    for (children = item->u.container.children; *children; children++)
-      vfs_item_free (vfs, *children);
-    free (item->u.container.children);
+    vfs_items_list_t *children;
+    for (children = item->u.container.children; children; children = children->next)
+    {
+      vfs_item_free (vfs, children->item);
+      free (children);
+    }
     break;
   }
   }
@@ -260,37 +262,25 @@ vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
   return NULL;
 }
 
-static int
-list_get_length (void *list)
-{
-  void **l = list;
-  int n = 0;
-
-  while (*(l++))
-    n++;
-
-  return n;
-}
-
 static void
 vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
 {
-  vfs_item_t **children;
-  int n;
+  vfs_items_list_t *children;
 
   if (!item || !child)
     return;
 
-  for (children = item->u.container.children; *children; children++)
-    if (*children == child)
+  for (children = item->u.container.children; children; children = children->next)
+    if (children->item == child)
       return; /* already present */
 
-  n = list_get_length ((void *) item->u.container.children) + 1;
-  item->u.container.children = (vfs_item_t **)
-    realloc (item->u.container.children,
-             (n + 1) * sizeof (*(item->u.container.children)));
-  item->u.container.children[n] = NULL;
-  item->u.container.children[n - 1] = child;
+  children = calloc (1, sizeof (vfs_items_list_t));
+  children->next = item->u.container.children;
+  children->previous = NULL;
+  children->item = child;
+  if (item->u.container.children)
+    item->u.container.children->previous = children;
+  item->u.container.children = children;
   item->u.container.children_count++;
 }
 
@@ -330,8 +320,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   else
     item->u.container.media_class = DLNA_CLASS_COLLECTION;
   item->u.container.title = strdup (basename (name));
-  item->u.container.children = calloc (1, sizeof (vfs_item_t *));
-  *(item->u.container.children) = NULL;
+  item->u.container.children = NULL;
   item->u.container.children_count = 0;
   
   if (!vfs->vfs_root)
