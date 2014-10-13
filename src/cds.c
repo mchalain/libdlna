@@ -752,45 +752,45 @@ cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
 }
 
 
-upnp_service_action_arg_t browse_args[] =
+upnp_service_action_arg_t *browse_args[] =
 {
-  {.name = CDS_ARG_OBJECT_ID,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_OBJECT_ID,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_ObjectID]},
-  {.name = CDS_ARG_BROWSE_FLAG,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_BROWSE_FLAG,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_BrowseFlag]},
-  {.name = CDS_ARG_FILTER,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_FILTER,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Filter]},
-  {.name = CDS_ARG_START_INDEX,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_START_INDEX,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Index]},
-  {.name = CDS_ARG_REQUEST_COUNT,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_REQUEST_COUNT,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Count]},
-  {.name = CDS_ARG_SORT_CRIT,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_SORT_CRIT,
    .dir = E_INPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_SortCriteria]},
-  {.name = CDS_ARG_RESULT,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_RESULT,
    .dir = E_OUTPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Result]},
-  {.name = CDS_ARG_NUM_RETURNED,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_NUM_RETURNED,
    .dir = E_OUTPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Count]},
-  {.name = CDS_ARG_TOTAL_MATCHES,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_TOTAL_MATCHES,
    .dir = E_OUTPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_Count]},
-  {.name = CDS_ARG_UPDATE_ID,
+  &(upnp_service_action_arg_t){.name = CDS_ARG_UPDATE_ID,
    .dir = E_OUTPUT,
    .relation = &cds_service_variables[A_ARG_TYPE_UpdateID]},
-  {
-    .name = NULL,
-  },
+  NULL
 };
 
-upnp_service_action_arg_t getfeaturelist_args[] =
-{{.name=CDS_ARG_FEATURE_LIST, .dir=E_OUTPUT, .relation=&cds_service_variables[FeatureList]},{.name=NULL,}};
+upnp_service_action_arg_t *getfeaturelist_args[] = {
+  &(upnp_service_action_arg_t){.name=CDS_ARG_FEATURE_LIST, .dir=E_OUTPUT, .relation=&cds_service_variables[FeatureList]},
+  NULL
+};
 
 /* List of UPnP ContentDirectory Service actions */
 upnp_service_action_t cds_service_actions[] = {

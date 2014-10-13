@@ -74,7 +74,7 @@ struct upnp_service_action_arg_s {
 struct upnp_service_action_s {
   char *name;
   char *args;
-  upnp_service_action_arg_t *args_s;
+  upnp_service_action_arg_t **args_s;
   int (*cb) (dlna_t *, upnp_action_event_t *);
 };
 

@@ -125,14 +125,16 @@ dlna_service_get_description (upnp_service_action_t *actions, upnp_service_state
       {
         if (actions->args_s)
         {
-          upnp_service_action_arg_t *args = actions->args_s;
+          int i;
 
           buffer_appendf (b, SERVICE_ACTION_HEADER, actions->name);
-          while (args->name)
+          for (i = 0; actions->args_s[i]; i++)
           {
-            buffer_appendf (b, SERVICE_ACTION_ARG_HEADER, args->name, (args->dir == E_INPUT)?"in":"out",args->relation->name);
+            buffer_appendf (b, SERVICE_ACTION_ARG_HEADER, 
+                    actions->args_s[i]->name,
+                    (actions->args_s[i]->dir == E_INPUT)?"in":"out",
+                    actions->args_s[i]->relation->name);
             buffer_appendf (b, SERVICE_ACTION_ARG_FOOTER);
-            args++;
           }
           buffer_appendf (b, SERVICE_ACTION_FOOTER);
         }
