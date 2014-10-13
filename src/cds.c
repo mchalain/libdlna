@@ -808,16 +808,7 @@ upnp_service_action_t cds_service_actions[] = {
     .args_s = NULL,
     .cb = cds_get_system_update_id },
   { .name = CDS_ACTION_BROWSE,
-    .args = ACTION_ARG_IN(CDS_ARG_OBJECT_ID,"A_ARG_TYPE_ObjectID") \
-    ACTION_ARG_IN(CDS_ARG_BROWSE_FLAG,"A_ARG_TYPE_BrowseFlag") \
-    ACTION_ARG_IN(CDS_ARG_FILTER,"A_ARG_TYPE_Filter") \
-    ACTION_ARG_IN(CDS_ARG_START_INDEX,"A_ARG_TYPE_Index") \
-    ACTION_ARG_IN(CDS_ARG_REQUEST_COUNT,"A_ARG_TYPE_Count") \
-    ACTION_ARG_IN(CDS_ARG_SORT_CRIT,"A_ARG_TYPE_SortCriteria") \
-    ACTION_ARG_OUT(CDS_ARG_RESULT,"A_ARG_TYPE_Result") \
-    ACTION_ARG_OUT(CDS_ARG_NUM_RETURNED,"A_ARG_TYPE_Count") \
-    ACTION_ARG_OUT(CDS_ARG_TOTAL_MATCHES,"A_ARG_TYPE_Count") \
-    ACTION_ARG_OUT(CDS_ARG_UPDATE_ID,"A_ARG_TYPE_UpdateID"),
+    .args = NULL,
     .args_s = browse_args,
     .cb = cds_browse },
 
