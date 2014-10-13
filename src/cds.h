@@ -31,5 +31,6 @@
 #define CDS_EVENT_URL        "cds_event"
 
 extern dlna_service_t *cds_service_new (dlna_t*dlna, struct dlna_vfs_s *vfs);
+void cds_vfs_changed (dlna_service_t *service);
 
 #endif /* CDS_H */

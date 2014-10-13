@@ -551,6 +551,7 @@ void dlna_service_register (dlna_device_t *device, dlna_service_t *srv);
 
 extern dlna_service_t *cms_service_new (dlna_t*dlna);
 extern dlna_service_t *cds_service_new (dlna_t*dlna, dlna_vfs_t *vfs);
+extern void cds_vfs_changed (dlna_service_t *service);
 extern dlna_service_t *rcs_service_new (dlna_t*dlna);
 extern dlna_service_t *avts_service_new (dlna_t*dlna);
 extern dlna_service_t *msr_service_new (dlna_t*dlna);

@@ -1546,7 +1546,7 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
 
   ixmlParseBufferEx( out->buf,&eventDoc);
   buffer_free (out);
-  
+
   first = ixmlNode_getFirstChild( ( IXML_Node * ) eventDoc );
   for (instance = instances; instance; instance = instance->hh.next)
   {

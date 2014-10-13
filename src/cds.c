@@ -206,8 +206,16 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
     return 0;
   }
 
-  upnp_add_response (ev, CDS_ARG_SORT_CAPS, "");
-  
+  if (cds_service_variables[SortCapabilities].get)
+  {
+    char *value;
+    value = cds_service_variables[SortCapabilities].get (NULL, ev->service);
+    upnp_add_response (ev, CDS_ARG_SORT_CAPS, value);
+    free (value);
+  }
+  else
+    upnp_add_response (ev, CDS_ARG_SORT_CAPS, "");
+
   return ev->status;
 }
 
@@ -217,25 +225,37 @@ cds_get_sort_capabilities (dlna_t *dlna, upnp_action_event_t *ev)
  *   It can be used by clients that want to poll for any changes in
  *   the Content Directory (as opposed to subscribing to events).
  */
+static char *
+cds_system_update_id (dlna_t *dlna dlna_unused, dlna_service_t *service)
+{
+  char *SystemUpdateID;
+  dlna_vfs_t *vfs;
+
+  if (!service)
+    return NULL;
+  vfs = (dlna_vfs_t *)service->cookie;
+  SystemUpdateID = calloc (1, 256);
+  snprintf (SystemUpdateID, 255, "%u", vfs->vfs_root->u.container.updateID);
+  return SystemUpdateID;
+}
+
 static int
 cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
 {
-  dlna_vfs_t *vfs;
-  char *SystemUpdateID;
-
   if (!dlna || !ev)
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     return 0;
   }
-  vfs = (dlna_vfs_t *)ev->service->cookie;
-
-  SystemUpdateID = calloc (1, 256);
-  snprintf (SystemUpdateID, 255, "%u", vfs->vfs_root->u.container.updateID);
-  upnp_add_response (ev, CDS_ARG_UPDATE_ID,
-                     SystemUpdateID);
-  free (SystemUpdateID);
-
+  if (cds_service_variables[SystemUpdateID].get)
+  {
+    char *value;
+    value = cds_service_variables[SystemUpdateID].get (NULL, ev->service);
+    upnp_add_response (ev, CDS_ARG_UPDATE_ID, value);
+    free (value);
+  }
+  else
+    upnp_add_response (ev, CDS_ARG_UPDATE_ID, "0");
   return ev->status;
 }
 
@@ -879,7 +899,7 @@ char *A_ARG_TYPE_TransferStatus_allowed[] =
 upnp_service_statevar_t cds_service_variables[] = {
   [SearchCapabilities] = { "SearchCapabilities", E_STRING, 0, NULL, NULL},
   [SortCapabilities] = { "SortCapabilities", E_STRING, 0, NULL, NULL},
-  [SystemUpdateID] = { "SystemUpdateID", E_UI4, 1, NULL, NULL},
+  [SystemUpdateID] = { "SystemUpdateID", E_UI4, 1, NULL, cds_system_update_id},
   [ContainerUpdateIDs] = { "ContainerUpdateIDs", E_UI4, 1, NULL, NULL},
   [ServiceResetToken] = { "ServiceResetToken", E_STRING, 0, NULL, NULL},
   [LastChange] = { "LastChange", E_STRING, 1, NULL, NULL},
@@ -953,3 +973,14 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
 
   return service;
 };
+
+void
+cds_vfs_changed (dlna_service_t *service)
+{
+  if (service->statevar[SystemUpdateID].eventing)
+    service->statevar[SystemUpdateID].eventing++;
+  if (!service->statevar[SystemUpdateID].eventing)
+  {
+    service->statevar[SystemUpdateID].eventing = 1;
+  }
+}
