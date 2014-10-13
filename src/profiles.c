@@ -30,35 +30,6 @@
 #include "vfs.h"
 #include "network.h"
 
-static int
-dlna_list_length (void *list)
-{
-  void **l = list;
-  int n = 0;
-  while (*l++)
-    n++;
-
-  return n;
-}
-
-static void *
-dlna_list_add (char **list, char *element)
-{
-  char **l = list;
-  int n = dlna_list_length (list) + 1;
-  int i;
-
-  for (i = 0; i < n; i++)
-    if (l[i] && element && !strcmp (l[i], element))
-      return l;
-  
-  l = realloc (l, (n + 1) * sizeof (char *));
-  l[n] = NULL;
-  l[n - 1] = element;
-  
-  return l;
-}
-
 /* UPnP ContentDirectory Object Item */
 static char *upnp_object_type[] = {
 	[DLNA_CLASS_IMAGE] = "object.item.imageItem.photo",
@@ -81,7 +52,7 @@ dlna_upnp_object_type (dlna_media_class_t media_class)
 }
 
 char *
-dlna_profile_upnp_object_item (dlna_profile_t *profile)
+dlna_profile_upnp_object_item (const dlna_profile_t *profile)
 {
   if (!profile)
     return NULL;
@@ -89,11 +60,11 @@ dlna_profile_upnp_object_item (dlna_profile_t *profile)
   return dlna_upnp_object_type (profile->media_class);
 }
 
-dlna_profile_t *
+const dlna_profile_t *
 dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid)
 {
   dlna_profiler_list_t *profilerit;
-  dlna_profile_t *profile;
+  const dlna_profile_t *profile;
 
   if (!profileid)
     return NULL;
@@ -130,16 +101,16 @@ dlna_item_new (dlna_t *dlna, const char *filename)
     {
       if (strlen (reader->mime) > 0)
       {
-        char **mimestable = profilerit->profiler->get_supported_mime_types ();
-        while (*mimestable)
+        const dlna_profile_t **profiles = profilerit->profiler->get_supported_media_profiles ();
+        while (*profiles)
         {
-          if ( !strcmp (*mimestable, reader->mime))
+          if ( !strcmp ((*profiles)->mime, reader->mime))
           {
             break;
           }
-          mimestable ++;
+          profiles ++;
         }
-        if (!*mimestable)
+        if (!*profiles)
         {
           continue;
         }

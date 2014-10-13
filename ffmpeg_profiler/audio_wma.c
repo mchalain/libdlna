@@ -30,7 +30,8 @@ static dlna_profile_t wmabase = {
   .id = "WMABASE",
   .ext = ".wma",
   .mime = MIME_AUDIO_WMA,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* WMA content */
@@ -38,7 +39,8 @@ static dlna_profile_t wmafull = {
   .id = "WMAFULL",
   .ext = ".asf",
   .mime = MIME_AUDIO_WMA,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* WMA professional version */
@@ -46,7 +48,8 @@ static dlna_profile_t wmapro = {
   .id = "WMAPRO",
   .ext = ".asf",
   .mime = MIME_AUDIO_WMA,
-  .label = LABEL_AUDIO_2CH_MULTI
+  .label = LABEL_AUDIO_2CH_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 audio_profile_t

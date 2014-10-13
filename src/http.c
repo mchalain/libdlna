@@ -56,7 +56,7 @@ http_url (vfs_resource_t *resource)
   sprintf (url, "http://%s:%d%s/%u%s",
                       dlnaGetServerIpAddress (),
                       dlnaGetServerPort (), VIRTUAL_DIR, 
-                      cookie->id, resource->profile->ext);
+                      cookie->id, resource->protocol_info->profile->ext);
   return url;
 }
 
@@ -76,11 +76,10 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->url = http_url;
 
   dlna_item = vfs_item_get (item);
-  resource->profile = dlna_item->profile;
 
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
   resource->protocol_info->protocol = static_http_protocol;
-  resource->protocol_info->mime = strdup (dlna_item_mime (dlna_item));
+  resource->protocol_info->profile = dlna_item->profile;
 
   resource->size = dlna_item->filesize;
   memcpy (&resource->properties, dlna_item_properties (dlna_item), sizeof (dlna_properties_t));

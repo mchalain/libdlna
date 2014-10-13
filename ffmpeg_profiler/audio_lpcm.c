@@ -31,6 +31,7 @@ static dlna_profile_t lpcm = {
   .ext = ".pcm",
   .mime = "audio/L16",
   .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t lpcm_low = {
@@ -38,6 +39,7 @@ static dlna_profile_t lpcm_low = {
   .ext = ".lpcm",
   .mime = "audio/L16",
   .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t lpcm_mono = {
@@ -45,6 +47,7 @@ static dlna_profile_t lpcm_mono = {
   .ext = ".pcm",
   .mime = "audio/L16",
   .label = LABEL_AUDIO_MONO,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t lpcm_low_mono = {
@@ -52,6 +55,7 @@ static dlna_profile_t lpcm_low_mono = {
   .ext = ".lpcm",
   .mime = "audio/L16",
   .label = LABEL_AUDIO_MONO,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 audio_profile_t
@@ -103,6 +107,8 @@ probe_lpcm (AVFormatContext *ctx dlna_unused,
 dlna_profile_t *dlna_profiles_supported_audio_lpcm[] = {
   &lpcm,
   &lpcm_low,
+  &lpcm_mono,
+  &lpcm_low_mono,
   NULL,
 };
 

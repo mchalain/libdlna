@@ -35,7 +35,8 @@ static dlna_profile_t aac_adts = {
   .id = "AAC_ADTS",
   .ext = ".aac",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -43,7 +44,8 @@ static dlna_profile_t aac_adts_320 = {
   .id = "AAC_ADTS_320",
   .ext = ".aac",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -51,7 +53,8 @@ static dlna_profile_t aac_iso = {
   .id = "AAC_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -59,7 +62,8 @@ static dlna_profile_t aac_iso_320 = {
   .id = "AAC_ISO_320",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content. In the case of AAC LTP profiles,
@@ -69,7 +73,8 @@ static dlna_profile_t aac_ltp_iso = {
   .id = "AAC_LTP_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -77,7 +82,8 @@ static dlna_profile_t aac_ltp_mult5_iso = {
   .id = "AAC_LTP_MULT5_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 7.1 channels */
@@ -85,7 +91,8 @@ static dlna_profile_t aac_ltp_mult7_iso = {
   .id = "AAC_LTP_MULT7_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -93,7 +100,8 @@ static dlna_profile_t aac_mult5_adts = {
   .id = "AAC_MULT5_ADTS",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -101,7 +109,8 @@ static dlna_profile_t aac_mult5_iso = {
   .id = "AAC_MULT5_ISO",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -117,7 +126,8 @@ static dlna_profile_t heaac_l2_iso = {
   .id = "HEAAC_L2_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -125,7 +135,8 @@ static dlna_profile_t heaac_l3_adts = {
   .id = "HEAAC_L3_ADTS",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -133,7 +144,8 @@ static dlna_profile_t heaac_l3_iso = {
   .id = "HEAAC_L3_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -141,7 +153,8 @@ static dlna_profile_t heaac_mult5_adts = {
   .id = "HEAAC_MULT5_ADTS",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -149,7 +162,8 @@ static dlna_profile_t heaac_mult5_iso = {
   .id = "HEAAC_MULT5_ISO",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -157,7 +171,8 @@ static dlna_profile_t heaac_l2_adts_320 = {
   .id = "HEAAC_L2_ADTS_320",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -165,7 +180,8 @@ static dlna_profile_t heaac_l2_iso_320 = {
   .id = "HEAAC_L2_ISO_320",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -173,7 +189,8 @@ static dlna_profile_t bsac_iso = {
   .id = "BSAC_ISO",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with up to 5.1 channels */
@@ -181,63 +198,72 @@ static dlna_profile_t bsac_mult5_iso = {
   .id = "BSAC_MULT5_ISO",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MULTI
+  .label = LABEL_AUDIO_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l2 = {
   .id = "HEAACv2_L2",
   .ext = ".aac",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l2_adts = {
   .id = "HEAACv2_L2",
   .ext = ".aac",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l2_320 = {
   .id = "HEAACv2_L2_320",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l2_320_adts = {
   .id = "HEAACv2_L2_320",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l3 = {
   .id = "HEAACv2_L3",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_l3_adts = {
   .id = "HEAACv2_L3",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_mult5 = {
   .id = "HEAACv2_MULT5",
   .ext = ".mpa",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static dlna_profile_t heaac_v2_mult5_adts = {
   .id = "HEAACv2_MULT5",
   .ext = ".adts",
   .mime = MIME_AUDIO_ADTS,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 typedef enum {

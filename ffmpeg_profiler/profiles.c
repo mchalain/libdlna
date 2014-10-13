@@ -32,8 +32,8 @@
 
 static dlna_properties_t *item_get_properties (dlna_item_t *item);
 static dlna_metadata_t *item_get_metadata (dlna_item_t *item);
-static int ffmpeg_prepare_stream (dlna_item_t *item);
-static int ffmpeg_read_stream (dlna_item_t *item);
+//static int ffmpeg_prepare_stream (dlna_item_t *item);
+//static int ffmpeg_read_stream (dlna_item_t *item);
 
 extern registered_profile_t dlna_profile_image_jpeg;
 extern registered_profile_t dlna_profile_image_png;
@@ -52,7 +52,108 @@ extern registered_profile_t dlna_profile_av_wmv9;
 
 static ffmpeg_profiler_data_t *g_profiler = NULL;
 
-static ffmpeg_profiler_data_t *
+static dlna_profile_t **ffmpeg_media_profiles = NULL;
+static int ffmpeg_media_profiles_num = 0;
+
+static av_codecs_t *av_profile_get_codecs (AVFormatContext *ctx);
+static int is_profile_registered (ffmpeg_profiler_data_t *data,
+              ffmpeg_profiler_media_profile_t profile);
+
+static void
+media_profile_free(dlna_item_t *item)
+{
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+
+  avformat_close_input (&cookie->ctx);
+  free (cookie);
+  item->profile_cookie = NULL;
+}
+
+static dlna_properties_t *
+item_get_properties (dlna_item_t *item)
+{
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
+  dlna_properties_t *prop;
+  int duration, hours, min, sec;
+  av_codecs_t *codecs;
+
+  if (!ctx)
+    return NULL;
+
+  prop = malloc (sizeof (dlna_properties_t));
+
+  duration = (int) (ctx->duration / AV_TIME_BASE);
+  hours = (int) (duration / 3600);
+  min = (int) ((duration - (hours * 3600)) / 60);
+  sec = (int) (duration - (hours * 3600) - (min * 60));
+  memset (prop->duration, '\0', 64);
+  if (hours)
+    sprintf (prop->duration, "%d:%.2d:%.2d.", hours, min, sec);
+  else
+    sprintf (prop->duration, ":%.2d:%.2d.", min, sec);
+
+  /* grab codecs info */
+  codecs = av_profile_get_codecs (ctx);
+  if (!codecs)
+    return NULL;
+  prop->bitrate = (uint32_t) (ctx->bit_rate / 8);
+  prop->sample_frequency = codecs->ac ? codecs->ac->sample_rate : 0;
+  prop->bps = codecs->ac ? codecs->ac->bits_per_raw_sample : 0;
+  prop->channels = codecs->ac ? codecs->ac->channels : 0;
+
+  memset (prop->resolution, '\0', 64);
+  if (codecs->vc)
+    sprintf (prop->resolution, "%dx%d",
+             codecs->vc->width, codecs->vc->height);
+
+  free (codecs);
+  return prop;
+}
+
+static dlna_metadata_t *
+item_get_metadata (dlna_item_t *item)
+{
+  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
+  AVFormatContext *ctx = cookie->ctx;
+  dlna_metadata_t *meta;
+  AVDictionary *dict = ctx->metadata;
+  AVDictionaryEntry *entry;
+  
+  if (!ctx)
+    return NULL;
+
+  meta = malloc (sizeof (dlna_metadata_t));
+  memset(meta, 0, sizeof (dlna_metadata_t));
+  entry = av_dict_get(dict, "title", NULL, 0);
+  if (entry && entry->value)
+    meta->title   = strdup (entry->value);
+  entry = av_dict_get(dict, "author", NULL, 0);
+  if (entry && entry->value)
+    meta->author  = strdup (entry->value);
+  else
+  {
+    entry = av_dict_get(dict, "artist", NULL, 0);
+    if (entry && entry->value)
+      meta->author  = strdup (entry->value);
+  }
+  entry = av_dict_get(dict, "comment", NULL, 0);
+  if (entry && entry->value)
+    meta->comment = strdup (entry->value);
+  entry = av_dict_get(dict, "album", NULL, 0);
+  if (entry && entry->value)
+    meta->album   = strdup (entry->value);
+  entry = av_dict_get(dict, "track", NULL, 0);
+  if (entry && entry->value)
+    meta->track   = atoi(entry->value);
+  entry = av_dict_get(dict, "genre", NULL, 0);
+  if (entry && entry->value)
+    meta->genre   = strdup (entry->value);
+
+  return meta;
+}
+
+static int
 ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
 {
   /* register all FFMPEG demuxers */
@@ -65,6 +166,307 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
   g_profiler->first_profile = NULL;
   g_profiler->inited = 1;
   ffmpeg_profiler_register_all_media_profiles ();
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_IMAGE_JPEG))
+  {
+    int i;
+    for (i = 0; dlna_profile_image_jpeg.profiles[i]; i++)
+    {
+      dlna_profile_t *profile;
+
+      profile = dlna_profile_image_jpeg.profiles[i];
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_IMAGE_PNG))
+  {
+    int i;
+    for (i = 0; dlna_profile_image_png.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_image_png.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_AC3))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_ac3.profiles[i]; i++)
+    {
+     dlna_profile_t *profile;
+
+      profile = dlna_profile_audio_ac3.profiles[i];
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_AMR))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_amr.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_amr.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_ATRAC3))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_atrac3.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_atrac3.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_LPCM))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_lpcm.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_lpcm.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_MP3))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_mp3.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_mp3.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_MPEG4))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_mpeg4.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_mpeg4.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_WMA))
+  {
+    int i;
+    for (i = 0; dlna_profile_audio_wma.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_audio_wma.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG1))
+  {
+    int i;
+    for (i = 0; dlna_profile_av_mpeg1.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_av_mpeg1.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG2))
+  {
+    int i;
+    for (i = 0; dlna_profile_av_mpeg2.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_av_mpeg2.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG4_PART2))
+  {
+    int i;
+    for (i = 0; dlna_profile_av_mpeg4_part2.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_av_mpeg4_part2.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG4_PART10))
+  {
+    int i;
+    for (i = 0; dlna_profile_av_mpeg4_part10.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_av_mpeg4_part10.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
+  if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_WMV9))
+  {
+    int i;
+    for (i = 0; dlna_profile_av_wmv9.profiles[i]; i++)
+    {
+      dlna_profile_t *profile = dlna_profile_av_wmv9.profiles[i];
+      ffmpeg_media_profiles_num++;
+      ffmpeg_media_profiles = realloc (ffmpeg_media_profiles, ffmpeg_media_profiles_num * sizeof (dlna_profile_t *));
+      ffmpeg_media_profiles[ffmpeg_media_profiles_num -1] = profile;
+      profile->features.playable = 0;
+      profile->features.store_metadata = 1;
+      profile->features.store_properties = 1;
+      profile->get_properties = item_get_properties;
+      profile->get_metadata = item_get_metadata;
+      profile->free = media_profile_free;
+      //profile->prepare_stream = ffmpeg_prepare_stream;
+      //profile->read_stream = ffmpeg_read_stream;
+      //profile->seek_stream = NULL;
+    }
+  }
+
 
   return 0;
 }
@@ -178,111 +580,13 @@ is_profile_registered (ffmpeg_profiler_data_t *data, ffmpeg_profiler_media_profi
   return 0;
 }
 
-static int
-dlna_list_length (void *list)
+static const dlna_profile_t **
+ffmpeg_profiler_get_supported_media_profile ()
 {
-  void **l = list;
-  int n = 0;
-  while (*l++)
-    n++;
-
-  return n;
-}
-
-static void *
-dlna_list_add (char **list, char *element)
-{
-  char **l = list;
-  int n = dlna_list_length (list) + 1;
-  int i;
-
-  for (i = 0; i < n; i++)
-    if (l[i] && element && !strcmp (l[i], element))
-      return l;
-  
-  l = realloc (l, (n + 1) * sizeof (char *));
-  l[n] = NULL;
-  l[n - 1] = element;
-  
-  return l;
-}
-
-static char **
-ffmpeg_profiler_get_supported_mime_types ()
-{
-  char **mimes;
-
   if (!g_profiler || !g_profiler->inited)
     return NULL;
 
-  if (g_profiler->mimes)
-    return g_profiler->mimes;
-  else
-    g_profiler->mimes = calloc (1, sizeof (char*));
-  mimes = g_profiler->mimes;
-
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_IMAGE_JPEG))
-      mimes = dlna_list_add (mimes, MIME_IMAGE_JPEG);
-
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_IMAGE_PNG))
-      mimes = dlna_list_add (mimes, MIME_IMAGE_PNG);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_AC3))
-      mimes = dlna_list_add (mimes, MIME_AUDIO_DOLBY_DIGITAL);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_AMR))
-    {
-      mimes = dlna_list_add (mimes, MIME_AUDIO_MPEG_4);
-      mimes = dlna_list_add (mimes, MIME_AUDIO_3GP);
-    }
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_ATRAC3))
-      mimes = dlna_list_add (mimes, MIME_AUDIO_ATRAC);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_LPCM))
-      mimes = dlna_list_add (mimes, MIME_AUDIO_LPCM);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_MP3))
-      mimes = dlna_list_add (mimes, MIME_AUDIO_MPEG);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_MPEG4))
-    {
-      mimes = dlna_list_add (mimes, MIME_AUDIO_ADTS);
-      mimes = dlna_list_add (mimes, MIME_AUDIO_MPEG_4);
-    }
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AUDIO_WMA))
-      mimes = dlna_list_add (mimes, MIME_AUDIO_WMA);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG1))
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG);
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG2))
-    {
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG);
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG_TS);
-    }
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG4_PART2))
-    {
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG);
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG_4);
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG_TS);
-    }
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_MPEG4_PART10))
-    {
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG);
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG_4);
-      mimes = dlna_list_add (mimes, MIME_VIDEO_MPEG_TS);
-    }
-    
-    if (is_profile_registered (g_profiler, DLNA_PROFILE_AV_WMV9))
-      mimes = dlna_list_add (mimes, MIME_VIDEO_WMV);
-  mimes = dlna_list_add (mimes, NULL);
-
-  g_profiler->mimes = mimes;
-  return g_profiler->mimes;
+  return (const dlna_profile_t **)ffmpeg_media_profiles;
 }
 
 static av_codecs_t *
@@ -358,7 +662,7 @@ match_file_extension (const char *filename, const char *extensions)
   return 0;
 }
 
-dlna_profile_t *
+static const dlna_profile_t *
 ffmpeg_profiler_get_media_profile (char *profileid)
 {
   registered_profile_t *p;
@@ -399,21 +703,11 @@ ffmpeg_profiler_free (dlna_profiler_t *profiler dlna_unused)
   }
 }
 
-static void
-media_profile_free(dlna_item_t *item)
-{
-  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
-
-  avformat_close_input (&cookie->ctx);
-  free (cookie);
-  item->profile_cookie = NULL;
-}
-
-dlna_profile_t *
+const dlna_profile_t *
 ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
 {
   registered_profile_t *p;
-  dlna_profile_t *profile = NULL;
+  const dlna_profile_t *profile = NULL;
   AVFormatContext *ctx = NULL;
   av_codecs_t *codecs;
   char check_extensions = 1;
@@ -463,7 +757,6 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
     if (prof)
     {
       profile = prof;
-      profile->media_class = p->class;
       break;
     }
     p = p->next;
@@ -472,105 +765,11 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   if (!profile)
     return NULL;
 
-  profile->features.playable = 0;
-  profile->features.store_metadata = 1;
-  profile->features.store_properties = 1;
-  profile->get_properties = item_get_properties;
-  profile->get_metadata = item_get_metadata;
-  profile->free = media_profile_free;
-  //profile->prepare_stream = ffmpeg_prepare_stream;
-  //profile->read_stream = ffmpeg_read_stream;
-  //profile->seek_stream = NULL;
-
   ffmpeg_profile_t *fprofile = calloc (1, sizeof (ffmpeg_profile_t));
   fprofile->ctx = ctx;
   *cookie = fprofile;
   free (codecs);
   return profile;
-}
-
-static dlna_properties_t *
-item_get_properties (dlna_item_t *item)
-{
-  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
-  AVFormatContext *ctx = cookie->ctx;
-  dlna_properties_t *prop;
-  int duration, hours, min, sec;
-  av_codecs_t *codecs;
-
-  if (!ctx)
-    return NULL;
-
-  prop = malloc (sizeof (dlna_properties_t));
-
-  duration = (int) (ctx->duration / AV_TIME_BASE);
-  hours = (int) (duration / 3600);
-  min = (int) ((duration - (hours * 3600)) / 60);
-  sec = (int) (duration - (hours * 3600) - (min * 60));
-  memset (prop->duration, '\0', 64);
-  if (hours)
-    sprintf (prop->duration, "%d:%.2d:%.2d.", hours, min, sec);
-  else
-    sprintf (prop->duration, ":%.2d:%.2d.", min, sec);
-
-  /* grab codecs info */
-  codecs = av_profile_get_codecs (ctx);
-  if (!codecs)
-    return NULL;
-  prop->bitrate = (uint32_t) (ctx->bit_rate / 8);
-  prop->sample_frequency = codecs->ac ? codecs->ac->sample_rate : 0;
-  prop->bps = codecs->ac ? codecs->ac->bits_per_raw_sample : 0;
-  prop->channels = codecs->ac ? codecs->ac->channels : 0;
-
-  memset (prop->resolution, '\0', 64);
-  if (codecs->vc)
-    sprintf (prop->resolution, "%dx%d",
-             codecs->vc->width, codecs->vc->height);
-
-  free (codecs);
-  return prop;
-}
-
-static dlna_metadata_t *
-item_get_metadata (dlna_item_t *item)
-{
-  ffmpeg_profile_t *cookie = (ffmpeg_profile_t *)item->profile_cookie;
-  AVFormatContext *ctx = cookie->ctx;
-  dlna_metadata_t *meta;
-  AVDictionary *dict = ctx->metadata;
-  AVDictionaryEntry *entry;
-  
-  if (!ctx)
-    return NULL;
-
-  meta = malloc (sizeof (dlna_metadata_t));
-  memset(meta, 0, sizeof (dlna_metadata_t));
-  entry = av_dict_get(dict, "title", NULL, 0);
-  if (entry && entry->value)
-    meta->title   = strdup (entry->value);
-  entry = av_dict_get(dict, "author", NULL, 0);
-  if (entry && entry->value)
-    meta->author  = strdup (entry->value);
-  else
-  {
-    entry = av_dict_get(dict, "artist", NULL, 0);
-    if (entry && entry->value)
-      meta->author  = strdup (entry->value);
-  }
-  entry = av_dict_get(dict, "comment", NULL, 0);
-  if (entry && entry->value)
-    meta->comment = strdup (entry->value);
-  entry = av_dict_get(dict, "album", NULL, 0);
-  if (entry && entry->value)
-    meta->album   = strdup (entry->value);
-  entry = av_dict_get(dict, "track", NULL, 0);
-  if (entry && entry->value)
-    meta->track   = atoi(entry->value);
-  entry = av_dict_get(dict, "genre", NULL, 0);
-  if (entry && entry->value)
-    meta->genre   = strdup (entry->value);
-
-  return meta;
 }
 
 int
@@ -797,6 +996,6 @@ const dlna_profiler_t ffmpeg_profiler = {
   .init = ffmpeg_profiler_init,
   .guess_media_profile = ffmpeg_profiler_guess_media_profile,
   .get_media_profile = ffmpeg_profiler_get_media_profile,
-  .get_supported_mime_types = ffmpeg_profiler_get_supported_mime_types,
+  .get_supported_media_profiles = ffmpeg_profiler_get_supported_media_profile,
   .free = ffmpeg_profiler_free,
 };

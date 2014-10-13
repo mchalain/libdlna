@@ -30,7 +30,8 @@ static dlna_profile_t atrac3 = {
   .id = "ATRAC3plus",
   .ext = ".acm",
   .mime = MIME_AUDIO_ATRAC,
-  .label = LABEL_AUDIO_2CH_MULTI
+  .label = LABEL_AUDIO_2CH_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 audio_profile_t

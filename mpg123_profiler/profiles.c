@@ -41,81 +41,76 @@ static int item_read_stream (dlna_item_t *item);
 static void item_close_stream (dlna_item_t *item);
 
 typedef struct mpg123_profile_s mpg123_profile_t;
-struct mpg123_profile_s
+const dlna_profile_t *default_media_profiles[] = {
+  & (dlna_profile_t) {
+    .id = "MP3",
+    .ext = ".mp3",
+    .mime = MIME_AUDIO_MPEG,
+    .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_AUDIO,
+  },
+  & (dlna_profile_t) {
+      .id = "MP3X",
+      .ext = ".mpa",
+      .mime = MIME_AUDIO_MPEG,
+      .label = LABEL_AUDIO_2CH,
+      .media_class = DLNA_CLASS_AUDIO,
+    },
+  & (dlna_profile_t) {
+    .id = "MP3",
+    .ext = ".mp3",
+    .mime = MIME_AUDIO_MPEG,
+    .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_RADIO,
+  },
+  & (dlna_profile_t) {
+    .id = "MP3X",
+    .ext = ".mpa",
+    .mime = MIME_AUDIO_MPEG,
+    .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_RADIO,
+  },
+  NULL
+};
+const struct mpg123_profile_s
 {
-  dlna_profile_t *profile;
+  int profileid;
   enum mpg123_version version;
   int layer;
   enum mpg123_channelcount channels;
 } *default_profiles[] = {
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3",
-      .ext = ".mp3",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_AUDIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 0,
     .version = MPG123_1_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3X",
-      .ext = ".mpa",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_AUDIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 1,
     .version = MPG123_2_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3X",
-      .ext = ".mpa",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_AUDIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 1,
     .version = MPG123_2_5,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3",
-      .ext = ".mp3",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_RADIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 2,
     .version = MPG123_1_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3X",
-      .ext = ".mpa",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_RADIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 3,
     .version = MPG123_2_0,
     .layer = 3,
     .channels = MPG123_STEREO,
   },
-  &(mpg123_profile_t) {
-    .profile =   & (dlna_profile_t) {
-      .id = "MP3X",
-      .ext = ".mpa",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_RADIO,
-    },
+  &(const mpg123_profile_t) {
+    .profileid = 3,
     .version = MPG123_2_5,
     .layer = 3,
     .channels = MPG123_STEREO,
@@ -126,8 +121,7 @@ struct mpg123_profile_s
 typedef struct mpg123_profiler_data_s mpg123_profiler_data_t;
 struct mpg123_profiler_data_s
 {
-  char **mimes;
-  mpg123_profile_t *profile;
+  const mpg123_profile_t *profile;
   mpg123_profiler_data_t *next;
   mpg123_profiler_data_t *previous;
 };
@@ -230,308 +224,6 @@ close_audio_output (audio_output_t * ao)
   }
 }
 
-#define ONLY_ONE
-//#define SELECT_DECODER "generic"
-int
-mpg123_profiler_init (dlna_t *dlna dlna_unused)
-{
-  int ret = 0;
-  mpg123_profiler_data_t *profiler = NULL;
-  mpg123_profiler_data_t *previous = NULL;
-  const char **decoderslist;
-
-  if (g_profiler)
-    return ret;
-
-  mpg123_init ();
-  
-  decoderslist = mpg123_decoders();
-  while (*decoderslist)
-  {
-    int i;
-
-#ifdef SELECT_DECODER
-    if (strcmp (*decoderslist, SELECT_DECODER))
-    {
-      decoderslist ++;
-      continue;
-    }
-#endif
-    g_profiler_handle = mpg123_new(*decoderslist, &ret);
-    decoderslist ++;
-    if (ret)
-      continue;
-    for (i = 0; default_profiles[i]; i++)
-    {
-      profiler = calloc (1, sizeof (mpg123_profiler_data_t));
-      mpg123_param(g_profiler_handle, MPG123_RESYNC_LIMIT, -1, 0);
-      profiler->profile = default_profiles[i];
-
-      if (!g_profiler)
-      {
-        g_profiler = profiler;
-      }
-      else if (profiler)
-      {
-        previous->next = profiler;
-        profiler->previous = previous;
-      }
-      previous = profiler;
-    }
-#ifdef ONLY_ONE
-    if (profiler)
-      break;
-#endif
-  }
-	return ret;
-}
-
-static int
-dlna_list_length (void *list)
-{
-  void **l = list;
-  int n = 0;
-  while (*l++)
-    n++;
-
-  return n;
-}
-
-static void *
-dlna_list_add (char **list, char *element)
-{
-  char **l = list;
-  int n = dlna_list_length (list) + 1;
-  int i;
-
-  for (i = 0; i < n; i++)
-    if (l[i] && element && !strcmp (l[i], element))
-      return l;
-  
-  l = realloc (l, (n + 1) * sizeof (char *));
-  l[n] = NULL;
-  l[n - 1] = element;
-  
-  return l;
-}
-
-static char **
-mpg123_profiler_get_supported_mime_types ()
-{
-  mpg123_profiler_data_t *profiler;
-
-  if (g_profiler->mimes)
-    return g_profiler->mimes;
-  else
-    g_profiler->mimes = calloc (1, sizeof (char *));
-  
-  profiler = g_profiler;
-  while (profiler)
-  {
-    g_profiler->mimes = dlna_list_add (g_profiler->mimes, (char *)profiler->profile->profile->mime);
-    profiler = profiler->next;
-  }
-  g_profiler->mimes = dlna_list_add (g_profiler->mimes, NULL);
-  return g_profiler->mimes;
-}
-
-static void
-mpg123_profiler_free (dlna_profiler_t *profiler dlna_unused)
-{
-  mpg123_profiler_data_t *profiler_data;
-  while (g_profiler)
-  {
-    profiler_data = g_profiler->next;
-    if (g_profiler->mimes)
-      free (g_profiler->mimes);
-    free (g_profiler);
-    g_profiler = profiler_data;
-  }
-  mpg123_delete (g_profiler_handle);
-  mpg123_exit ();
-  if (g_ao)
-  {
-    close_audio_output (g_ao);
-    deinit_audio_output (g_ao);
-    g_ao = NULL;
-  }
-}
-
-static void
-profile_free(dlna_item_t *item);
-static dlna_properties_t *
-item_get_properties (dlna_item_t *item);
-static dlna_metadata_t *
-item_get_metadata (dlna_item_t *item);
-
-static char*
-dup_mpg123_string (mpg123_string *string)
-{
-  char *ret = NULL;
-  if (string && string->fill)
-    ret = strndup (string->p,string->size);
-  return ret;
-}
-
-dlna_profile_t *
-mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
-{
-  dlna_profile_t *profile;
-  dlna_properties_t *prop;
-  dlna_metadata_t *meta;
-  profile_data_t *data;
-  mpg123_profiler_data_t *profiler;
-  int  encoding = MPG123_ENC_SIGNED_32;
-  long rate = 44100;
-  enum mpg123_channelcount channels;
-  off_t length;
-  uint32_t time, time_s, time_m, time_h;
-  struct mpg123_frameinfo mpg_info;
-  int metaflags;
-  mpg123_id3v1 *v1 = NULL;
-  mpg123_id3v2 *v2 = NULL;
-  dlna_media_class_t class;
-
-  mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
-
-  if(mpg123_open_handle(g_profiler_handle, reader) != MPG123_OK)
-  {
-    dbgprintf ("%s 1: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-    return NULL;
-  }
-  if (mpg123_scan(g_profiler_handle) != MPG123_OK && 
-      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK && 
-      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK_FROM_END)
-  {
-    dbgprintf ("%s 2: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-    mpg123_close(g_profiler_handle);
-    return NULL;
-  }
-
-  if (mpg123_info (g_profiler_handle, &mpg_info) != MPG123_OK)
-  {
-    dbgprintf ("%s 4: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-    mpg123_close(g_profiler_handle);
-    return NULL;
-  }
-  if (reader->length > 0)
-  {
-    mpg123_set_filesize (g_profiler_handle, reader->length);
-    length = mpg123_length(g_profiler_handle);
-    if (length < MPG123_OK)
-    {
-      dbgprintf ("%s 3: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-      mpg123_close(g_profiler_handle);
-      return NULL;
-    }
-  }
-  rate = mpg_info.rate;
-  channels = (mpg_info.mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
-
-  if (reader->length < 0)
-    class = DLNA_CLASS_RADIO;
-  else
-    class = DLNA_CLASS_AUDIO;
-  profiler = g_profiler;
-  while (profiler)
-  {
-    if (mpg_info.version == profiler->profile->version && 
-        mpg_info.layer == profiler->profile->layer && 
-        channels == profiler->profile->channels &&
-        class == profiler->profile->profile->media_class)
-      break;
-    profiler = profiler->next;
-  }
-  if (!profiler)
-  {
-    dbgprintf ("found MPEG version %d layer %d nb channels %d\n", mpg_info.version, mpg_info.layer, channels);
-    mpg123_close(g_profiler_handle);
-    return NULL;
-  }
-
-  profile = profiler->profile->profile;
-  data = calloc (1, sizeof (profile_data_t));
-  data->profiler = profiler;
-
-  /* check the possible output */
-  mpg123_format_none(g_profiler_handle);
-  mpg123_format(g_profiler_handle, rate, (int)channels, encoding);
-
-	if (mpg123_getformat(g_profiler_handle, &rate, (int *)&channels, &encoding) != MPG123_OK)
-  {
-    dbgprintf ("%s 5: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
-    mpg123_close(g_profiler_handle);
-    return NULL;
-  }
-  data->buffsize = mpg123_outblock(g_profiler_handle);
-
-  /* properties setup */
-  prop = calloc (1, sizeof (dlna_properties_t));
-
-  prop->sample_frequency = rate;
-  prop->channels = channels;
-  prop->bps = (encoding & MPG123_ENC_8)? 8:(encoding & MPG123_ENC_16)? 16: (encoding & MPG123_ENC_32)? 32: 0;
-  prop->spf = mpg123_spf(g_profiler_handle);
-
-  if (length > 0)
-  {
-    data->length = length;
-    time = length / rate;
-
-    time_h = time / 60 / 60;
-    time_m = (time / 60) % 60;
-    time_s = time % 60;
-    snprintf(prop->duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
-    data->prop = prop;
-  }
-  else
-    snprintf(prop->duration, 63, "00:00:00");
-  
-  /* metadata setup */
-  metaflags = mpg123_meta_check(g_profiler_handle);
-  if((metaflags & MPG123_ID3) && mpg123_id3(g_profiler_handle, &v1, &v2) == MPG123_OK)
-  {
-    meta = calloc (1, sizeof (dlna_metadata_t));
-    if (v2)
-    {
-      meta->title = dup_mpg123_string (v2->title);
-      meta->author = dup_mpg123_string (v2->artist);
-      meta->album = dup_mpg123_string (v2->album);
-      meta->comment = dup_mpg123_string (v2->comment);
-      meta->genre = dup_mpg123_string (v2->genre);
-    }
-    if (v1 && !meta->title && v1->title)
-      meta->title = strndup (v1->title,sizeof(v1->title));
-    if (v1 && !meta->author && v1->artist)
-      meta->author = strndup (v1->artist,sizeof(v1->artist));
-    if (v1 && !meta->album && v1->album)
-      meta->album = strndup (v1->album,sizeof(v1->album));
-    if (v1 && !meta->comment && v1->comment)
-      meta->comment = strndup (v1->comment,sizeof(v1->comment));
-    if (v1 && !meta->genre)
-      meta->genre = strdup ("default");
-
-    mpg123_meta_free (g_profiler_handle);
-    data->meta = meta;
-  }
-
-  *cookie = data;
-  mpg123_close(g_profiler_handle);
-
-  profile->features.playable = 1;
-  profile->features.store_metadata = 0;
-  profile->features.store_properties = 0;
-  profile->free = profile_free;
-  profile->get_metadata = item_get_metadata;
-  profile->get_properties = item_get_properties;
-  profile->prepare_stream = item_prepare_stream;
-  profile->read_stream = item_read_stream;
-  profile->seek_stream = NULL;
-  profile->close_stream = item_close_stream;
-
-  return profile;
-}
-
 static void
 profile_free(dlna_item_t *item)
 {
@@ -625,7 +317,7 @@ item_read_stream (dlna_item_t *item)
 }
 
 static void
-item_close_stream (dlna_item_t *item)
+item_close_stream (dlna_item_t *item dlna_unused)
 {
   //profile_data_t *cookie = (profile_data_t *)item->profile_cookie;
   //mpg123_profiler_data_t *profiler = cookie->profiler;
@@ -637,7 +329,270 @@ item_close_stream (dlna_item_t *item)
   }
 }
 
-dlna_profile_t *
+#define ONLY_ONE
+//#define SELECT_DECODER "generic"
+static int
+mpg123_profiler_init (dlna_t *dlna dlna_unused)
+{
+  int ret = 0;
+  mpg123_profiler_data_t *profiler = NULL;
+  mpg123_profiler_data_t *previous = NULL;
+  const char **decoderslist;
+
+  if (g_profiler)
+    return ret;
+
+  mpg123_init ();
+  
+  decoderslist = mpg123_decoders();
+  while (*decoderslist)
+  {
+#ifdef SELECT_DECODER
+    if (strcmp (*decoderslist, SELECT_DECODER))
+    {
+      decoderslist ++;
+      continue;
+    }
+#endif
+    g_profiler_handle = mpg123_new(*decoderslist, &ret);
+    decoderslist ++;
+    if (ret)
+      continue;
+    int i = 0;
+    for (i = 0; default_media_profiles[i]; i++)
+    {
+      dlna_profile_t *media_profile;
+
+      media_profile = default_media_profiles[i];
+      media_profile->features.playable = 1;
+      media_profile->features.store_metadata = 0;
+      media_profile->features.store_properties = 0;
+      media_profile->free = profile_free;
+      media_profile->get_metadata = item_get_metadata;
+      media_profile->get_properties = item_get_properties;
+      media_profile->prepare_stream = item_prepare_stream;
+      media_profile->read_stream = item_read_stream;
+      media_profile->seek_stream = NULL;
+      media_profile->close_stream = item_close_stream;
+    }
+    for (i=0; default_profiles[i]; i++)
+    {
+      const mpg123_profile_t *profile;
+      profile = default_profiles[i];
+      profiler = calloc (1, sizeof (mpg123_profiler_data_t));
+      mpg123_param(g_profiler_handle, MPG123_RESYNC_LIMIT, -1, 0);
+      profiler->profile = profile;
+
+      if (!g_profiler)
+      {
+        g_profiler = profiler;
+      }
+      else if (profiler)
+      {
+        previous->next = profiler;
+        profiler->previous = previous;
+      }
+      previous = profiler;
+    }
+#ifdef ONLY_ONE
+    if (profiler)
+      break;
+#endif
+  }
+	return ret;
+}
+
+static const dlna_profile_t **
+mpg123_profiler_get_supported_media_profiles ()
+{
+  return default_media_profiles;
+}
+
+static void
+mpg123_profiler_free (dlna_profiler_t *profiler dlna_unused)
+{
+  mpg123_profiler_data_t *profiler_data;
+  while (g_profiler)
+  {
+    profiler_data = g_profiler->next;
+    free (g_profiler);
+    g_profiler = profiler_data;
+  }
+  mpg123_delete (g_profiler_handle);
+  mpg123_exit ();
+  if (g_ao)
+  {
+    close_audio_output (g_ao);
+    deinit_audio_output (g_ao);
+    g_ao = NULL;
+  }
+}
+
+static void
+profile_free(dlna_item_t *item);
+static dlna_properties_t *
+item_get_properties (dlna_item_t *item);
+static dlna_metadata_t *
+item_get_metadata (dlna_item_t *item);
+
+static char*
+dup_mpg123_string (mpg123_string *string)
+{
+  char *ret = NULL;
+  if (string && string->fill)
+    ret = strndup (string->p,string->size);
+  return ret;
+}
+
+static const dlna_profile_t *
+mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
+{
+  const dlna_profile_t *profile;
+  dlna_properties_t *prop;
+  dlna_metadata_t *meta;
+  profile_data_t *data;
+  mpg123_profiler_data_t *profiler;
+  int  encoding = MPG123_ENC_SIGNED_32;
+  long rate = 44100;
+  enum mpg123_channelcount channels;
+  off_t length;
+  uint32_t time, time_s, time_m, time_h;
+  struct mpg123_frameinfo mpg_info;
+  int metaflags;
+  mpg123_id3v1 *v1 = NULL;
+  mpg123_id3v2 *v2 = NULL;
+  dlna_media_class_t class;
+
+  mpg123_replace_reader_handle (g_profiler_handle, reader->read, reader->lseek, reader->cleanup);
+
+  if(mpg123_open_handle(g_profiler_handle, reader) != MPG123_OK)
+  {
+    dbgprintf ("%s 1: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+    return NULL;
+  }
+  if (mpg123_scan(g_profiler_handle) != MPG123_OK && 
+      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK && 
+      mpg123_errcode (g_profiler_handle) != MPG123_NO_SEEK_FROM_END)
+  {
+    dbgprintf ("%s 2: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+    mpg123_close(g_profiler_handle);
+    return NULL;
+  }
+
+  if (mpg123_info (g_profiler_handle, &mpg_info) != MPG123_OK)
+  {
+    dbgprintf ("%s 4: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+    mpg123_close(g_profiler_handle);
+    return NULL;
+  }
+  if (reader->length > 0)
+  {
+    mpg123_set_filesize (g_profiler_handle, reader->length);
+    length = mpg123_length(g_profiler_handle);
+    if (length < MPG123_OK)
+    {
+      dbgprintf ("%s 3: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+      mpg123_close(g_profiler_handle);
+      return NULL;
+    }
+  }
+  rate = mpg_info.rate;
+  channels = (mpg_info.mode == MPG123_M_MONO)? MPG123_MONO:MPG123_STEREO;
+
+  if (reader->length < 0)
+    class = DLNA_CLASS_RADIO;
+  else
+    class = DLNA_CLASS_AUDIO;
+  profiler = g_profiler;
+  while (profiler)
+  {
+    if (mpg_info.version == profiler->profile->version && 
+        mpg_info.layer == profiler->profile->layer && 
+        channels == profiler->profile->channels &&
+        class == (default_media_profiles[profiler->profile->profileid])->media_class)
+      break;
+    profiler = profiler->next;
+  }
+  if (!profiler)
+  {
+    dbgprintf ("found MPEG version %d layer %d nb channels %d\n", mpg_info.version, mpg_info.layer, channels);
+    mpg123_close(g_profiler_handle);
+    return NULL;
+  }
+
+  profile = default_media_profiles[profiler->profile->profileid];
+  data = calloc (1, sizeof (profile_data_t));
+  data->profiler = profiler;
+
+  /* check the possible output */
+  mpg123_format_none(g_profiler_handle);
+  mpg123_format(g_profiler_handle, rate, (int)channels, encoding);
+
+	if (mpg123_getformat(g_profiler_handle, &rate, (int *)&channels, &encoding) != MPG123_OK)
+  {
+    dbgprintf ("%s 5: %s\n", __FUNCTION__, mpg123_strerror (g_profiler_handle));
+    mpg123_close(g_profiler_handle);
+    return NULL;
+  }
+  data->buffsize = mpg123_outblock(g_profiler_handle);
+
+  /* properties setup */
+  prop = calloc (1, sizeof (dlna_properties_t));
+
+  prop->sample_frequency = rate;
+  prop->channels = channels;
+  prop->bps = (encoding & MPG123_ENC_8)? 8:(encoding & MPG123_ENC_16)? 16: (encoding & MPG123_ENC_32)? 32: 0;
+  prop->spf = mpg123_spf(g_profiler_handle);
+
+  if (length > 0)
+  {
+    data->length = length;
+    time = length / rate;
+
+    time_h = time / 60 / 60;
+    time_m = (time / 60) % 60;
+    time_s = time % 60;
+    snprintf(prop->duration, 63, "%02u:%02u:%02u", time_h, time_m, time_s);
+    data->prop = prop;
+  }
+  else
+    snprintf(prop->duration, 63, "00:00:00");
+  
+  /* metadata setup */
+  metaflags = mpg123_meta_check(g_profiler_handle);
+  if((metaflags & MPG123_ID3) && mpg123_id3(g_profiler_handle, &v1, &v2) == MPG123_OK)
+  {
+    meta = calloc (1, sizeof (dlna_metadata_t));
+    if (v2)
+    {
+      meta->title = dup_mpg123_string (v2->title);
+      meta->author = dup_mpg123_string (v2->artist);
+      meta->album = dup_mpg123_string (v2->album);
+      meta->comment = dup_mpg123_string (v2->comment);
+      meta->genre = dup_mpg123_string (v2->genre);
+    }
+    if (v1 && !meta->title && v1->title)
+      meta->title = strndup (v1->title,sizeof(v1->title));
+    if (v1 && !meta->author && v1->artist)
+      meta->author = strndup (v1->artist,sizeof(v1->artist));
+    if (v1 && !meta->album && v1->album)
+      meta->album = strndup (v1->album,sizeof(v1->album));
+    if (v1 && !meta->comment && v1->comment)
+      meta->comment = strndup (v1->comment,sizeof(v1->comment));
+    if (v1 && !meta->genre)
+      meta->genre = strdup ("default");
+
+    mpg123_meta_free (g_profiler_handle);
+    data->meta = meta;
+  }
+
+  *cookie = data;
+  mpg123_close(g_profiler_handle);
+
+  return profile;
+}
+
+const dlna_profile_t *
 mpg123_profiler_get_media_profile (char *profileid)
 {
   mpg123_profiler_data_t *profiler;
@@ -645,9 +600,9 @@ mpg123_profiler_get_media_profile (char *profileid)
   profiler = g_profiler;
   while (profiler)
   {
-    if (!strcmp(profileid, profiler->profile->profile->id))
+    if (!strcmp(profileid, (default_media_profiles[profiler->profile->profileid])->id))
     {
-      return profiler->profile->profile;
+      return default_media_profiles[profiler->profile->profileid];
     }
     profiler = profiler->next;
   }
@@ -659,6 +614,6 @@ const dlna_profiler_t mpg123_profiler = {
   .init = mpg123_profiler_init,
   .guess_media_profile = mpg123_profiler_guess_media_profile,
   .get_media_profile = mpg123_profiler_get_media_profile,
-  .get_supported_mime_types = mpg123_profiler_get_supported_mime_types,
+  .get_supported_media_profiles = mpg123_profiler_get_supported_media_profiles,
   .free = mpg123_profiler_free,
 };

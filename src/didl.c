@@ -177,7 +177,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
     resource = vfs_resource_get (item);
     if (resource)
     {
-      class = dlna_profile_upnp_object_item (resource->profile);
+      class = dlna_profile_upnp_object_item (resource->protocol_info->profile);
       didl_add_tag (out, DIDL_ITEM_CLASS, class);
     }
 

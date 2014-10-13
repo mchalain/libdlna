@@ -107,10 +107,10 @@ cms_write_protocol_info (buffer_t *out, protocol_info_t *pinfo)
 {
   if (pinfo->other)
     buffer_appendf (out, "%s:%s:%s:%s", pinfo->protocol->name (), 
-              pinfo->protocol->net (), pinfo->mime, pinfo->other);
+              pinfo->protocol->net (), pinfo->profile->mime, pinfo->other);
   else
     buffer_appendf (out, "%s:%s:%s:*", pinfo->protocol->name (), 
-              pinfo->protocol->net (), pinfo->mime);
+              pinfo->protocol->net (), pinfo->profile->mime);
 }
 
 /*

@@ -367,23 +367,23 @@ typedef struct dlna_profile_s {
  * @param[in] profile The DLNA profile that was targeted.
  * @return A pointer on CDS Object Item string.
  */
-char *dlna_profile_upnp_object_item (dlna_profile_t *profile);
+char *dlna_profile_upnp_object_item (const dlna_profile_t *profile);
 
 typedef struct dlna_profiler_s {
   int (*init) (dlna_t *dlna);
 /**
- * Output the table of mime type supported by the profiler.
+ * Output the table of profiles supported by the profiler.
  *
  * @return            The table with the new values added.
  */
-  char **(*get_supported_mime_types) ();
+  const dlna_profile_t **(*get_supported_media_profiles) ();
 /**
  * Output the Media profile of a type.
  *
  * @param[in] profileid    The id string of a profile.
  * @return            The profile of the file.
  */
-  dlna_profile_t *(*get_media_profile) (char *profileid);
+  const dlna_profile_t *(*get_media_profile) (char *profileid);
 /**
  * Output the Media profile of a file.
  *
@@ -391,7 +391,7 @@ typedef struct dlna_profiler_s {
  * @param[out] cookie     The data to set into the dlna_item_t (profile_cookie).
  * @return            The profile of the file.
  */
-  dlna_profile_t *(*guess_media_profile) (dlna_stream_t *reader, void **cookie);
+  const dlna_profile_t *(*guess_media_profile) (dlna_stream_t *reader, void **cookie);
 /**
  * free data used by the profiler
  **/

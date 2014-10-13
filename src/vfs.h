@@ -41,7 +41,6 @@ struct vfs_resource_s {
   int64_t size;
   vfs_item_info_t info;
   dlna_properties_t properties;
-  dlna_profile_t *profile;
   struct vfs_resource_s *next;
 };
 

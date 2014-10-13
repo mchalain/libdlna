@@ -150,7 +150,7 @@ struct dlna_item_s {
   char *profileid;
   dlna_properties_t *properties;
   dlna_metadata_t *metadata;
-  dlna_profile_t *profile;
+  const dlna_profile_t *profile;
   dlna_stream_t *stream;
   void *profile_cookie;
 };
@@ -163,7 +163,7 @@ extern  dlna_verbosity_level_t dlna_verbosity;
 void dlna_log (dlna_verbosity_level_t level,
                const char *format, ...);
 
-dlna_profile_t *dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid);
+const dlna_profile_t *dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid);
 char * dlna_upnp_object_type (dlna_media_class_t media_class);
 
 void dlna_http_set_callback (dlna_http_callback_t *cb);
@@ -174,7 +174,7 @@ typedef struct protocol_info_s protocol_info_t;
 struct protocol_info_s
 {
   dlna_protocol_t *protocol;
-  char *mime;
+  const dlna_profile_t *profile;
   char *other;
   protocol_info_t *next;
 };

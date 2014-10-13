@@ -30,7 +30,8 @@ static dlna_profile_t ac3 = {
   .id = "AC3",
   .ext = ".ac3",
   .mime = MIME_AUDIO_DOLBY_DIGITAL,
-  .label = LABEL_AUDIO_2CH_MULTI
+  .label = LABEL_AUDIO_2CH_MULTI,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 audio_profile_t

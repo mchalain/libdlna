@@ -1735,16 +1735,17 @@ avts_init (dlna_service_t *service)
 {
   dlna_service_t *cms = dlna_service_find_id (service->device, DLNA_SERVICE_CONNECTION_MANAGER);
   cms_set_protocol_info (cms, avts_data->sinks, 1);
+  return 0;
 }
 
 static void
-avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, char *mime)
+avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, const dlna_profile_t *profile)
 {
   protocol_info_t *sink;
 
   sink = calloc (1, sizeof (protocol_info_t));
   sink->protocol = protocol;
-  sink->mime = strdup (mime);
+  sink->profile = profile;
   sink->next = avts_data->sinks;
   avts_data->sinks = sink;
 }
@@ -1787,13 +1788,11 @@ avts_service_new (dlna_t *dlna dlna_unused)
     dlna_profiler_list_t *ite;
     for (ite = dlna->profilers; ite; ite = ite->next)
     {
-      char **iterator;
-      char **mimes = ite->profiler->get_supported_mime_types ();
-      iterator = mimes;
-      while (*iterator)
+      int i;
+      const dlna_profile_t **profiles = ite->profiler->get_supported_media_profiles ();
+      for (i = 0; profiles[i]; i++)
       {
-        avts_add_sink (avts_data, proto, *iterator);
-        iterator++;
+        avts_add_sink (avts_data, proto, profiles[i]);
       }
     }
   }

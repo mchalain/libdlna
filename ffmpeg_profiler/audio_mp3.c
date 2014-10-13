@@ -30,7 +30,8 @@ static dlna_profile_t mp3 = {
   .id = "MP3",
   .ext = ".mp3",
   .mime = MIME_AUDIO_MPEG,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content with extensions
@@ -39,7 +40,8 @@ static dlna_profile_t mp3x = {
   .id = "MP3X",
   .ext = ".mp3",
   .mime = MIME_AUDIO_MPEG,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static int

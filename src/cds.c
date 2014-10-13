@@ -508,7 +508,8 @@ cds_search_match (cds_data_t *cds_data, vfs_item_t *item, char *search_criteria)
     while (resource)
     {
       buffer_t *out;
-      cms_write_protocol_info(out, resource->protocol_info);
+      out = buffer_new();
+      cms_write_protocol_info (out, resource->protocol_info);
       if ( strstr (out->buf, keyword))
       {
         buffer_free (out);

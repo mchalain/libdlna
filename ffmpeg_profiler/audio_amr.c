@@ -31,7 +31,8 @@ static dlna_profile_t amr = {
   .id = "AMR_3GPP",
   .ext = ".3gpp",
   .mime = MIME_AUDIO_MPEG_4,
-  .label = LABEL_AUDIO_MONO
+  .label = LABEL_AUDIO_MONO,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -39,7 +40,8 @@ static dlna_profile_t three_gpp = {
   .id = "AMR_3GPP",
   .ext = ".3gpp",
   .mime = MIME_AUDIO_3GP,
-  .label = LABEL_AUDIO_MONO
+  .label = LABEL_AUDIO_MONO,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 /* Profile for audio media class content */
@@ -47,7 +49,8 @@ static dlna_profile_t amr_wbplus = {
   .id = "AMR_WBplus",
   .ext = ".3gpp",
   .mime = MIME_AUDIO_3GP,
-  .label = LABEL_AUDIO_2CH
+  .label = LABEL_AUDIO_2CH,
+  .media_class = DLNA_CLASS_AUDIO,
 };
 
 static int

@@ -96,7 +96,8 @@ static dlna_profile_t wmvmed_base = {
   .id = "WMVMED_BASE",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Medium resolution video (Main profile at Medium Level)
@@ -105,7 +106,8 @@ static dlna_profile_t wmvmed_full = {
   .id = "WMVMED_FULL",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Medium resolution video (Main profile at Medium Level)
@@ -114,7 +116,8 @@ static dlna_profile_t wmvmed_pro = {
   .id = "WMVMED_PRO",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* High resolution video (Main profile at High Level)
@@ -123,7 +126,8 @@ static dlna_profile_t wmvhigh_full = {
   .id = "WMVHIGH_FULL",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* High resolution video (Main profile at High Level)
@@ -132,7 +136,8 @@ static dlna_profile_t wmvhigh_pro = {
   .id = "WMVHIGH_PRO",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* HighMAT profile */
@@ -140,7 +145,8 @@ static dlna_profile_t wmvhm_base dlna_unused = {
   .id = "WMVHM_BASE",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Low resolution video (Simple Profile at Low Level)
@@ -149,7 +155,8 @@ static dlna_profile_t wmvspll_base = {
   .id = "WMVSPLL_BASE",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_QCIF15
+  .label = LABEL_VIDEO_QCIF15,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Low resolution video (Simple Profile at Medium Level)
@@ -158,7 +165,8 @@ static dlna_profile_t wmvspml_base = {
   .id = "WMVSPML_BASE",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_CIF15
+  .label = LABEL_VIDEO_CIF15,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Low resolution video (Simple Profile at Medium Level) with MP3 audio */
@@ -166,7 +174,8 @@ static dlna_profile_t wmvspml_mp3 = {
   .id = "WMVSPML_MP3",
   .ext = ".asf",
   .mime = MIME_VIDEO_WMV,
-  .label = LABEL_VIDEO_CIF15
+  .label = LABEL_VIDEO_CIF15,
+  .media_class = DLNA_CLASS_AV,
 };
 
 static const struct {

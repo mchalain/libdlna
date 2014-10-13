@@ -107,7 +107,8 @@ static dlna_profile_t mpeg_ps_ntsc = {
   .id = "MPEG_PS_NTSC",
   .ext = ".m2v",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile for NTSC-formatted AV class media */
@@ -115,7 +116,8 @@ static dlna_profile_t mpeg_ps_ntsc_xac3 = {
   .id = "MPEG_PS_NTSC_XAC3",
   .ext = ".m2v",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile for PAL-formatted AV class media */
@@ -123,7 +125,8 @@ static dlna_profile_t mpeg_ps_pal = {
   .id = "MPEG_PS_PAL",
   .ext = ".m2v",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile for PAL-formatted AV class media */
@@ -131,7 +134,8 @@ static dlna_profile_t mpeg_ps_pal_xac3 = {
   .id = "MPEG_PS_PAL_XAC3",
   .ext = ".m2v",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* MPEG-2 Main Profile at Low Level AAC LC audio encapsulated in
@@ -140,7 +144,8 @@ static dlna_profile_t mpeg_ts_mp_ll_aac = {
   .id = "MPEG_TS_MP_LL_AAC",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_CIF30
+  .label = LABEL_VIDEO_CIF30,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* MPEG-2 Main Profile at Low Level AAC LC audio encapsulated in
@@ -149,16 +154,18 @@ static dlna_profile_t mpeg_ts_mp_ll_aac_t = {
   .id = "MPEG_TS_MP_LL_AAC_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_CIF30
+  .label = LABEL_VIDEO_CIF30,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* MPEG-2 Main Profile at Low Level AAC LC audio encapsulated in
    MPEG-2 transport stream without a Timestamp field */
 static dlna_profile_t mpeg_ts_mp_ll_aac_iso = {
   .id = "MPEG_TS_MP_LL_AAC_ISO",
-  .ext = ".m2v",
-  .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_CIF30
+  .ext = ".ts",
+  .mime = MIME_VIDEO_MPEG_TS,
+  .label = LABEL_VIDEO_CIF30,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* European region profile for Standard Definition AV class utilizing
@@ -167,7 +174,8 @@ static dlna_profile_t mpeg_ts_sd_eu = {
   .id = "MPEG_TS_SD_EU",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* European region profile for Standard Definition AV class utilizing
@@ -176,16 +184,18 @@ static dlna_profile_t mpeg_ts_sd_eu_t = {
   .id = "MPEG_TS_SD_EU_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* European region profile for Standard Definition AV class utilizing
    a DLNA Transport Packet without a Timestamp field */
 static dlna_profile_t mpeg_ts_sd_eu_iso = {
   .id = "MPEG_TS_SD_EU_ISO",
-  .ext = ".m2v",
-  .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .ext = ".ts",
+  .mime = MIME_VIDEO_MPEG_TS,
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -194,7 +204,8 @@ static dlna_profile_t mpeg_ts_sd_na = {
   .id = "MPEG_TS_SD_NA",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -203,7 +214,8 @@ static dlna_profile_t mpeg_ts_sd_na_t = {
   .id = "MPEG_TS_SD_NA_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -211,8 +223,9 @@ static dlna_profile_t mpeg_ts_sd_na_t = {
 static dlna_profile_t mpeg_ts_sd_na_iso = {
   .id = "MPEG_TS_SD_NA_ISO",
   .ext = ".ts",
-  .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .mime = MIME_VIDEO_MPEG_TS,
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -221,7 +234,8 @@ static dlna_profile_t mpeg_ts_sd_na_xac3 = {
   .id = "MPEG_TS_SD_NA_XAC3",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -230,7 +244,8 @@ static dlna_profile_t mpeg_ts_sd_na_xac3_t = {
   .id = "MPEG_TS_SD_NA_XAC3_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for Standard Definition AV class utilizing
@@ -239,7 +254,8 @@ static dlna_profile_t mpeg_ts_sd_na_xac3_iso = {
   .id = "MPEG_TS_SD_NA_XAC3_ISO",
   .ext = ".m2v",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for High Definition AV class utilizing
@@ -248,7 +264,8 @@ static dlna_profile_t mpeg_ts_hd_na = {
   .id = "MPEG_TS_HD_NA",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for High Definition AV class utilizing
@@ -257,16 +274,18 @@ static dlna_profile_t mpeg_ts_hd_na_t = {
   .id = "MPEG_TS_HD_NA_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for High Definition AV class utilizing
    a DLNA Transport Packet without a Timestamp field */
 static dlna_profile_t mpeg_ts_hd_na_iso = {
   .id = "MPEG_TS_HD_NA_ISO",
-  .ext = ".m2v",
-  .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_HD
+  .ext = ".ts",
+  .mime = MIME_VIDEO_MPEG_TS,
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for transcoded High Definition AV class
@@ -275,7 +294,8 @@ static dlna_profile_t mpeg_ts_hd_na_xac3 = {
   .id = "MPEG_TS_HD_NA_XAC3",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for transcoded High Definition AV class
@@ -284,16 +304,18 @@ static dlna_profile_t mpeg_ts_hd_na_xac3_t = {
   .id = "MPEG_TS_HD_NA_XAC3_T",
   .ext = ".ts",
   .mime = MIME_VIDEO_MPEG_TS,
-  .label = LABEL_VIDEO_HD
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* North America region profile for transcoded High Definition AV class
    media without a Timestamp field */
 static dlna_profile_t mpeg_ts_hd_na_xac3_iso = {
   .id = "MPEG_TS_HD_NA_XAC3_ISO",
-  .ext = ".m2v",
-  .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_HD
+  .ext = ".ts",
+  .mime = MIME_VIDEO_MPEG_TS,
+  .label = LABEL_VIDEO_HD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile defining ES encapsulation for transport of MPEG_PS_PAL over RTP */
@@ -301,7 +323,8 @@ static dlna_profile_t mpeg_es_pal = {
   .id = "MPEG_ES_PAL",
   .ext = ".pes",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile defining ES encapsulation for transport of MPEG_PS_NTSC over RTP */
@@ -309,7 +332,8 @@ static dlna_profile_t mpeg_es_ntsc = {
   .id = "MPEG_ES_NTSC",
   .ext = ".pes",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile defining ES encapsulation for transport of
@@ -318,7 +342,8 @@ static dlna_profile_t mpeg_es_pal_xac3 = {
   .id = "MPEG_ES_PAL_XAC3",
   .ext = ".pes",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 /* Profile defining ES encapsulation for transport of
@@ -327,7 +352,8 @@ static dlna_profile_t mpeg_es_ntsc_xac3 = {
   .id = "MPEG_ES_NTSC_XAC3",
   .ext = ".pes",
   .mime = MIME_VIDEO_MPEG,
-  .label = LABEL_VIDEO_SD
+  .label = LABEL_VIDEO_SD,
+  .media_class = DLNA_CLASS_AV,
 };
 
 static int
