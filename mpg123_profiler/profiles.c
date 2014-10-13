@@ -50,12 +50,12 @@ const dlna_profile_t *default_media_profiles[] = {
     .media_class = DLNA_CLASS_AUDIO,
   },
   & (dlna_profile_t) {
-      .id = "MP3X",
-      .ext = ".mpa",
-      .mime = MIME_AUDIO_MPEG,
-      .label = LABEL_AUDIO_2CH,
-      .media_class = DLNA_CLASS_AUDIO,
-    },
+    .id = "MP3X",
+    .ext = ".mpa",
+    .mime = MIME_AUDIO_MPEG,
+    .label = LABEL_AUDIO_2CH,
+    .media_class = DLNA_CLASS_AUDIO,
+  },
   & (dlna_profile_t) {
     .id = "MP3",
     .ext = ".mp3",
@@ -72,6 +72,8 @@ const dlna_profile_t *default_media_profiles[] = {
   },
   NULL
 };
+
+typedef struct mpg123_profile_s mpg123_profile_t;
 const struct mpg123_profile_s
 {
   int profileid;
@@ -118,18 +120,10 @@ const struct mpg123_profile_s
   NULL
 };
 
-typedef struct mpg123_profiler_data_s mpg123_profiler_data_t;
-struct mpg123_profiler_data_s
-{
-  const mpg123_profile_t *profile;
-  mpg123_profiler_data_t *next;
-  mpg123_profiler_data_t *previous;
-};
-
 typedef struct profile_data_s profile_data_t;
 struct profile_data_s
 {
-  mpg123_profiler_data_t *profiler;
+  const mpg123_profile_t *profiler;
   dlna_properties_t *prop;
   dlna_metadata_t *meta;
   int fd;
@@ -139,7 +133,6 @@ struct profile_data_s
   uint32_t length;
 };
 
-static mpg123_profiler_data_t *g_profiler = NULL;
 static mpg123_handle *g_profiler_handle = NULL;
 audio_output_t *g_ao = NULL;
 
@@ -277,7 +270,7 @@ item_prepare_stream (dlna_item_t *item)
     return -1;
   }
 
-  printf ("rate %u channels %d format 0x%X\n", rate, channels, encoding);
+  dbgprintf ("rate %ld channels %d format 0x%X\n", rate, channels, encoding);
   if( !g_ao)
     g_ao = init_audio_output (&mpg123_output_module_info);
   if (g_ao)
@@ -311,7 +304,7 @@ item_read_stream (dlna_item_t *item)
     cookie->offset += done;
     err = write_audio_output (g_ao, cookie->buffer, cookie->buffsize);
     if (err <  0)
-       dbgprintf ("%s: %d %d\n", __FUNCTION__, err, done);
+       dbgprintf ("%s: %d %ld\n", __FUNCTION__, err, done);
   }
   return 1;
 }
@@ -335,12 +328,7 @@ static int
 mpg123_profiler_init (dlna_t *dlna dlna_unused)
 {
   int ret = 0;
-  mpg123_profiler_data_t *profiler = NULL;
-  mpg123_profiler_data_t *previous = NULL;
   const char **decoderslist;
-
-  if (g_profiler)
-    return ret;
 
   mpg123_init ();
   
@@ -363,7 +351,7 @@ mpg123_profiler_init (dlna_t *dlna dlna_unused)
     {
       dlna_profile_t *media_profile;
 
-      media_profile = default_media_profiles[i];
+      media_profile = (dlna_profile_t *)default_media_profiles[i];
       media_profile->features.playable = 1;
       media_profile->features.store_metadata = 0;
       media_profile->features.store_properties = 0;
@@ -375,28 +363,9 @@ mpg123_profiler_init (dlna_t *dlna dlna_unused)
       media_profile->seek_stream = NULL;
       media_profile->close_stream = item_close_stream;
     }
-    for (i=0; default_profiles[i]; i++)
-    {
-      const mpg123_profile_t *profile;
-      profile = default_profiles[i];
-      profiler = calloc (1, sizeof (mpg123_profiler_data_t));
-      mpg123_param(g_profiler_handle, MPG123_RESYNC_LIMIT, -1, 0);
-      profiler->profile = profile;
-
-      if (!g_profiler)
-      {
-        g_profiler = profiler;
-      }
-      else if (profiler)
-      {
-        previous->next = profiler;
-        profiler->previous = previous;
-      }
-      previous = profiler;
-    }
+    mpg123_param(g_profiler_handle, MPG123_RESYNC_LIMIT, -1, 0);
 #ifdef ONLY_ONE
-    if (profiler)
-      break;
+    break;
 #endif
   }
 	return ret;
@@ -411,13 +380,6 @@ mpg123_profiler_get_supported_media_profiles ()
 static void
 mpg123_profiler_free (dlna_profiler_t *profiler dlna_unused)
 {
-  mpg123_profiler_data_t *profiler_data;
-  while (g_profiler)
-  {
-    profiler_data = g_profiler->next;
-    free (g_profiler);
-    g_profiler = profiler_data;
-  }
   mpg123_delete (g_profiler_handle);
   mpg123_exit ();
   if (g_ao)
@@ -451,7 +413,6 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   dlna_properties_t *prop;
   dlna_metadata_t *meta;
   profile_data_t *data;
-  mpg123_profiler_data_t *profiler;
   int  encoding = MPG123_ENC_SIGNED_32;
   long rate = 44100;
   enum mpg123_channelcount channels;
@@ -503,26 +464,26 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
     class = DLNA_CLASS_RADIO;
   else
     class = DLNA_CLASS_AUDIO;
-  profiler = g_profiler;
-  while (profiler)
+
+  int i;
+  for (i = 0; default_profiles[i]; i++)
   {
-    if (mpg_info.version == profiler->profile->version && 
-        mpg_info.layer == profiler->profile->layer && 
-        channels == profiler->profile->channels &&
-        class == (default_media_profiles[profiler->profile->profileid])->media_class)
+    if (mpg_info.version == default_profiles[i]->version && 
+        mpg_info.layer == default_profiles[i]->layer && 
+        channels == default_profiles[i]->channels &&
+        class == (default_media_profiles[default_profiles[i]->profileid])->media_class)
       break;
-    profiler = profiler->next;
   }
-  if (!profiler)
+
+  if (!default_profiles[i])
   {
     dbgprintf ("found MPEG version %d layer %d nb channels %d\n", mpg_info.version, mpg_info.layer, channels);
     mpg123_close(g_profiler_handle);
     return NULL;
   }
 
-  profile = default_media_profiles[profiler->profile->profileid];
   data = calloc (1, sizeof (profile_data_t));
-  data->profiler = profiler;
+  data->profiler = default_profiles[i];
 
   /* check the possible output */
   mpg123_format_none(g_profiler_handle);
@@ -589,22 +550,21 @@ mpg123_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   *cookie = data;
   mpg123_close(g_profiler_handle);
 
+  profile = default_media_profiles[data->profiler->profileid];
   return profile;
 }
 
 const dlna_profile_t *
 mpg123_profiler_get_media_profile (char *profileid)
 {
-  mpg123_profiler_data_t *profiler;
+  int i;
 
-  profiler = g_profiler;
-  while (profiler)
+  for (i = 0; default_profiles[i]; i++)
   {
-    if (!strcmp(profileid, (default_media_profiles[profiler->profile->profileid])->id))
+    if (!strcmp(profileid, (default_media_profiles[default_profiles[i]->profileid])->id))
     {
-      return default_media_profiles[profiler->profile->profileid];
+      return default_media_profiles[default_profiles[i]->profileid];
     }
-    profiler = profiler->next;
   }
   return NULL;
 }
