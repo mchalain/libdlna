@@ -327,22 +327,25 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
     vfs->vfs_root = item;
   
   /* check for a valid parent id */
-  item->parent = vfs_get_item_by_id (vfs, container_id);
-  if (!item->parent)
-    item->parent = vfs->vfs_root;
-  else
-    item->parent->u.container.updateID ++;
-
-  /* add new child to parent */
-  if (item->parent != item)
+  if (!(container_id == 0 && item->id == 0))
   {
-    vfs_item_add_child (item->parent, item);
-    vfs->vfs_items++;
+    item->parent = vfs_get_item_by_id (vfs, container_id);
+    if (!item->parent)
+      item->parent = vfs->vfs_root;
+    else
+      item->parent->u.container.updateID ++;
+    /* add new child to parent */
+    if (item->parent != item)
+    {
+      vfs_item_add_child (item->parent, item);
+      vfs->vfs_items++;
+    }
   }
 
   item->u.container.updateID = 0;
 
-  dlna_log (DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
+  if (item->parent)
+    dlna_log (DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
             item->parent->id, item->parent->u.container.title);
   
   return item->id;
