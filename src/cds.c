@@ -227,8 +227,7 @@ cds_sort_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
 
   if (!service)
     return NULL;
-  cds_data = (cds_data_t *)service->cookie;
-  return cds_data->sort_caps;
+  return "dc:title";
 }
 
 static int
@@ -297,8 +296,59 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
   return ev->status;
 }
 
+typedef int (*sort_cmp_cb)(vfs_item_t *, vfs_item_t *);
+
+static int
+cmp_container_title (vfs_item_t *item1, vfs_item_t *item2)
+{
+  return strcasecmp (item1->u.container.title, item2->u.container.title);
+}
+
+static int
+cmp_nocmp (vfs_item_t *item1 dlna_unused, vfs_item_t *item2 dlna_unused)
+{
+  return 0;
+}
+
+static int
+cmp_item_filename (vfs_item_t *item1, vfs_item_t *item2)
+{
+  return strcasecmp (item2->u.resource.item->filename, item1->u.resource.item->filename);
+}
+
 static vfs_items_list_t *
-cds_vfs_sort (dlna_vfs_t *vfs, vfs_item_t *first, char *sort)
+sort_insert (vfs_items_list_t *list, vfs_item_t *new, sort_cmp_cb cmp)
+{
+  vfs_items_list_t *item;
+  vfs_items_list_t *move;
+
+  item = calloc (1, sizeof (vfs_items_list_t));
+  item->item = new;
+  if (!list)
+  {
+    list = item;
+    return list;
+  }
+  move = list;
+  while (move && cmp (move->item, new) > 0 )
+  {
+    item->previous = move;
+    move = move->next;
+  }
+  item->next = move;
+  if (item->previous)
+    item->previous->next = item;
+  if (move)
+  {
+    if (!move->previous)
+      list = item;
+    move->previous = item;
+  }
+  return list;
+}
+
+static vfs_items_list_t *
+cds_vfs_sort (cds_data_t *cds_data, vfs_item_t *first, char *sort)
 {
   vfs_items_list_t *children = NULL;
   vfs_items_list_t *items = NULL;
@@ -306,34 +356,27 @@ cds_vfs_sort (dlna_vfs_t *vfs, vfs_item_t *first, char *sort)
 
   if (first->type != DLNA_CONTAINER)
     return NULL;
-  
+
+#ifdef DISABLE_SORT
+  return first->u.container.children;
+#endif
+
   for (children = first->u.container.children; children; children = children->next)
   {
-    vfs_items_list_t *item;
     vfs_item_t *child = children->item;
+
     switch (child->type)
     {
     case DLNA_CONTAINER:
-      item = calloc (1, sizeof (vfs_items_list_t));
-      item->item = child;
-      item->previous = NULL;
-      item->next = containers;
-      if (containers)
-        containers->previous = item;
-      containers = item;
+      containers = sort_insert (containers, child, cmp_container_title);
     break;
     case DLNA_RESOURCE:
-      item = calloc (1, sizeof (vfs_items_list_t));
-      item->item = child;
-      item->previous = NULL;
-      item->next = items;
-      if (items)
-        items->previous = item;
-      items = item;
+      items = sort_insert (items, child, cmp_item_filename);
     break;
     }
     free (children);
   }
+  /* Rebuild the new children list*/
   children = containers;
   if (children)
   {
@@ -342,6 +385,7 @@ cds_vfs_sort (dlna_vfs_t *vfs, vfs_item_t *first, char *sort)
     if (items)
       items->previous = children;
     children->next = items;
+    children = containers;
   }
   else
     children = items;
@@ -415,7 +459,7 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   didl_add_header (out);
 
   /* go to the child pointed out by index */
-  items = cds_vfs_sort( NULL, item, sort);
+  items = cds_vfs_sort( cds_data, item, sort);
   for (s = 0; s < index; s++)
     if (items)
       items = items->next;
