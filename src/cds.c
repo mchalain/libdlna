@@ -84,6 +84,7 @@
 #define CDS_ARG_NUM_RETURNED          "NumberReturned"
 #define CDS_ARG_TOTAL_MATCHES         "TotalMatches"
 #define CDS_ARG_UPDATE_ID             "UpdateID"
+#define CDS_ARG_ID                    "Id"
 
 #define CDS_ARG_CONTAINER_ID          "ContainerID"
 #define CDS_ARG_FEATURE_LIST          "FeatureList"
@@ -288,11 +289,12 @@ cds_get_system_update_id (dlna_t *dlna, upnp_action_event_t *ev)
   {
     char *value;
     value = cds_service_variables[SystemUpdateID].get (NULL, ev->service);
-    upnp_add_response (ev, CDS_ARG_UPDATE_ID, value);
+    upnp_add_response (ev, CDS_ARG_ID, value);
     free (value);
   }
   else
-    upnp_add_response (ev, CDS_ARG_UPDATE_ID, "0");
+    upnp_add_response (ev, CDS_ARG_ID,CDS_ROOT_OBJECT_ID);
+
   return ev->status;
 }
 
@@ -431,8 +433,7 @@ cds_browse_metadata (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, "1");
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, "1");
-  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
-                     updateID);
+  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,updateID);
   free (updateID);
   buffer_free (out);
 
@@ -503,8 +504,7 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
 
   updateID = calloc (1, 256);
   snprintf (updateID, 255, "%u", item->u.container.updateID);
-  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
-                     updateID);
+  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,updateID);
   free (updateID);
   buffer_free (out);
 
