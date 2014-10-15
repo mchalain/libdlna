@@ -167,7 +167,6 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
   if (dlna_item)
   {
     dlna_metadata_t *metadata;
-    vfs_resource_t *resource;
 
     metadata = dlna_item_metadata (dlna_item);
 
@@ -177,10 +176,9 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
     if (add_item_name)
       didl_add_tag (out, DIDL_ITEM_TITLE, basename (dlna_item->filename));
 
-    resource = vfs_resource_get (item);
-    if (resource)
+    if (dlna_item)
     {
-      class = dlna_profile_upnp_object_item (resource->protocol_info->profile);
+      class = dlna_profile_upnp_object_item (dlna_item->profile);
       didl_add_tag (out, DIDL_ITEM_CLASS, class);
     }
 
@@ -216,6 +214,9 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
   
     if ((!filter || filter_has_val (filter, DIDL_RES)))
     {
+      vfs_resource_t *resource;
+
+      resource = vfs_resource_get (item);
       while (resource)
       {
         char *url;
