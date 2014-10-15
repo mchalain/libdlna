@@ -31,8 +31,7 @@
 
 #include "dlna.h"
 #ifdef MPG123
-extern const dlna_profiler_t mpg123_profiler;
-extern int mpg123_profiler_init ();
+#include "mpg123_profiler.h"
 #endif
 
 static void
