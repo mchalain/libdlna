@@ -175,7 +175,7 @@ struct protocol_info_s
 {
   dlna_protocol_t *protocol;
   const dlna_profile_t *profile;
-  char *other;
+  char *(*other) (protocol_info_t *pinfo);
   protocol_info_t *next;
 };
 

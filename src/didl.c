@@ -222,6 +222,8 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
 
         buffer_appendf (out, "<%s %s=\"", DIDL_RES, DIDL_RES_INFO);
         cms_write_protocol_info (out, resource->protocol_info);
+        buffer_appendf (out, ";DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;",
+                resource->info.speed, resource->info.cnv, resource->info.op);
         buffer_append (out, "\"");
 
         if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
