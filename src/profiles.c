@@ -104,10 +104,16 @@ dlna_item_new (dlna_t *dlna, const char *filename)
         const dlna_profile_t **profiles = profilerit->profiler->get_supported_media_profiles ();
         while (*profiles)
         {
-          if ( !strcmp ((*profiles)->mime, reader->mime))
+          char *mime = strdup (reader->mime);
+          char *other = strchr (mime, ':');
+          if (other)
+            *other = 0;
+          if ( !strcmp ((*profiles)->mime, mime))
           {
+            free (mime);
             break;
           }
+          free (mime);
           profiles ++;
         }
         if (!*profiles)
