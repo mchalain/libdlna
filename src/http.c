@@ -263,8 +263,8 @@ dlna_http_seek (void *cookie,
     dlna_stream_t *stream = dhdl->priv;
     if (stream->lseek)
       res = stream->lseek (stream, offset, origin);
-    if (res > 0)
-      return res;
+    if (res >= 0)
+      return HTTP_OK;
   }
 
   return HTTP_ERROR;
