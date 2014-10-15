@@ -744,7 +744,7 @@ struct dlna_stream_s {
   /**
    * mime type of the stream
    **/
-  char mime[100];
+  char mime[200];
   /**
    * total length of the file
    * if -1 the file is an un-terminated stream

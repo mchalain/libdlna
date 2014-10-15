@@ -149,7 +149,7 @@ static int parse_header (char *header, struct http_info *info)
 	}
 	if ((value = strcasestr(header, "CONTENT-TYPE: ")))
 	{
-		sscanf(value + 14,"%99[^\r]", info->mime);
+		sscanf(value + 14,"%199[^\r]", info->mime);
 	}
 	if ((value = strcasestr(header, "Location: ")))
 	{

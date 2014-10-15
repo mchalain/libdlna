@@ -259,7 +259,7 @@ memoryfile_open (char *url, char *buffer, int length, const char *mime)
   file->lseek = memoryfile_lseek;
   file->cleanup = memoryfile_cleanup;
   file->close = memoryfile_close;
-  strcpy (file->mime, mime);
+  strncpy (file->mime, mime, 199);
   file->length = length;
 
   data = calloc (1, sizeof (struct memoryfile_data_s));
@@ -585,7 +585,8 @@ static off_t
 seekable_lseek (void *opaque, off_t len, int whence)
 {
   dlna_stream_t *file = opaque;
-  return lseek (file->fd, len, whence);
+  off_t offset = lseek (file->fd, len, whence);
+  return offset;
 }
 
 static void

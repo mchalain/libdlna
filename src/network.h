@@ -22,9 +22,9 @@
 #define __NETWORK_HTTP_GET_H__
 struct http_info
 {
-	unsigned int length;
-	char mime[100];
-        char location[200];
+  unsigned int length;
+  char mime[200];
+  char location[200];
 };
 
 extern int http_get(char *uri, struct http_info *info);
