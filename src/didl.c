@@ -156,7 +156,10 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
 
   buffer_appendf (out, "<%s", DIDL_ITEM);
   didl_add_value (out, DIDL_ITEM_ID, item->id);
-  didl_add_value (out, DIDL_ITEM_PARENT_ID, item->parent ? item->parent->id : 0);
+  if (item->parent)
+    didl_add_value (out, DIDL_ITEM_PARENT_ID, item->parent->id);
+  else
+    didl_add_param (out, DIDL_ITEM_PARENT_ID, "-1");
   didl_add_value (out, DIDL_ITEM_RESTRICTED, item->restricted?1:0);
   buffer_append (out, ">");
 
@@ -223,7 +226,6 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
 
         if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
           didl_add_value (out, DIDL_RES_SIZE, resource->size);
-    
         didl_add_param (out, DIDL_RES_DURATION, resource->properties.duration);
         didl_add_value (out, DIDL_RES_BITRATE, resource->properties.bitrate);
         didl_add_value (out, DIDL_RES_BPS, resource->properties.bps);
@@ -248,9 +250,10 @@ didl_add_container (buffer_t *out, vfs_item_t *item, uint32_t searchable)
   buffer_appendf (out, "<%s", DIDL_CONTAINER);
 
   didl_add_value (out, DIDL_CONTAINER_ID, item->id);
-  didl_add_value (out, DIDL_CONTAINER_PARENT_ID,
-                  item->parent ? item->parent->id : 0);
-  
+  if (item->parent)
+    didl_add_value (out, DIDL_ITEM_PARENT_ID, item->parent->id);
+  else
+    didl_add_param (out, DIDL_ITEM_PARENT_ID, "-1");  
   didl_add_value (out, DIDL_CONTAINER_CHILD_COUNT,
                   item->u.container.children_count);
   
