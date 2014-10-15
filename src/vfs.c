@@ -46,11 +46,13 @@ dlna_vfs_stream_open (void *cookie, const char *url)
   dlna_vfs_t *vfs = (dlna_vfs_t *)cookie;
   dlna_stream_t *stream;
   vfs_resource_t *resource;
+  char *page;
 
   if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
     return NULL;
   /* ask for anything else ... */
-  id = strtoul (strrchr (url, '/') + 1, NULL, 10);
+  page = strrchr (url, '/') + 1;
+  id = strtoul (page, NULL, 10);
   item = vfs_get_item_by_id (vfs, id);
   if (!item)
     return NULL;
@@ -66,12 +68,27 @@ dlna_vfs_stream_open (void *cookie, const char *url)
     return NULL;
 
   resource = vfs_resource_get (item);
+  while (resource)
+  {
+    char *res_url = resource->url (resource);
+    char *res_page;
+
+    res_page = strrchr (res_url, '/') + 1;
+    if (!strcmp (res_page, page))
+    {
+      free (res_url);
+      break;
+    }
+    resource = resource->next;
+    free (res_url);
+  }
   stream = stream_open (dlna_item->filename);
-  if (stream && resource->protocol_info->other)
+  if (stream && resource && resource->protocol_info->other)
   {
     char *other = resource->protocol_info->other (resource->protocol_info);
     char *mime = strdup (stream->mime);
-    snprintf (stream->mime, 199, "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
+    snprintf (stream->mime, 199, 
+                "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
                 mime, other,
                 resource->info.speed, resource->info.cnv, resource->info.op);
     free (other);
