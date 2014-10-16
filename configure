@@ -393,7 +393,7 @@ cpu="generic"
 optimize="yes"
 debug="no"
 dostrip="yes"
-extralibs=""
+extralibs="-ldl"
 installstrip="-s"
 cross_compile="no"
 INSTALL="/usr/bin/install -c"
@@ -774,8 +774,6 @@ if [ "$libavcodec" = auto -o "$libavcodec" = yes ]; then
   check_lib libavcodec/avcodec.h avcodec_register_all -lavcodec || ${falsereturn}
 fi
 if [ "$libavcodec" = yes -a "$libavcodec" = yes ]; then
-  add_cflags -DFFMPEG
-  add_extralibs -ldlnaprofiler_ffmpeg
   profilers="$profilers ffmpeg_profiler"
   utils="$utils dlna-profiler dlna-dms"
 fi
@@ -794,8 +792,6 @@ if [ "$libmpg123" = auto -o "$libmpg123" = yes ]; then
   check_lib mpg123.h mpg123_init -lmpg123 || ${falsereturn}
 fi
 if [ "$libmpg123" = yes ]; then
-  add_cflags -DMPG123
-  add_extralibs -ldlnaprofiler_mpg123
   profilers="$profilers mpg123_profiler"
   utils="$utils dlna-dmr dlna-dms"
 fi

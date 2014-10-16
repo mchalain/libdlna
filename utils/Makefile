@@ -24,10 +24,10 @@ BINS = \
 CFLAGS  += -I../src
 LDFLAGS += -L../src -ldlna -ldl
 
-FFMPEG_PROFILER_CFLAGS := -I../ffmpeg_profiler
+FFMPEG_PROFILER_CFLAGS := -I../ffmpeg_profiler -DFFMPEG
 FFMPEG_PROFILER_LDFLAGS := -L../ffmpeg_profiler -ldlnaprofiler_ffmpeg
 
-MPG123_PROFILER_CFLAGS := -I../mpg123_profiler
+MPG123_PROFILER_CFLAGS := -I../mpg123_profiler -DMPG123
 MPG123_PROFILER_LDFLAGS := -L../mpg123_profiler -ldlnaprofiler_mpg123
 
 ifeq ($(BUILD_STATIC),yes)
