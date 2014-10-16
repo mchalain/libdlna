@@ -204,6 +204,21 @@ dlna_item_metadata (dlna_item_t * item, dlna_object_action_t action)
     else if (item->profile->get_metadata)
       return item->profile->get_metadata (item);
   }
+  else if (action = SET)
+  {
+    if (item->profile->set_metadata)
+    {
+      item->profile->set_metadata (item);
+    }
+    return dlna_item_metadata (item, GET);
+  }
+  else if (action = FREE)
+  {
+    if (item->profile->free_metadata)
+    {
+      item->profile->free_metadata (item);
+    }
+  }
   return NULL;
 }
 

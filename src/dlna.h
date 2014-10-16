@@ -351,7 +351,12 @@ typedef struct dlna_profile_s {
   } features;
   /* properties extraction callback */
   struct dlna_properties_s *(*get_properties)(struct dlna_item_s *item);
+  /* returns a pointer on the metadata object */
   struct dlna_metadata_s *(*get_metadata)(struct dlna_item_s *item);
+  /* release the memory of the metadata is not a real free and depend of the profile */
+  void (*free_metadata)(struct dlna_item_s *item);
+  /* change the value inside the metadata and returns the new object */
+  void (*set_metadata)(struct dlna_item_s *item);
   void (*free)(struct dlna_item_s *item);
   int (*prepare_stream) (struct dlna_item_s *item);
   int (*read_stream) (struct dlna_item_s *item);
@@ -406,6 +411,15 @@ typedef struct dlna_profiler_s {
  **/
 void
 dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler);
+
+/**
+ * add a profiler to a list
+ * 
+ * @param[in] dlna     The DLNA library's controller.
+ * @param[in] librarypath The Media file profiler library path.
+ **/
+void
+dlna_add_profiler_library (dlna_t *dlna, char *librarypath);
 
 /***************************************************************************/
 /*                                                                         */
@@ -640,6 +654,16 @@ dlna_media_class_t dlna_item_type (dlna_item_t * item);
  * @warning This function returns a pointer, do _NOT_ free it.
  * @param[in] item     The DLNA object item to be freed.
  * @param[in] action   action to do with the metadata.
+ * 						GET  : returns a pointer on the metadata
+ *                         the object may be allocated during the item creation
+ *                         or may be dynamicly allocated
+ *                         or stored by the item
+ *                         the same item can be requested more than once before the FREE
+ *                         without memory leak.
+ * 						FREE : depend of the item's profile
+ *                          the object releases the access to the metadata.
+ * 							It's not a memory freeing.
+ *                             
  * 
  * @return metadata
  */

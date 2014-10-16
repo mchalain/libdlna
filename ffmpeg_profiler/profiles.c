@@ -123,8 +123,7 @@ item_get_metadata (dlna_item_t *item)
   if (!ctx)
     return NULL;
 
-  meta = malloc (sizeof (dlna_metadata_t));
-  memset(meta, 0, sizeof (dlna_metadata_t));
+  meta = calloc (1, sizeof (dlna_metadata_t));
   entry = av_dict_get(dict, "title", NULL, 0);
   if (entry && entry->value)
     meta->title   = strdup (entry->value);
@@ -180,6 +179,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -205,6 +206,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -225,6 +228,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -250,6 +255,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -271,6 +278,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -292,6 +301,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -313,6 +324,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -334,6 +347,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -355,6 +370,10 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -376,6 +395,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -397,6 +418,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -418,6 +441,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -439,6 +464,8 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
@@ -460,13 +487,14 @@ ffmpeg_profiler_init (dlna_t *dlna dlna_unused)
       profile->features.store_properties = 1;
       profile->get_properties = item_get_properties;
       profile->get_metadata = item_get_metadata;
+      profile->free_metadata = NULL;
+      profile->set_metadata = NULL;
       profile->free = media_profile_free;
       //profile->prepare_stream = ffmpeg_prepare_stream;
       //profile->read_stream = ffmpeg_read_stream;
       //profile->seek_stream = NULL;
     }
   }
-
 
   return 0;
 }
@@ -999,3 +1027,5 @@ const dlna_profiler_t ffmpeg_profiler = {
   .get_supported_media_profiles = ffmpeg_profiler_get_supported_media_profile,
   .free = ffmpeg_profiler_free,
 };
+
+const dlna_profiler_t *profiler = &ffmpeg_profiler;

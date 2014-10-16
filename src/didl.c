@@ -243,6 +243,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
         resource = resource->next;
       }
     }
+    dlna_item_metadata (dlna_item, FREE);
   }
   buffer_appendf (out, "</%s>", DIDL_ITEM);
 }

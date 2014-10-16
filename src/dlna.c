@@ -57,6 +57,26 @@ dlna_verbosity_level_t dlna_verbosity = DLNA_MSG_ERROR;
 dlna_capability_mode_t dlna_mode;
 
 void
+dlna_add_profiler_library (dlna_t *dlna, char *librarypath)
+{
+  void *handle;
+  handle = dlopen (librarypath, RTLD_LAZY);
+  if (handle)
+  {
+    char *error;
+    const dlna_profiler_t **profiler;
+
+    dlerror ();
+    profiler = dlsym (handle, "profiler");
+    error = dlerror ();
+    if (error)
+      dlna_log (DLNA_MSG_ERROR, "error %s\n", error);
+    if (profiler)
+      dlna_add_profiler (dlna, *profiler);
+  }
+}
+
+void
 dlna_add_profiler (dlna_t *dlna, const dlna_profiler_t *profiler)
 {
   if (!dlna)

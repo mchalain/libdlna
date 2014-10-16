@@ -357,6 +357,8 @@ mpg123_profiler_init (dlna_t *dlna dlna_unused)
       media_profile->features.store_properties = 0;
       media_profile->free = profile_free;
       media_profile->get_metadata = item_get_metadata;
+      media_profile->free_metadata = NULL;
+      media_profile->set_metadata = NULL;
       media_profile->get_properties = item_get_properties;
       media_profile->prepare_stream = item_prepare_stream;
       media_profile->read_stream = item_read_stream;
@@ -577,3 +579,5 @@ const dlna_profiler_t mpg123_profiler = {
   .get_supported_media_profiles = mpg123_profiler_get_supported_media_profiles,
   .free = mpg123_profiler_free,
 };
+
+const dlna_profiler_t *profiler = &mpg123_profiler;

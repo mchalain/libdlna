@@ -30,12 +30,6 @@
 #include <getopt.h>
 
 #include "dlna.h"
-#ifdef MPG123
-#include "mpg123_profiler.h"
-#endif
-#ifdef FFMPEG
-#include "ffmpeg_profiler.h"
-#endif
 
 static void
 add_dir (dlna_t *dlna, dlna_vfs_t *vfs, char *dir, uint32_t id)
@@ -116,7 +110,6 @@ main (int argc, char **argv)
   dlna_capability_mode_t cap;
   dlna_vfs_t *vfs;
   char *interface = NULL;
-  const dlna_profiler_t *profiler;
   int c, index;
   char *content_dir = NULL;
   struct stat st;
@@ -210,14 +203,8 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
-#ifdef MPG123
-  profiler = &mpg123_profiler;
-  dlna_add_profiler (dlna, profiler);
-#endif
-#ifdef FFMPEG
-  profiler = &ffmpeg_profiler;
-  dlna_add_profiler (dlna, profiler);
-#endif
+  dlna_add_profiler_library (dlna, "./ffmpeg_profiler/libdlnaprofiler_ffmpeg.so");
+  dlna_add_profiler_library (dlna, "./mpg123_profiler/libdlnaprofiler_mpg123.so");
 
   /* define NIC to be used */
   dlna_set_interface (dlna, interface);

@@ -282,11 +282,13 @@ vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
       break;
     case DLNA_RESOURCE:
       {
-        dlna_metadata_t *metadata = dlna_item_metadata (item->u.resource.item, GET);
+        dlna_item_t *dlna_item = vfs_item_get (item);
+        dlna_metadata_t *metadata = dlna_item_metadata (dlna_item, GET);
         if (metadata && metadata->title && !strcmp (metadata->title, name))
           return item;
-        else if (!strcmp (basename (item->u.resource.item->filename), name))
+        else if (!strcmp (basename (dlna_item->filename), name))
           return item;
+        dlna_item_metadata (dlna_item, FREE);
       }
       break;
     }
