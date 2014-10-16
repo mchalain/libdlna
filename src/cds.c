@@ -324,9 +324,9 @@ static int
 cmp_item_title (vfs_item_t *item1, vfs_item_t *item2)
 {
   dlna_item_t *ditem1 = vfs_item_get (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1);
+  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
   dlna_item_t *ditem2 = vfs_item_get (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2);
+  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
   if (!meta2->title)
     return -1;
   if (!meta1->title)
@@ -338,9 +338,9 @@ static int
 cmp_item_author (vfs_item_t *item1, vfs_item_t *item2)
 {
   dlna_item_t *ditem1 = vfs_item_get (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1);
+  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
   dlna_item_t *ditem2 = vfs_item_get (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2);
+  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
   if (!meta2->author)
     return -1;
   if (!meta1->author)
@@ -352,9 +352,9 @@ static int
 cmp_item_album (vfs_item_t *item1, vfs_item_t *item2)
 {
   dlna_item_t *ditem1 = vfs_item_get (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1);
+  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
   dlna_item_t *ditem2 = vfs_item_get (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2);
+  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
   if (!meta2->album)
     return -1;
   if (!meta1->album)
@@ -366,9 +366,9 @@ static int
 cmp_item_genre (vfs_item_t *item1, vfs_item_t *item2)
 {
   dlna_item_t *ditem1 = vfs_item_get (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1);
+  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
   dlna_item_t *ditem2 = vfs_item_get (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2);
+  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
   if (!meta2->genre)
     return -1;
   if (!meta1->genre)
@@ -380,9 +380,9 @@ static int
 cmp_item_track (vfs_item_t *item1, vfs_item_t *item2)
 {
   dlna_item_t *ditem1 = vfs_item_get (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1);
+  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
   dlna_item_t *ditem2 = vfs_item_get (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2);
+  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
   return meta2->track > meta1->track;
 }
 

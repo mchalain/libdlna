@@ -195,14 +195,16 @@ dlna_item_type (dlna_item_t * item)
 }
 
 dlna_metadata_t *
-dlna_item_metadata (dlna_item_t * item)
+dlna_item_metadata (dlna_item_t * item, dlna_object_action_t action)
 {
-  if (item->metadata)
-    return item->metadata;
-  else if (item->profile->get_metadata)
-    return item->profile->get_metadata (item);
-  else
-    return NULL;
+  if (action == GET)
+  {
+    if (item->metadata)
+      return item->metadata;
+    else if (item->profile->get_metadata)
+      return item->profile->get_metadata (item);
+  }
+  return NULL;
 }
 
 dlna_properties_t *

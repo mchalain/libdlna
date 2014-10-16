@@ -168,7 +168,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item,
   {
     dlna_metadata_t *metadata;
 
-    metadata = dlna_item_metadata (dlna_item);
+    metadata = dlna_item_metadata (dlna_item, GET);
 
     add_item_name = 1;
     if (metadata)

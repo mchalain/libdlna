@@ -639,10 +639,12 @@ dlna_media_class_t dlna_item_type (dlna_item_t * item);
  * 
  * @warning This function returns a pointer, do _NOT_ free it.
  * @param[in] item     The DLNA object item to be freed.
+ * @param[in] action   action to do with the metadata.
  * 
  * @return metadata
  */
-dlna_metadata_t *dlna_item_metadata (dlna_item_t * item);
+typedef enum {GET,SET,FREE} dlna_object_action_t;
+dlna_metadata_t *dlna_item_metadata (dlna_item_t * item, dlna_object_action_t action);
 
 /**
  * Returns properties about item
