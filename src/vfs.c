@@ -94,7 +94,6 @@ dlna_vfs_stream_open (void *cookie, const char *url)
     free (other);
     free (mime);
   }
-  printf ("stream info %s %d\n",stream->mime,strlen (stream->mime));
   return stream;
 }
 

@@ -197,7 +197,7 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
-  if (cap & DLNA_CAPABILITY_DLNA)
+  if ((cap & DLNA_CAPABILITY_DLNA) || !(cap & DLNA_CAPABILITY_UPNP_AV))
   {
     dlna_add_profiler_library (dlna, "./ffmpeg_profiler/libdlnaprofiler_ffmpeg.so");
     dlna_add_profiler_library (dlna, "./mpg123_profiler/libdlnaprofiler_mpg123.so");
