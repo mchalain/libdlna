@@ -120,14 +120,6 @@ dlna_vfs_new (dlna_t *dlna)
 }
 
 void
-dlna_vfs_set_mode (dlna_vfs_t *vfs, dlna_org_flags_t dlna_flags)
-{
-  if (dlna_flags != 0)
-    vfs->mode |= DLNA_CAPABILITY_DLNA;
-  vfs->flags = dlna_flags;
-}
-
-void
 dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 {
   protocol->next = vfs->protocols;
@@ -448,7 +440,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
   {
     vfs_resource_t *resource = protocol->create_resource (item);
-    if (vfs->flags && resource->protocol_info->profile->id)
+    if ((vfs->mode & DLNA_CAPABILITY_DLNA) && resource->protocol_info->profile->id)
       resource->protocol_info->other = vfs_resource_other_dlna;
     vfs_resource_add (item, resource);
     vfs_add_source (vfs, resource->protocol_info);

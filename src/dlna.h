@@ -692,14 +692,6 @@ dlna_vfs_t *dlna_vfs_new (dlna_t *dlna);
  * Set library's mask of flags.
  *
  * @param[in] vfs     The VFS.
- * @param[in] flags   Mask of flags to be set
- */
-void dlna_vfs_set_mode (dlna_vfs_t *vfs, dlna_org_flags_t dlna_flags);
-
-/**
- * Set library's mask of flags.
- *
- * @param[in] vfs     The VFS.
  * @param[in] protocol Protocol object to add
  */
 void dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol);

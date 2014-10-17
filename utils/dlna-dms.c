@@ -106,7 +106,6 @@ main (int argc, char **argv)
 {
   dlna_t *dlna;
   dlna_device_t *device;
-  dlna_org_flags_t flags;
   dlna_capability_mode_t cap;
   dlna_vfs_t *vfs;
   char *interface = NULL;
@@ -133,12 +132,7 @@ main (int argc, char **argv)
     return -1;
   }
  
-  flags = DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
-    DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE |
-    DLNA_ORG_FLAG_CONNECTION_STALL |
-    DLNA_ORG_FLAG_DLNA_V15;
-
-  cap = DLNA_CAPABILITY_DLNA;
+  cap = 0;
 
   /* command line argument processing */
   while (1)
@@ -217,7 +211,6 @@ main (int argc, char **argv)
 
   dlna_service_register (device, cms_service_new(dlna));
   vfs = dlna_vfs_new (dlna);
-  dlna_vfs_set_mode (vfs, flags);
   dlna_vfs_add_protocol (vfs, http_protocol_new(dlna));
   dlna_service_register (device, cds_service_new(dlna, vfs));
   if (cap & DLNA_CAPABILITY_UPNP_AV_XBOX)

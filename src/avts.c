@@ -1738,14 +1738,33 @@ avts_init (dlna_service_t *service)
   return 0;
 }
 
+static char *
+avts_other_dlna (protocol_info_t *pinfo)
+{
+  char dlna_other[256];
+  dlna_org_flags_t flags;
+
+  flags = DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
+    DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE |
+    DLNA_ORG_FLAG_CONNECTION_STALL |
+    DLNA_ORG_FLAG_DLNA_V15;
+  sprintf (dlna_other, "%s=%s;%s=%.8x%.24x",
+            "DLNA.ORG_PN", pinfo->profile->id,
+            "DLNA.ORG_FLAGS", flags, 0);
+  return strdup (dlna_other);
+}
+
 static void
-avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, const dlna_profile_t *profile)
+avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, 
+        const dlna_profile_t *profile, dlna_capability_mode_t mode)
 {
   protocol_info_t *sink;
 
   sink = calloc (1, sizeof (protocol_info_t));
   sink->protocol = protocol;
   sink->profile = profile;
+  if (mode & DLNA_CAPABILITY_DLNA)
+    sink->other = avts_other_dlna;
   sink->next = avts_data->sinks;
   avts_data->sinks = sink;
 }
@@ -1758,7 +1777,7 @@ avts_add_protocol (avts_data_t *avts_data, dlna_protocol_t *new)
 }
 
 dlna_service_t *
-avts_service_new (dlna_t *dlna dlna_unused)
+avts_service_new (dlna_t *dlna)
 {
   avts_instance_t *instance = NULL;
   dlna_service_t *service = NULL;
@@ -1792,7 +1811,7 @@ avts_service_new (dlna_t *dlna dlna_unused)
       const dlna_profile_t **profiles = ite->profiler->get_supported_media_profiles ();
       for (i = 0; profiles[i]; i++)
       {
-        avts_add_sink (avts_data, proto, profiles[i]);
+        avts_add_sink (avts_data, proto, profiles[i], dlna->mode);
       }
     }
   }

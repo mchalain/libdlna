@@ -65,7 +65,7 @@ main (int argc, char **argv)
   printf ("libdlna Digital Media Renderer (DMR) API example\n");
   printf ("Using %s\n", LIBDLNA_IDENT);
 
-  cap = DLNA_CAPABILITY_DLNA;
+  cap = 0;
 
   /* command line argument processing */
   while (1)
@@ -90,7 +90,7 @@ main (int argc, char **argv)
       break;
 
     case 'd':
-      cap = DLNA_CAPABILITY_DLNA;
+      cap &= DLNA_CAPABILITY_DLNA;
       printf ("Running in strict DLNA compliant mode ...\n");
       break;
 
