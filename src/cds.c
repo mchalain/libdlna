@@ -170,7 +170,6 @@ struct cds_feature_s
 
 struct cds_data_s
 {
-  dlna_org_flags_t flags;
   dlna_vfs_t *vfs;
   cds_feature_t *features;
   char *sort_caps;
@@ -483,7 +482,7 @@ cds_browse_metadata (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   switch (item->type)
   {
   case DLNA_RESOURCE:
-    didl_add_item (out, item, filter, cds_data->flags);
+    didl_add_item (out, item, filter);
     snprintf (updateID, 255, "%u", vfs->vfs_root->u.container.updateID);
     break;
   case DLNA_CONTAINER:
@@ -552,7 +551,7 @@ cds_browse_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
         break;
 
       case DLNA_RESOURCE:
-        didl_add_item (out, item, filter, cds_data->flags);
+        didl_add_item (out, item, filter);
         break;
 
       default:
@@ -778,7 +777,7 @@ cds_search_recursive (cds_data_t *cds_data, vfs_items_list_t *items, buffer_t *o
       case DLNA_RESOURCE:        
         if (cds_search_match (cds_data, item, search_criteria))
         {
-          didl_add_item (out, item, filter, cds_data->flags);
+          didl_add_item (out, item, filter);
           result_count++;
         }
         break;
@@ -1179,7 +1178,6 @@ cds_service_new (dlna_t *dlna dlna_unused, dlna_vfs_t *vfs)
   cds_data_t *cds_data = calloc (1, sizeof (cds_data_t));
   service->cookie = cds_data;
   cds_data->vfs = vfs;
-  cds_data->flags = vfs->flags;
 
   return service;
 };

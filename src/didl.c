@@ -144,8 +144,7 @@ didl_add_value (buffer_t *out, char *param, uint32_t value)
 }
 
 void
-didl_add_item (buffer_t *out, vfs_item_t *item,
-    char *filter, dlna_org_flags_t flags)
+didl_add_item (buffer_t *out, vfs_item_t *item, char *filter)
 {
   char *class;
   int add_item_name;

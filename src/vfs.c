@@ -120,7 +120,7 @@ dlna_vfs_new (dlna_t *dlna)
 }
 
 void
-dlna_vfs_set_mode (dlna_vfs_t *vfs, int dlna_flags)
+dlna_vfs_set_mode (dlna_vfs_t *vfs, dlna_org_flags_t dlna_flags)
 {
   if (dlna_flags != 0)
     vfs->mode |= DLNA_CAPABILITY_DLNA;
