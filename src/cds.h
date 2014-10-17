@@ -24,7 +24,7 @@
 #define CDS_H
 
 #define CDS_SERVICE_ID   "urn:upnp-org:serviceId:ContentDirectory"
-#define CDS_SERVICE_TYPE "urn:schemas-upnp-org:service:ContentDirectory:2"
+#define CDS_SERVICE_TYPE "urn:schemas-upnp-org:service:ContentDirectory:1"
 
 #define CDS_URL              "cds.xml"
 #define CDS_CONTROL_URL      "cds_control"
