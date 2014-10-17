@@ -136,9 +136,9 @@ typedef enum {
 } dlna_restricted_t;
 
 typedef enum {
-  DLNA_CAPABILITY_UPNP_AV = 0x0,       /* comply with UPnP A/V specifications */
-  DLNA_CAPABILITY_DLNA = 0x01,          /* comply with DLNA specifications */
-  DLNA_CAPABILITY_UPNP_AV_XBOX= 0x02,  /* UPnP A/V with XboX 360 hacks */
+  DLNA_CAPABILITY_UPNP_AV = 0x01,       /* comply with UPnP A/V specifications */
+  DLNA_CAPABILITY_DLNA = 0x02,          /* comply with DLNA specifications */
+  DLNA_CAPABILITY_UPNP_AV_XBOX= 0x04,  /* UPnP A/V with XboX 360 hacks */
 } dlna_capability_mode_t;
 
 typedef enum {

@@ -82,7 +82,9 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->protocol_info->profile = dlna_item->profile;
 
   resource->size = dlna_item->filesize;
-  memcpy (&resource->properties, dlna_item_properties (dlna_item), sizeof (dlna_properties_t));
+  dlna_properties_t *properties = dlna_item_properties (dlna_item);
+  if (properties)
+    memcpy (&resource->properties, properties, sizeof (dlna_properties_t));
   resource->info.protocolid = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   resource->info.cnv = DLNA_ORG_CONVERSION_NONE;
   resource->info.op = DLNA_ORG_OPERATION_RANGE;

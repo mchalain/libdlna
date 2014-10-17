@@ -119,7 +119,6 @@ dlna_init (void)
   
   dlna_log (DLNA_MSG_INFO, "DLNA: init\n");
 
-//  dlna_add_profiler (dlna, &upnpav_profiler);
   return dlna;
 }
 
@@ -207,6 +206,8 @@ dlna_set_capability_mode (dlna_t *dlna, dlna_capability_mode_t mode)
 
   if (dlna->mode & DLNA_CAPABILITY_DLNA)
     dlna->check_extensions = 1;
+  if (dlna->mode & DLNA_CAPABILITY_UPNP_AV)
+    dlna_add_profiler (dlna, &upnpav_profiler);
 }
 
 void

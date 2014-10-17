@@ -106,7 +106,7 @@ main (int argc, char **argv)
 {
   dlna_t *dlna;
   dlna_device_t *device;
-  dlna_capability_mode_t cap;
+  dlna_capability_mode_t cap = 0;
   dlna_vfs_t *vfs;
   char *interface = NULL;
   int c, index;
@@ -161,17 +161,17 @@ main (int argc, char **argv)
       break;
 
     case 'd':
-      cap = DLNA_CAPABILITY_DLNA;
+      cap |= DLNA_CAPABILITY_DLNA;
       printf ("Running in strict DLNA compliant mode ...\n");
       break;
 
     case 'u':
-      cap = DLNA_CAPABILITY_UPNP_AV;
+      cap |= DLNA_CAPABILITY_UPNP_AV;
       printf ("Running in pervasive UPnP A/V compliant mode ...\n");
       break;
 
     case 'x':
-      cap = DLNA_CAPABILITY_UPNP_AV_XBOX;
+      cap |= DLNA_CAPABILITY_UPNP_AV_XBOX;
       printf ("Running in hackish XboX 360 UPnP A/V compliant mode ...\n");
       break;
 
@@ -197,8 +197,11 @@ main (int argc, char **argv)
   dlna_set_extension_check (dlna, 1);
 
   /* init Media profiler */
-  dlna_add_profiler_library (dlna, "./ffmpeg_profiler/libdlnaprofiler_ffmpeg.so");
-  dlna_add_profiler_library (dlna, "./mpg123_profiler/libdlnaprofiler_mpg123.so");
+  if (cap & DLNA_CAPABILITY_DLNA)
+  {
+    dlna_add_profiler_library (dlna, "./ffmpeg_profiler/libdlnaprofiler_ffmpeg.so");
+    dlna_add_profiler_library (dlna, "./mpg123_profiler/libdlnaprofiler_mpg123.so");
+  }
 
   /* define NIC to be used */
   dlna_set_interface (dlna, interface);

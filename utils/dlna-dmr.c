@@ -49,7 +49,7 @@ main (int argc, char **argv)
 {
   dlna_t *dlna;
   dlna_device_t *device;
-  dlna_capability_mode_t cap;
+  dlna_capability_mode_t cap = 0;
   char *interface = NULL;
   const dlna_profiler_t *profiler;
   int c, index;
@@ -90,12 +90,12 @@ main (int argc, char **argv)
       break;
 
     case 'd':
-      cap &= DLNA_CAPABILITY_DLNA;
+      cap |= DLNA_CAPABILITY_DLNA;
       printf ("Running in strict DLNA compliant mode ...\n");
       break;
 
     case 'u':
-      cap = DLNA_CAPABILITY_UPNP_AV;
+      cap |= DLNA_CAPABILITY_UPNP_AV;
       printf ("Running in pervasive UPnP A/V compliant mode ...\n");
       break;
 
