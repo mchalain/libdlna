@@ -585,12 +585,15 @@ dlna_stop (dlna_t *dlna)
 
   dlna_log (DLNA_MSG_INFO, "Stopping UPnP A/V Service ...\n");
   dlna->inited = 0;
-  ithread_mutex_lock (&dlna->event_mutex);
-  ithread_cond_signal (&dlna->eventing);
-  ithread_mutex_unlock (&dlna->event_mutex);
-  ithread_join (dlna->event_thread, NULL);
-  ithread_mutex_destroy (&dlna->event_mutex);
-  ithread_cond_destroy (&dlna->eventing);
+  if (dlna->event_thread)
+  {
+    ithread_mutex_lock (&dlna->event_mutex);
+    ithread_cond_signal (&dlna->eventing);
+    ithread_mutex_unlock (&dlna->event_mutex);
+    ithread_join (dlna->event_thread, NULL);
+    ithread_mutex_destroy (&dlna->event_mutex);
+    ithread_cond_destroy (&dlna->eventing);
+  }
   dlnaUnRegisterRootDevice (dlna->dev);
   dlnaFinish ();
 
