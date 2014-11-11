@@ -68,10 +68,12 @@ struct vfs_item_s {
     } resource;
     struct {
       char *title;
-      vfs_items_list_t *children;
+      vfs_items_list_t *(*children) (vfs_item_t *item);
+      void (*add_child) (vfs_item_t *container, vfs_item_t *child);
       uint32_t children_count;
       uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
       dlna_media_class_t media_class;
+      void *children_cookie;
     } container;
   } u;
 

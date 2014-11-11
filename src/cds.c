@@ -423,14 +423,14 @@ cds_vfs_sort (cds_data_t *cds_data, vfs_item_t *first, char *sort)
   vfs_items_list_t *items = NULL;
   vfs_items_list_t *containers = NULL;
 
-  if (first->type != DLNA_CONTAINER)
+  if (first->type != DLNA_CONTAINER || !first->u.container.children)
     return NULL;
 
 #ifdef DISABLE_SORT
-  return first->u.container.children;
+  return first->u.container.children (first);
 #endif
 
-  for (children = first->u.container.children; children; children = children->next)
+  for (children = first->u.container.children (first); children; children = children->next)
   {
     vfs_item_t *child = children->item;
 
@@ -458,9 +458,11 @@ cds_vfs_sort (cds_data_t *cds_data, vfs_item_t *first, char *sort)
   }
   else
     children = items;
+#ifdef STORE_CHILDREN
   first->u.container.children = children;
+#endif
 
-  return first->u.container.children;
+  return children;
 }
 
 static int
@@ -769,7 +771,7 @@ cds_search_recursive (cds_data_t *cds_data, vfs_items_list_t *items, buffer_t *o
       {
       case DLNA_CONTAINER:
         result_count +=
-          cds_search_recursive (cds_data, item->u.container.children, out,
+          cds_search_recursive (cds_data, item->u.container.children (item), out,
                                 (count == 0) ? 0 : (count - result_count),
                                 filter, search_criteria);
         break;
@@ -812,7 +814,7 @@ cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   didl_add_header (out);
 
   /* go to the child pointed out by index */
-  items = item->u.container.children;
+  items = item->u.container.children (item);
   for (i = 0; i < index; i++)
     if (items)
       items = items->next;

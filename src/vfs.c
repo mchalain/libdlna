@@ -171,7 +171,7 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
     if (item->u.container.title)
       free (item->u.container.title);
     vfs_items_list_t *children;
-    for (children = item->u.container.children; children; children = children->next)
+    for (children = item->u.container.children (item); children; children = children->next)
     {
       vfs_item_free (vfs, children->item);
       free (children);
@@ -287,25 +287,31 @@ vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
   return NULL;
 }
 
+static vfs_items_list_t *
+vfs_item_children (vfs_item_t *item)
+{
+  return item->u.container.children_cookie;
+}
+
 static void
 vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
 {
   vfs_items_list_t *children;
 
-  if (!item || !child)
+  if (!item || !child || !item->u.container.children)
     return;
 
-  for (children = item->u.container.children; children; children = children->next)
+  for (children = item->u.container.children (item); children; children = children->next)
     if (children->item == child)
       return; /* already present */
 
   children = calloc (1, sizeof (vfs_items_list_t));
-  children->next = item->u.container.children;
+  children->next = item->u.container.children (item);
   children->previous = NULL;
   children->item = child;
-  if (item->u.container.children)
-    item->u.container.children->previous = children;
-  item->u.container.children = children;
+  if (item->u.container.children_cookie)
+    ((vfs_items_list_t *)item->u.container.children_cookie)->previous = children;
+  item->u.container.children_cookie = (void *)children;
   item->u.container.children_count++;
 }
 
@@ -345,7 +351,8 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   else
     item->u.container.media_class = DLNA_CLASS_COLLECTION;
   item->u.container.title = strdup (basename (name));
-  item->u.container.children = NULL;
+  item->u.container.children = vfs_item_children;
+  item->u.container.add_child = vfs_item_add_child;
   item->u.container.children_count = 0;
   
   if (!vfs->vfs_root)
@@ -362,7 +369,8 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
     /* add new child to parent */
     if (item->parent != item)
     {
-      vfs_item_add_child (item->parent, item);
+      if (item->parent->u.container.add_child)
+        item->parent->u.container.add_child (item->parent, item);
       vfs->vfs_items++;
     }
   }
@@ -433,7 +441,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
             "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->u.container.title);
 
   /* add new child to parent */
-  vfs_item_add_child (item->parent, item);
+  item->parent->u.container.add_child (item->parent, item);
   vfs->vfs_items++;
 
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
