@@ -356,7 +356,10 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   item->u.container.children_count = 0;
   
   if (!vfs->vfs_root)
+  {
     vfs->vfs_root = item;
+    item->root = item;
+  }
   
   /* check for a valid parent id */
   if (!(container_id == 0 && item->id == 0))
@@ -366,6 +369,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
       item->parent = vfs->vfs_root;
     else
       item->parent->u.container.updateID ++;
+    item->root = item->parent->root;
     /* add new child to parent */
     if (item->parent != item)
     {

@@ -78,6 +78,7 @@ struct vfs_item_s {
   } u;
 
   struct vfs_item_s *parent;
+  struct vfs_item_s *root;
 
   UT_hash_handle hh;
 };
