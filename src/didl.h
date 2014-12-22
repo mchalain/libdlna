@@ -40,4 +40,16 @@ didl_add_item (struct buffer_s *out, vfs_item_t *item, char *filter);
 void
 didl_add_container (struct buffer_s *out, vfs_item_t *item, uint32_t searchable);
 
+
+void *
+didl_new ();
+int
+didl_append_item (void *didl, vfs_item_t *item, char *filter);
+int
+didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable);
+void
+didl_print (void *didl, buffer_t *out);
+void
+didl_delete (void *didl);
+
 #endif

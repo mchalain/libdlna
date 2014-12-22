@@ -104,8 +104,209 @@ filter_has_val (const char *filter, const char *val)
 
   free (m_buffer);
   free (x);
-  
+
   return ret;
+}
+
+void *
+didl_new ()
+{
+  IXML_Document *doc;
+  ixmlParseBufferEx( "<"DIDL_LITE" "DIDL_NAMESPACE"></"DIDL_LITE">",&doc);
+  return doc;
+}
+
+static IXML_Element *
+didl_append_tag (IXML_Document *doc, IXML_Element *itemNode, char *tag, char *value)
+{
+  IXML_Element *elem = NULL;
+  if (value && *value != '\0')
+  {
+    IXML_Node *text;
+    elem = ixmlDocument_createElement (doc, tag);
+    text = ixmlDocument_createTextNode (doc, value);
+    ixmlNode_appendChild ((IXML_Node *)elem, text);
+    ixmlNode_appendChild ((IXML_Node *)itemNode, (IXML_Node *)elem);
+  }
+  return elem;
+}
+
+int
+didl_append_item (void *didl, vfs_item_t *item, char *filter)
+{
+  IXML_Document *doc = didl;
+  if (item && item->type == DLNA_RESOURCE)
+  {
+    IXML_Element *elem;
+    char valuestr[10];
+    dlna_metadata_t *metadata;
+
+    elem = ixmlDocument_createElement (doc, DIDL_ITEM);
+    sprintf (valuestr, "%9u", item->id);
+    ixmlElement_setAttribute (elem, DIDL_ITEM_ID, valuestr);
+    if (item->parent && item != item->parent)
+      sprintf (valuestr, "%9u", item->parent->id);
+    else
+      strcpy (valuestr , "-1");
+    ixmlElement_setAttribute (elem, DIDL_ITEM_PARENT_ID, valuestr);
+    sprintf (valuestr, "%1u", item->restricted?1:0);
+    ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
+
+    dlna_item_t *dlna_item;
+    dlna_item = vfs_item_get (item);
+    IXML_Element *title = NULL;
+    if (dlna_item)
+    {
+      metadata = dlna_item_metadata (dlna_item, GET);
+
+      if (metadata)
+        title = didl_append_tag (doc, elem, DIDL_ITEM_TITLE, metadata->title);
+    }
+    if (!title)
+      title = didl_append_tag (doc, elem, DIDL_ITEM_TITLE, basename (dlna_item->filename));
+
+    if (dlna_item)
+    {
+      char *class;
+      class = dlna_profile_upnp_object_item (dlna_item->profile);
+      didl_append_tag (doc, elem, DIDL_ITEM_CLASS, class);
+    }
+
+    if (metadata)
+    {
+      if (!filter || filter_has_val (filter, DIDL_ITEM_CREATOR))
+      {
+        didl_append_tag (doc, elem, DIDL_ITEM_CREATOR, metadata->author);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_ARTIST))
+      {
+        didl_append_tag (doc, elem, DIDL_ITEM_ARTIST, metadata->author);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_DESCRIPTION))
+      {
+        didl_append_tag (doc, elem, DIDL_ITEM_DESCRIPTION, metadata->comment);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_ALBUM))
+      {
+        didl_append_tag (doc, elem, DIDL_ITEM_ALBUM, metadata->album);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_TRACK))
+      {
+        char track[10];
+        snprintf(track,9,"%u", metadata->track);
+        didl_append_tag (doc, elem, DIDL_ITEM_TRACK, track);
+      }
+      if (!filter || filter_has_val (filter, DIDL_ITEM_GENRE))
+      {
+        didl_append_tag (doc, elem, DIDL_ITEM_GENRE, metadata->genre);
+      }
+    }
+
+    if ((!filter || filter_has_val (filter, DIDL_RES)))
+    {
+      vfs_resource_t *resource;
+
+      resource = vfs_resource_get (item);
+      while (resource)
+      {
+        char *url;
+        IXML_Element *resNode;
+        buffer_t *out;
+
+        url = resource->url (resource);
+        resNode = didl_append_tag (doc, elem, DIDL_RES, url);
+        free (url);
+
+        out = buffer_new();
+        cms_write_protocol_info (out, resource->protocol_info);
+        if (resource->protocol_info->other)
+          buffer_appendf (out, ";DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;",
+                resource->info.speed, resource->info.cnv, resource->info.op);
+        ixmlElement_setAttribute (resNode, DIDL_RES_INFO, out->buf);
+        buffer_free(out);
+
+        if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
+        {
+          sprintf (valuestr, "%9ld", resource->size);
+          ixmlElement_setAttribute (resNode, DIDL_RES_SIZE, valuestr);
+        }
+        sprintf (valuestr, "%9u", resource->properties.bitrate);
+        ixmlElement_setAttribute (resNode, DIDL_RES_BITRATE, valuestr);
+        if (resource->properties.duration)
+        sprintf (valuestr, "%9u", resource->properties.bps);
+        ixmlElement_setAttribute (resNode, DIDL_RES_BPS, valuestr);
+        if (resource->properties.duration)
+        sprintf (valuestr, "%9u", resource->properties.channels);
+        ixmlElement_setAttribute (resNode, DIDL_RES_AUDIO_CHANNELS, valuestr);
+        if (resource->properties.duration)
+          ixmlElement_setAttribute (elem, DIDL_RES_DURATION, resource->properties.duration);
+        if (resource->properties.resolution)
+          ixmlElement_setAttribute (resNode, DIDL_RES_RESOLUTION, resource->properties.resolution);
+
+        resource = resource->next;
+      }
+    }
+    if (dlna_item)
+      dlna_item_metadata (dlna_item, FREE);
+
+    IXML_Node *first = ixmlNode_getFirstChild( ( IXML_Node * ) doc );
+    ixmlNode_appendChild (first, (IXML_Node *)elem);
+  }
+  else
+    return -1;
+  return 0;
+}
+
+int
+didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
+{
+  IXML_Document *doc = didl;
+  if (item && item->type == DLNA_CONTAINER)
+  {
+    IXML_Element *elem;
+    char valuestr[10];
+
+    elem = ixmlDocument_createElement (doc, DIDL_CONTAINER);
+    sprintf (valuestr, "%9u", item->id);
+    ixmlElement_setAttribute (elem, DIDL_CONTAINER_ID, valuestr);
+    if (item->parent && item != item->parent)
+      sprintf (valuestr, "%9u", item->parent->id);
+    else
+      strcpy (valuestr , "-1");
+    ixmlElement_setAttribute (elem, DIDL_ITEM_PARENT_ID, valuestr);
+    sprintf (valuestr, "%9u", item->u.container.children_count);
+    ixmlElement_setAttribute (elem, DIDL_CONTAINER_CHILD_COUNT, valuestr);
+    sprintf (valuestr, "%1u", item->restricted?1:0);
+    ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
+    sprintf (valuestr, "%1u", searchable?1:0);
+    ixmlElement_setAttribute (elem, DIDL_CONTAINER_SEARCH, valuestr);
+
+    char *class;
+    class = dlna_upnp_object_type (item->u.container.media_class);
+    didl_append_tag (doc, elem, DIDL_CONTAINER_CLASS, class);
+    didl_append_tag (doc, elem, DIDL_CONTAINER_TITLE, item->u.container.title);
+
+    IXML_Node *first = ixmlNode_getFirstChild( ( IXML_Node * ) doc );
+    ixmlNode_appendChild (first, (IXML_Node *)elem);
+  }
+  else
+    return -1;
+  return 0;
+}
+
+void
+didl_print (void *didl, buffer_t *out)
+{
+  IXML_Document *doc = didl;
+  if (out)
+    buffer_append(out, ixmlPrintDocument(doc));
+}
+
+void
+didl_delete (void *didl)
+{
+  IXML_Document *doc = didl;
+  ixmlDocument_free (doc);
 }
 
 void
@@ -210,7 +411,7 @@ didl_add_item (buffer_t *out, vfs_item_t *item, char *filter)
         didl_add_tag (out, DIDL_ITEM_GENRE, metadata->genre);
       }
     }
-  
+
     if ((!filter || filter_has_val (filter, DIDL_RES)))
     {
       vfs_resource_t *resource;
@@ -257,10 +458,10 @@ didl_add_container (buffer_t *out, vfs_item_t *item, uint32_t searchable)
   if (item->parent)
     didl_add_value (out, DIDL_ITEM_PARENT_ID, item->parent->id);
   else
-    didl_add_param (out, DIDL_ITEM_PARENT_ID, "-1");  
+    didl_add_param (out, DIDL_ITEM_PARENT_ID, "-1");
   didl_add_value (out, DIDL_CONTAINER_CHILD_COUNT,
                   item->u.container.children_count);
-  
+
   didl_add_value (out, DIDL_CONTAINER_RESTRICTED, item->restricted?1:0);
   didl_add_value (out, DIDL_CONTAINER_SEARCH, searchable?1:0);
   buffer_append (out, ">");
