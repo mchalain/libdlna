@@ -189,7 +189,7 @@ cds_search_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
   if (!service)
     return NULL;
   cds_data = (cds_data_t *)service->cookie;
-  return cds_data->search_caps;
+  return strdup (cds_data->search_caps);
 }
 
 static int
@@ -227,7 +227,7 @@ cds_sort_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
 
   if (!service)
     return NULL;
-  return "dc:title";
+  return strdup ("dc:title");
 }
 
 static int
@@ -979,7 +979,9 @@ cds_feature_list (dlna_t *dlna dlna_unused, dlna_service_t *service)
     ixmlElement_setAttribute (elem, "version", "1");
     ixmlNode_appendChild (first, (IXML_Node *)elem);
   }
-  return ixmlPrintDocument (featurelistDoc);
+  char *value = strdup (ixmlPrintDocument (featurelistDoc));
+  ixmlDocument_free (featurelistDoc);
+  return value;
 }
 
 

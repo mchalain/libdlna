@@ -107,12 +107,12 @@ upnp_find_service_statevar (dlna_t *dlna,
 
   dlna_log (DLNA_MSG_INFO,
             "StateVariable: using service %s\n", ar->ServiceID);
-  
+
   /* find the resquested service in all registered ones */
   srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv || !srv->statevar)
     return DLNA_ST_ERROR;
-  
+
   /* parse all known actions */
   for (a = 0; srv->statevar[a].name; a++)
   {
@@ -145,7 +145,7 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
   /* ensure that message target is the specified device */
   if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
-  
+
   if (dlna_verbosity == DLNA_MSG_INFO)
   {
     char val[256];
@@ -169,15 +169,12 @@ upnp_var_request_handler (dlna_t *dlna, struct dlna_State_Var_Request *ar)
 
   if (upnp_find_service_statevar (dlna, &service, &statevar, ar) == DLNA_ST_OK)
   {
-    char *result = NULL;
-    const char *value;
+    char *value = NULL;
 
     if (statevar->get)
       value = statevar->get (dlna, service);
-    if (value)
-      result = strdup (value);
-    ar->CurrentVal = result;
-    ar->ErrCode = (result == NULL)
+    ar->CurrentVal = value;
+    ar->ErrCode = (value == NULL)
       ? DLNA_SOAP_E_INVALID_ACTION
       : DLNA_E_SUCCESS;
   }
@@ -191,7 +188,7 @@ upnp_find_service_action (dlna_t *dlna,
 {
   int a;
   const dlna_service_t *srv;
-  
+
   *service = NULL;
   *action = NULL;
 
@@ -200,12 +197,12 @@ upnp_find_service_action (dlna_t *dlna,
 
   dlna_log (DLNA_MSG_INFO,
             "ActionRequest: using service %s\n", ar->ServiceID);
-  
+
   /* find the resquested service in all registered ones */
   srv = dlna_service_find (dlna->device, ar->ServiceID);
   if (!srv)
     return DLNA_ST_ERROR;
-  
+
   /* parse all known actions */
   for (a = 0; srv->actions[a].name; a++)
   {
@@ -238,7 +235,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
   /* ensure that message target is the specified device */
   if (strcmp (ar->DevUDN + 5, dlna->device->uuid))
     return;
-  
+
   if (dlna_verbosity == DLNA_MSG_INFO)
   {
     char val[256];
@@ -298,7 +295,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
                   "***************************************************\n");
         dlna_log (DLNA_MSG_INFO, "\n");
     }
-      
+
     return;
   }
 
@@ -306,7 +303,7 @@ upnp_action_request_handler (dlna_t *dlna, struct dlna_Action_Request *ar)
     strcpy (ar->ErrStr, "Unknown Service Action");
   else /* Invalid Service name */
     strcpy (ar->ErrStr, "Unknown Service ID");
-  
+
   ar->ActionResult = NULL;
   ar->ErrCode = DLNA_SOAP_E_INVALID_ACTION;
 }
@@ -404,7 +401,7 @@ upnp_event_notify (void *cookie, dlna_service_t *service)
     for (i = 0; service->statevar[i].name; i++)
     {
       char *value = NULL;
-      if (service->statevar[i].eventing && 
+      if (service->statevar[i].eventing &&
           (service->last_change < service->statevar[i].eventing) &&
           service->statevar[i].get)
       {
@@ -502,7 +499,7 @@ dlna_start (dlna_t *dlna)
   ip = get_iface_address (dlna->interface);
   if (!ip)
     goto upnp_init_err;
-  
+
   res = dlnaInit (ip, dlna->port);
   if (res != DLNA_E_SUCCESS)
   {
@@ -527,7 +524,7 @@ dlna_start (dlna_t *dlna)
               "Cannot set virtual directory callbacks\n");
     goto upnp_init_err;
   }
-  
+
   if (dlna->device->init)
     dlna->device->init (dlna, dlna->device);
   dlna_service_foreach (dlna->device, upnp_service_init, dlna);

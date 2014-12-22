@@ -41,7 +41,7 @@
 #define AVTS_ERR_NOT_IMPLEMENTED               710
 #define AVTS_ERR_ILLEGAL_MIME                  714
 #define AVTS_ERR_SPEED_NOT_SUPPORTED           717
-#define AVTS_ERR_INVALID_INSTANCE              718 
+#define AVTS_ERR_INVALID_INSTANCE              718
 
 #define AVTS_VAR_STATE                      "TransportState"
 #define AVTS_VAR_STATUS                     "TransportStatus"
@@ -252,7 +252,7 @@ struct avts_data_s
 
 avts_data_t *avts_data = NULL;
 
-char *g_TransportState[] = 
+char *g_TransportState[] =
 {
   "NO_MEDIA_PRESENT",
   "STOPPED",
@@ -767,7 +767,7 @@ avts_set_uri (dlna_t *dlna, upnp_action_event_t *ev)
     instance->playlist = playlist_empty (instance->playlist);
   }
   ithread_mutex_unlock (&instance->state_mutex);
-  
+
   uri   = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI);
   uri_metadata = upnp_get_string (ev->ar, AVTS_ARG_CURRENT_URI_METADATA);
   instance->playlist = playlist_add_item (instance->playlist, dlna, uri, uri_metadata);
@@ -1086,8 +1086,8 @@ avts_get_pos_info (dlna_t *dlna, upnp_action_event_t *ev)
   else
     upnp_add_response (ev, AVTS_ARG_TRACK_URI, AVTS_VAR_AVT_URI_VAL_EMPTY);
 
-  if (plitem && properties && 
-      properties->spf && 
+  if (plitem && properties &&
+      properties->spf &&
       properties->sample_frequency)
   {
     char duration[100];
@@ -1234,7 +1234,7 @@ avts_play (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = AVTS_ERR_NO_CONTENTS;
     return 0;
   }
-  
+
   avts_request_event (instance->service);
 
   return ev->status;
@@ -1560,7 +1560,7 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
     instanceNode = event_add_value (eventDoc, first, "InstanceID", instance->id);
     event_add_param (eventDoc, instanceNode, "TransportState", g_TransportState[instance->state]);
     event_add_param (eventDoc, instanceNode, "TransportStatus", AVTS_VAR_STATUS_VAL);
-    
+
     val = instance_possible_state(instance);
     event_add_param (eventDoc, instanceNode, "CurrentTransportActions", val);
     free (val);
@@ -1597,72 +1597,74 @@ avts_get_last_change (dlna_t *dlna dlna_unused, dlna_service_t *service)
       }
     }
   }
-  
-  return ixmlPrintDocument (eventDoc);
+
+  char *value = strdup (ixmlPrintDocument (eventDoc));
+  ixmlDocument_free (eventDoc);
+  return value;
 }
 
 /* List of UPnP AVTransport Service actions */
 upnp_service_action_t avts_service_actions[] = {
-  { .name = AVTS_ACTION_SET_URI, 
-    .args = AVTS_ACTION_SET_URI_ARGS, 
-    .args_s = NULL, 
+  { .name = AVTS_ACTION_SET_URI,
+    .args = AVTS_ACTION_SET_URI_ARGS,
+    .args_s = NULL,
     .cb = avts_set_uri },
-  { .name = AVTS_ACTION_SET_NEXT_URI, 
-    .args = AVTS_ACTION_SET_NEXT_URI_ARGS, 
+  { .name = AVTS_ACTION_SET_NEXT_URI,
+    .args = AVTS_ACTION_SET_NEXT_URI_ARGS,
     .args_s = NULL,
     .cb = avts_set_next_uri },
-  { .name = AVTS_ACTION_GET_MEDIA_INFO, 
-    .args = AVTS_ACTION_GET_MEDIA_INFO_ARGS, 
+  { .name = AVTS_ACTION_GET_MEDIA_INFO,
+    .args = AVTS_ACTION_GET_MEDIA_INFO_ARGS,
     .args_s = NULL,
     .cb = avts_get_minfo },
-  { .name = AVTS_ACTION_GET_MEDIA_INFO_EXT, 
-    .args = AVTS_ACTION_GET_MEDIA_INFO_EXT_ARGS, 
+  { .name = AVTS_ACTION_GET_MEDIA_INFO_EXT,
+    .args = AVTS_ACTION_GET_MEDIA_INFO_EXT_ARGS,
     .args_s = NULL,
     .cb = avts_get_minfo_ext },
-  { .name = AVTS_ACTION_GET_INFO, 
-    .args = AVTS_ACTION_GET_INFO_ARGS, 
+  { .name = AVTS_ACTION_GET_INFO,
+    .args = AVTS_ACTION_GET_INFO_ARGS,
     .args_s = NULL,
     .cb = avts_get_info },
-  { .name = AVTS_ACTION_GET_POS_INFO, 
+  { .name = AVTS_ACTION_GET_POS_INFO,
     .args = AVTS_ACTION_GET_POS_INFO_ARGS,
     .cb = avts_get_pos_info },
-  { .name = AVTS_ACTION_GET_CAPS, 
+  { .name = AVTS_ACTION_GET_CAPS,
     .args = AVTS_ACTION_GET_CAPS_ARGS,
     .cb = avts_get_dev_caps },
-  { .name = AVTS_ACTION_GET_SETTINGS, 
+  { .name = AVTS_ACTION_GET_SETTINGS,
     .args = AVTS_ACTION_GET_SETTINGS_ARGS,
     .cb = avts_get_settings },
-  { .name = AVTS_ACTION_STOP, 
+  { .name = AVTS_ACTION_STOP,
     .args = AVTS_ACTION_ARG_INSTANCE_ID,
     .cb = avts_stop },
-  { .name = AVTS_ACTION_PLAY, 
+  { .name = AVTS_ACTION_PLAY,
     .args = AVTS_ACTION_PLAY_ARGS,
     .cb = avts_play },
-  { .name = AVTS_ACTION_PAUSE, 
+  { .name = AVTS_ACTION_PAUSE,
     .args = AVTS_ACTION_ARG_INSTANCE_ID,
     .cb = avts_pause },
-  { .name = AVTS_ACTION_RECORD, 
+  { .name = AVTS_ACTION_RECORD,
     .args = NULL,
     .cb = NULL },
-  { .name = AVTS_ACTION_SEEK, 
+  { .name = AVTS_ACTION_SEEK,
     .args = AVTS_ACTION_SEEK_ARGS,
     .cb = avts_seek },
-  { .name = AVTS_ACTION_NEXT, 
+  { .name = AVTS_ACTION_NEXT,
     .args = AVTS_ACTION_ARG_INSTANCE_ID,
     .cb = avts_next },
-  { .name = AVTS_ACTION_PREVIOUS, 
+  { .name = AVTS_ACTION_PREVIOUS,
     .args = AVTS_ACTION_ARG_INSTANCE_ID,
     .cb = avts_previous },
-  { .name = AVTS_ACTION_SET_PLAY_MODE, 
+  { .name = AVTS_ACTION_SET_PLAY_MODE,
     .args = NULL,
     .cb = NULL },
-  { .name = AVTS_ACTION_SET_REC_MODE, 
+  { .name = AVTS_ACTION_SET_REC_MODE,
     .args = NULL,
     .cb = NULL },
-  { .name = AVTS_ACTION_GET_ACTIONS, 
+  { .name = AVTS_ACTION_GET_ACTIONS,
     .args = AVTS_ACTION_GET_ACTIONS_ARGS,
     .cb = avts_get_actions },
-  { .name = NULL, 
+  { .name = NULL,
     .args = NULL,
     .cb = NULL }
 };
@@ -1755,7 +1757,7 @@ avts_other_dlna (protocol_info_t *pinfo)
 }
 
 static void
-avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol, 
+avts_add_sink (avts_data_t *avts_data, dlna_protocol_t *protocol,
         const dlna_profile_t *profile, dlna_capability_mode_t mode)
 {
   protocol_info_t *sink;
@@ -1782,7 +1784,7 @@ avts_service_new (dlna_t *dlna)
   avts_instance_t *instance = NULL;
   dlna_service_t *service = NULL;
   service = calloc (1, sizeof (dlna_service_t));
-  
+
   service->id           = AVTS_SERVICE_ID;
   service->typeid       = DLNA_SERVICE_AV_TRANSPORT;
   service->type         = AVTS_SERVICE_TYPE;
