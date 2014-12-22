@@ -25,22 +25,6 @@
 #include "avts.h"
 #include "vfs.h"
 
-void
-didl_add_header (struct buffer_s *out);
-void
-didl_add_footer (struct buffer_s *out);
-int
-didl_add_tag (struct buffer_s *out, char *tag, char *value);
-void
-didl_add_param (struct buffer_s *out, char *param, char *value);
-void
-didl_add_value (struct buffer_s *out, char *param, uint32_t value);
-void
-didl_add_item (struct buffer_s *out, vfs_item_t *item, char *filter);
-void
-didl_add_container (struct buffer_s *out, vfs_item_t *item, uint32_t searchable);
-
-
 void *
 didl_new ();
 int
