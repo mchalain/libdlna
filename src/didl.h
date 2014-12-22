@@ -50,6 +50,6 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable);
 void
 didl_print (void *didl, buffer_t *out);
 void
-didl_delete (void *didl);
+didl_free (void *didl);
 
 #endif

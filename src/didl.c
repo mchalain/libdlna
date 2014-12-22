@@ -303,7 +303,7 @@ didl_print (void *didl, buffer_t *out)
 }
 
 void
-didl_delete (void *didl)
+didl_free (void *didl)
 {
   IXML_Document *doc = didl;
   ixmlDocument_free (doc);
