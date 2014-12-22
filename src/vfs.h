@@ -112,4 +112,24 @@ void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
 
+typedef struct didl_result_s
+{
+	buffer_t *out;
+	unsigned long updateid;
+	unsigned long nb_returned;
+	unsigned long total_match;
+} didl_result_t;
+
+int
+vfs_browse_metadata (vfs_item_t *item, char *filter, didl_result_t *result);
+int
+vfs_browse_directchildren (vfs_item_t *item, 
+                           int index, unsigned long count, 
+                           char *filter, char *sort,
+                           didl_result_t *result);
+int
+vfs_search_directchildren(vfs_item_t *item, int index,
+                           int count, char *filter,
+                           char *search_criteria, didl_result_t *result);
+
 #endif
