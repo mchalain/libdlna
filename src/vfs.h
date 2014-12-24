@@ -68,14 +68,17 @@ struct vfs_item_s {
     } resource;
     struct {
       char *title;
-      vfs_items_list_t *children;
+      vfs_items_list_t *(*children) (vfs_item_t *item);
+      void (*add_child) (vfs_item_t *container, vfs_item_t *child);
       uint32_t children_count;
       uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
       dlna_media_class_t media_class;
+      void *children_cookie;
     } container;
   } u;
 
   struct vfs_item_s *parent;
+  struct vfs_item_s *root;
 
   UT_hash_handle hh;
 };
@@ -108,5 +111,25 @@ vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
+
+typedef struct didl_result_s
+{
+	void *didl;
+	unsigned long updateid;
+	unsigned long nb_returned;
+	unsigned long total_match;
+} didl_result_t;
+
+int
+vfs_browse_metadata (vfs_item_t *item, char *filter, didl_result_t *result);
+int
+vfs_browse_directchildren (vfs_item_t *item, 
+                           int index, unsigned long count, 
+                           char *filter, char *sort,
+                           didl_result_t *result);
+int
+vfs_search_directchildren(vfs_item_t *item, int index,
+                           int count, char *filter,
+                           char *search_criteria, didl_result_t *result);
 
 #endif
