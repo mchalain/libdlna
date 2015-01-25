@@ -107,8 +107,6 @@ struct dlna_vfs_s
 };
 
 vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
-vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
-void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
 

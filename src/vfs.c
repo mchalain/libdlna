@@ -37,6 +37,9 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
+vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
+void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
+
 static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url);
 
 static dlna_stream_t *
