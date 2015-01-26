@@ -376,18 +376,18 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
     goto browse_err;
   }
 
-  char tmp[11];
+  char tmp[12];
 
   buffer_t *out = buffer_new ();
   didl_print (result.didl, out);
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   dlna_log (DLNA_MSG_INFO, "didl:\n %s\n", out->buf);
   buffer_free (out);
-  sprintf (tmp, "%10lu", result.nb_returned);
+  snprintf (tmp, 11, "%lu", result.nb_returned);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
-  sprintf (tmp, "%10lu", result.total_match);
+  snprintf (tmp, 11, "%lu", result.total_match);
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
-  sprintf (tmp, "%10lu", result.updateid);
+  snprintf (tmp, 11, "%lu", result.updateid);
   upnp_add_response (ev, CDS_DIDL_UPDATE_ID, tmp);
 
   didl_free (result.didl);
@@ -433,9 +433,9 @@ cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
   upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
   buffer_free (out);
   
-  sprintf (tmp, "%10lu", result.nb_returned);
+  snprintf (tmp, 10, "%lu", result.nb_returned);
   upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
-  sprintf (tmp, "%10lu", result.total_match);
+  snprintf (tmp, 10, "%lu", result.total_match);
   upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
 
   didl_free (result.didl);

@@ -137,18 +137,19 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
   if (item && item->type == DLNA_RESOURCE)
   {
     IXML_Element *elem;
-    char valuestr[10];
+    char valuestr[12];
     dlna_metadata_t *metadata;
 
     elem = ixmlDocument_createElement (doc, DIDL_ITEM);
-    sprintf (valuestr, "%9u", item->id);
+    printf ("item id= %u\n", item->id);
+    snprintf (valuestr, 11, "%u", item->id);
     ixmlElement_setAttribute (elem, DIDL_ITEM_ID, valuestr);
     if (item->parent && item != item->parent)
-      sprintf (valuestr, "%9u", item->parent->id);
+      snprintf (valuestr, 11, "%u", item->parent->id);
     else
       strcpy (valuestr , "-1");
     ixmlElement_setAttribute (elem, DIDL_ITEM_PARENT_ID, valuestr);
-    sprintf (valuestr, "%1u", item->restricted?1:0);
+    snprintf (valuestr, 2, "%u", item->restricted?1:0);
     ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
 
     dlna_item_t *dlna_item;
@@ -191,8 +192,8 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
       }
       if (!filter || filter_has_val (filter, DIDL_ITEM_TRACK))
       {
-        char track[10];
-        snprintf(track,9,"%u", metadata->track);
+        char track[12];
+        snprintf(track,11,"%u", metadata->track);
         didl_append_tag (doc, elem, DIDL_ITEM_TRACK, track);
       }
       if (!filter || filter_has_val (filter, DIDL_ITEM_GENRE))
@@ -226,20 +227,27 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
 
         if ((resource->size > 0) && filter_has_val (filter, "@"DIDL_RES_SIZE))
         {
-          sprintf (valuestr, "%9ld", resource->size);
+          snprintf (valuestr, 11, "%zd", resource->size);
           ixmlElement_setAttribute (resNode, DIDL_RES_SIZE, valuestr);
         }
-        sprintf (valuestr, "%9u", resource->properties.bitrate);
-        ixmlElement_setAttribute (resNode, DIDL_RES_BITRATE, valuestr);
-        if (resource->properties.duration)
-        sprintf (valuestr, "%9u", resource->properties.bps);
-        ixmlElement_setAttribute (resNode, DIDL_RES_BPS, valuestr);
-        if (resource->properties.duration)
-        sprintf (valuestr, "%9u", resource->properties.channels);
-        ixmlElement_setAttribute (resNode, DIDL_RES_AUDIO_CHANNELS, valuestr);
-        if (resource->properties.duration)
-          ixmlElement_setAttribute (elem, DIDL_RES_DURATION, resource->properties.duration);
-        if (resource->properties.resolution)
+        if (resource->properties.bitrate > 0)
+        {
+			snprintf (valuestr, 11, "%u", resource->properties.bitrate);
+			ixmlElement_setAttribute (resNode, DIDL_RES_BITRATE, valuestr);
+		}
+        if (resource->properties.bps > 0)
+        {
+			snprintf (valuestr, 11, "%u", resource->properties.bps);
+			ixmlElement_setAttribute (resNode, DIDL_RES_BPS, valuestr);
+		}
+        if (resource->properties.channels > 0)
+        {
+			snprintf (valuestr, 5, "%hu", resource->properties.channels);
+			ixmlElement_setAttribute (resNode, DIDL_RES_AUDIO_CHANNELS, valuestr);
+		}
+        if (resource->properties.duration && resource->properties.duration[0] != '\0')
+          ixmlElement_setAttribute (resNode, DIDL_RES_DURATION, resource->properties.duration);
+        if (resource->properties.resolution && resource->properties.resolution[0] != '\0')
           ixmlElement_setAttribute (resNode, DIDL_RES_RESOLUTION, resource->properties.resolution);
 
         resource = resource->next;
@@ -263,21 +271,22 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
   if (item && item->type == DLNA_CONTAINER)
   {
     IXML_Element *elem;
-    char valuestr[10];
+    char valuestr[12];
 
     elem = ixmlDocument_createElement (doc, DIDL_CONTAINER);
-    sprintf (valuestr, "%9u", item->id);
+    printf ("container id= %u\n", item->id);
+    snprintf (valuestr, 11, "%u", item->id);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_ID, valuestr);
     if (item->parent && item != item->parent)
-      sprintf (valuestr, "%9u", item->parent->id);
+      snprintf (valuestr, 11, "%u", item->parent->id);
     else
       strcpy (valuestr , "-1");
     ixmlElement_setAttribute (elem, DIDL_ITEM_PARENT_ID, valuestr);
-    sprintf (valuestr, "%9u", item->u.container.children_count);
+    snprintf (valuestr, 11, "%u", item->u.container.children_count);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_CHILD_COUNT, valuestr);
-    sprintf (valuestr, "%1u", item->restricted?1:0);
+    snprintf (valuestr, 2, "%u", item->restricted?1:0);
     ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
-    sprintf (valuestr, "%1u", searchable?1:0);
+    snprintf (valuestr, 2, "%u", searchable?1:0);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_SEARCH, valuestr);
 
     char *class;
