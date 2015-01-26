@@ -110,6 +110,7 @@ http_protocol_new (dlna_t *dlna dlna_unused)
   static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
   static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   static_http_protocol->create_resource = dlna_http_resource_new;
+  static_http_protocol->set_callback = dlna_http_set_callback;
   static_http_protocol->name = http_name;
   static_http_protocol->net = http_net;
   return static_http_protocol;

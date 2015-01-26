@@ -114,18 +114,18 @@ dlna_vfs_new (dlna_t *dlna)
   vfs->mode = dlna->mode;
   dlna_vfs_add_container (vfs, "root", 0, 0);
 
-  dlna_http_callback_t *callback;
-  callback = calloc (1, sizeof (dlna_http_callback_t));
-  callback->cookie = vfs;
-  callback->open = dlna_vfs_stream_open;
-  dlna_http_set_callback (callback);
-
   return vfs;
 }
 
 void
 dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 {
+  dlna_http_callback_t *callback;
+  callback = calloc (1, sizeof (dlna_http_callback_t));
+  callback->cookie = vfs;
+  callback->open = dlna_vfs_stream_open;
+  protocol->set_callback (callback);
+
   protocol->next = vfs->protocols;
   vfs->protocols= protocol;
 }

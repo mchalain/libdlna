@@ -87,6 +87,7 @@ struct dlna_protocol_s
 {
   dlna_protocol_info_type_t type;
   vfs_resource_t *(*create_resource)(vfs_item_t *item);
+  void (*set_callback)(dlna_http_callback_t *cb);
   const char *(*name)();
   const char *(*net)();
   void *cookie;
