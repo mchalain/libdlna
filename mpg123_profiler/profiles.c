@@ -150,12 +150,12 @@ init_audio_output(mpg123_module_t *module)
 	ao->rate = -1;
 	ao->gain = 0;
 	ao->userptr = NULL;
-	ao->device = "";
+	ao->device = NULL;
 	ao->channels = -1;
 	ao->format = -1;
 	ao->flags = 0;
 	ao->auxflags = 0;
-  ao->is_open = FALSE;
+	ao->is_open = FALSE;
 
 	ao->module = module;
 

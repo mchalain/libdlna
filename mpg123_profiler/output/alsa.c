@@ -159,7 +159,7 @@ static int open_alsa(audio_output_t *ao)
 {
 	const char *pcm_name;
 	snd_pcm_t *pcm=NULL;
-	debug1("open_alsa with %p", ao->userptr);
+	debug("open_alsa\n");
 
 #ifndef DEBUG
 	if(AOQUIET) snd_lib_error_set_handler(error_ignorer);
@@ -167,7 +167,7 @@ static int open_alsa(audio_output_t *ao)
 
 	pcm_name = ao->device ? ao->device : "default";
 	if (snd_pcm_open(&pcm, pcm_name, SND_PCM_STREAM_PLAYBACK, 0) < 0) {
-		if(!AOQUIET) error1("cannot open device %s", pcm_name);
+		if(!AOQUIET) error1("cannot open device %s\n", pcm_name);
 		return -1;
 	}
 	ao->userptr = pcm;
