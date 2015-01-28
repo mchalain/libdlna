@@ -62,6 +62,64 @@ http_url (vfs_resource_t *resource)
 
 static dlna_protocol_t *static_http_protocol = NULL;
 
+static dlna_stream_t *
+dlna_http_stream_open (void *cookie, const char *url)
+{
+  vfs_item_t *item = (vfs_item_t *)cookie;
+  dlna_item_t *dlna_item;
+  dlna_stream_t *stream;
+  vfs_resource_t *resource;
+
+  if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
+    return NULL;
+  /* ask for anything else ... */
+/*
+  uint32_t id;
+  id = strtoul (page, NULL, 10);
+*/
+  if (item->type != DLNA_RESOURCE)
+    return NULL;
+
+  dlna_item = vfs_item_get(item);
+  if (!dlna_item)
+    return NULL;
+
+  if (!dlna_item->filename)
+    return NULL;
+
+  char *page;
+  page = strchr (url, '/') + 1;
+
+  resource = vfs_resource_get (item);
+  while (resource)
+  {
+    char *res_url = resource->url (resource);
+    char *res_page;
+
+    res_page = strchr (res_url, '/') + 1;
+    if (!strcmp (res_page, page))
+    {
+      free (res_url);
+      break;
+    }
+    resource = resource->next;
+    free (res_url);
+  }
+  stream = stream_open (dlna_item->filename);
+  if (stream && resource && resource->protocol_info->other)
+  {
+    char *other = resource->protocol_info->other (resource->protocol_info);
+    char *mime = strdup (stream->mime);
+    snprintf (stream->mime, 199, 
+                "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
+                mime, other,
+                resource->info.speed, resource->info.cnv, resource->info.op);
+    free (other);
+    free (mime);
+  }
+  return stream;
+}
+
 static vfs_resource_t *
 dlna_http_resource_new (vfs_item_t *item)
 {
@@ -75,6 +133,11 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->cookie = cookie;
   resource->url = http_url;
 
+  dlna_http_callback_t *callback;
+  callback = calloc (1, sizeof (dlna_http_callback_t));
+  callback->cookie = item;
+  callback->open = dlna_http_stream_open;
+  dlna_http_set_callback(callback);
   dlna_item = vfs_item_get (item);
 
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
@@ -110,7 +173,6 @@ http_protocol_new (dlna_t *dlna dlna_unused)
   static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
   static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
   static_http_protocol->create_resource = dlna_http_resource_new;
-  static_http_protocol->set_callback = dlna_http_set_callback;
   static_http_protocol->name = http_name;
   static_http_protocol->net = http_net;
   return static_http_protocol;

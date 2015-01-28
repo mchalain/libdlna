@@ -40,68 +40,6 @@ crc32(uint32_t crc, const void *buf, size_t size);
 vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 
-static dlna_stream_t *dlna_vfs_stream_open (void *cookie, const char *url);
-
-static dlna_stream_t *
-dlna_vfs_stream_open (void *cookie, const char *url)
-{
-  uint32_t id;
-  vfs_item_t *item;
-  dlna_item_t *dlna_item;
-  dlna_vfs_t *vfs = (dlna_vfs_t *)cookie;
-  dlna_stream_t *stream;
-  vfs_resource_t *resource;
-  char *page;
-
-  if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
-    return NULL;
-  /* ask for anything else ... */
-  page = strrchr (url, '/') + 1;
-  id = strtoul (page, NULL, 10);
-  item = vfs_get_item_by_id (vfs, id);
-  if (!item)
-    return NULL;
-
-  if (item->type != DLNA_RESOURCE)
-    return NULL;
-
-  dlna_item = vfs_item_get(item);
-  if (!dlna_item)
-    return NULL;
-
-  if (!dlna_item->filename)
-    return NULL;
-
-  resource = vfs_resource_get (item);
-  while (resource)
-  {
-    char *res_url = resource->url (resource);
-    char *res_page;
-
-    res_page = strrchr (res_url, '/') + 1;
-    if (!strcmp (res_page, page))
-    {
-      free (res_url);
-      break;
-    }
-    resource = resource->next;
-    free (res_url);
-  }
-  stream = stream_open (dlna_item->filename);
-  if (stream && resource && resource->protocol_info->other)
-  {
-    char *other = resource->protocol_info->other (resource->protocol_info);
-    char *mime = strdup (stream->mime);
-    snprintf (stream->mime, 199, 
-                "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
-                mime, other,
-                resource->info.speed, resource->info.cnv, resource->info.op);
-    free (other);
-    free (mime);
-  }
-  return stream;
-}
-
 dlna_vfs_t *
 dlna_vfs_new (dlna_t *dlna)
 {
@@ -120,12 +58,6 @@ dlna_vfs_new (dlna_t *dlna)
 void
 dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 {
-  dlna_http_callback_t *callback;
-  callback = calloc (1, sizeof (dlna_http_callback_t));
-  callback->cookie = vfs;
-  callback->open = dlna_vfs_stream_open;
-  protocol->set_callback (callback);
-
   protocol->next = vfs->protocols;
   vfs->protocols= protocol;
 }
