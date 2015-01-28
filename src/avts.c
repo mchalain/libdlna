@@ -34,6 +34,7 @@
 #include "didl.h"
 #include "avts.h"
 #include "cms.h"
+#include "http_protocol.h"
 
 #define AVTS_ERR_ACTION_FAILED                 501
 #define AVTS_ERR_TRANSITION_NOT_AVAILABLE      701

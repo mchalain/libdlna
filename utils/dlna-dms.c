@@ -30,6 +30,7 @@
 #include <getopt.h>
 
 #include "dlna.h"
+#include "http_protocol.h"
 
 static void
 add_dir (dlna_t *dlna, dlna_vfs_t *vfs, char *dir, uint32_t id)

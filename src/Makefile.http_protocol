@@ -3,17 +3,9 @@ $(error "../config.mak is not present, run configure !")
 endif
 include ../config.mak
 
-ifeq ($(HAVE_EXTERNAL_LIBUPNP),internal)
-  include ixml/ixml.mak
-  include threadutil/threadutil.mak
-  include upnp/upnp.mak
+BUILD_STATIC:=yes
 
-  CFLAGS += -Iixml
-  CFLAGS += -Ithreadutil
-  CFLAGS += -Iupnp
-endif
-
-LIBNAME = libdlna
+LIBNAME = libhttp_protocol
 LIBNAME_STATIC = ${LIBNAME}.a
 
 ifeq ($(BUILD_STATIC),yes)
@@ -37,38 +29,12 @@ ifeq ($(BUILD_SHARED),yes)
 endif
 
 SRCS :=  \
-	profiles.c \
-	dlna.c \
-	upnp.c \
-	buffer.c \
-	didl.c \
-	vfs.c \
-	crc32.c \
-	devices.c \
-	services.c \
-	cms.c \
-	cds.c \
-	avts.c \
-	msr.c \
-	rcs.c \
-	http.c \
-	upnpav_profiler.c \
-	stream.c \
-	network.c \
-	upnp_dmr.c \
+	http_protocol.c \
+
+INCDIST := \
+	http_protocol.h
 
 EXTRADIST = \
-	dlna.h \
-	dlna_internals.h \
-	upnp_internals.h \
-	cms.h \
-	cds.h \
-	avts.h \
-	msr.h \
-	rcs.h \
-
-LIBHTTP_PROTOCOL=libhttp_protocol.a
-EXTRALIBS+=$(LIBHTTP_PROTOCOL)
 
 ifeq ($(DEBUG),yes)
 CFLAGS += -DHAVE_DEBUG
@@ -87,16 +53,10 @@ LOBJS = $(SRCS:.c=.lo)
 .SUFFIXES: .c .o .lo
 
 #DEVELOPER_MODE:=TAGS tags
-all: depend $(LIBHTTP_PROTOCOL) $(BUILD_RULES) $(DEVELOPER_MODE)
-
-$(LIBHTTP_PROTOCOL):
-	$(MAKE) -f Makefile.http_protocol
-
-install_$(LIBHTTP_PROTOCOL):
-	$(MAKE) -f Makefile.http_protocol install
+all: depend $(BUILD_RULES) $(DEVELOPER_MODE)
 
 .c.o:
-	$(CC) -c $(CFLAGS) $(OPTFLAGS) -o $@ $<
+	$(CC) -c -fPIC $(CFLAGS) $(OPTFLAGS) -o $@ $<
 
 .c.lo:
 	$(CC) -c -fPIC $(CFLAGS) $(OPTFLAGS) -o $@ $<
@@ -163,9 +123,11 @@ install_shared: lib_shared
 	$(LN) -sf $(LIBNAME_VERSION) $(libdir)/$(LIBNAME_MAJOR)
 	$(LN) -sf $(LIBNAME_MAJOR) $(libdir)/$(LIBNAME_SHARED)
 
-install: install_$(LIBHTTP_PROTOCOL) $(INSTALL_RULES)
+install: $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)/upnp
-	$(INSTALL) -m 644 dlna.h $(includedir)/upnp
+	$(foreach inc, $(INCDIST), \
+	$(INSTALL) -m 644 $(inc) $(includedir)/upnp \
+	)
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) \

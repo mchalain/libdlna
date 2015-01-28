@@ -577,7 +577,6 @@ extern dlna_service_t *msr_service_new (dlna_t*dlna);
 /***************************************************************************/
 struct dlna_protocol_s;
 typedef struct dlna_protocol_s dlna_protocol_t;
-extern dlna_protocol_t *http_protocol_new (dlna_t *dlna);
 /***************************************************************************/
 /*                                                                         */
 /* DLNA UPnP Virtual File System (VFS) Management                          */
