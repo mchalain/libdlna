@@ -141,7 +141,6 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
     dlna_metadata_t *metadata;
 
     elem = ixmlDocument_createElement (doc, DIDL_ITEM);
-    printf ("item id= %u\n", item->id);
     snprintf (valuestr, 11, "%u", item->id);
     ixmlElement_setAttribute (elem, DIDL_ITEM_ID, valuestr);
     if (item->parent && item != item->parent)

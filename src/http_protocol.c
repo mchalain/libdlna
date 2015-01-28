@@ -67,19 +67,7 @@ dlna_http_stream_open (void *cookie, const char *url)
 
   if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
     return NULL;
-  /* ask for anything else ... */
-/*
-  uint32_t id;
-  id = strtoul (page, NULL, 10);
-*/
   if (item->type != DLNA_RESOURCE)
-    return NULL;
-
-  dlna_item = vfs_item_get(item);
-  if (!dlna_item)
-    return NULL;
-
-  if (!dlna_item->filename)
     return NULL;
 
   char *page;
@@ -91,7 +79,7 @@ dlna_http_stream_open (void *cookie, const char *url)
     char *res_url = resource->url (resource);
     char *res_page;
 
-    res_page = strchr (res_url, '/') + 1;
+    res_page = strchr (strchr (res_url, '/') + 2, '/') + 1;
     if (!strcmp (res_page, page))
     {
       free (res_url);
@@ -100,17 +88,27 @@ dlna_http_stream_open (void *cookie, const char *url)
     resource = resource->next;
     free (res_url);
   }
-  stream = stream_open (dlna_item->filename);
-  if (stream && resource && resource->protocol_info->other)
+  if (resource)
   {
-    char *other = resource->protocol_info->other (resource->protocol_info);
-    char *mime = strdup (stream->mime);
-    snprintf (stream->mime, 199, 
-                "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
-                mime, other,
-                resource->info.speed, resource->info.cnv, resource->info.op);
-    free (other);
-    free (mime);
+	  dlna_item = vfs_item_get(item);
+	  if (!dlna_item)
+		return NULL;
+
+	  if (!dlna_item->filename)
+		return NULL;
+
+	  stream = stream_open (dlna_item->filename);
+	  if (stream && resource->protocol_info->other)
+	  {
+		char *other = resource->protocol_info->other (resource->protocol_info);
+		char *mime = strdup (stream->mime);
+		snprintf (stream->mime, 199, 
+					"%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
+					mime, other,
+					resource->info.speed, resource->info.cnv, resource->info.op);
+		free (other);
+		free (mime);
+	  }
   }
   return stream;
 }
