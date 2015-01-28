@@ -412,7 +412,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 static int
 cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
                            vfs_item_t *item, int index,
-                           int count, char *filter, char *search_criteria)
+                           uint32_t count, char *filter, char *search_criteria)
 {
   char tmp[11];
 

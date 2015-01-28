@@ -182,7 +182,7 @@ fullload_open (char *url)
 #ifdef MEMORYFILE_STREAM
 struct memoryfile_data_s {
   void *buffer;
-  ssize_t size;
+  size_t size;
   off_t offset;
 };
 
@@ -212,11 +212,13 @@ memoryfile_lseek (void *opaque, off_t len, int whence)
       data->offset = data->size + len;
     break;
   case SEEK_SET:
-    if (len <= data->size)
+    if (len <= (ssize_t)data->size)
       data->offset = len;
     break;
   case SEEK_CUR:
-    if (data->offset + len <= data->size)
+    if (data->offset + len < 0)
+      data->offset = 0;
+    else if (data->offset + len <= (ssize_t)data->size)
       data->offset += len;
     break;
   }

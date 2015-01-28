@@ -79,7 +79,7 @@ static int http_wait (int fd)
 	//int ret;
 	fd_set rfds;
 	int maxfd;
-	struct timeval timeout = {.tv_sec=3, .tv_usec=0,};
+	//struct timeval timeout = {.tv_sec=3, .tv_usec=0,};
 	struct timeval *ptimeout;
 
 	FD_ZERO(&rfds);

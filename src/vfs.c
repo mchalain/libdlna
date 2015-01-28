@@ -761,7 +761,7 @@ vfs_search_match (vfs_item_t *item, char *search_criteria)
 }
 
 static int
-vfs_search_recursive (vfs_items_list_t *items, int index, int count, char *filter,
+vfs_search_recursive (vfs_items_list_t *items, int index, uint32_t count, char *filter,
                        char *search_criteria, didl_result_t *result)
 {
   for (; items; items = items->next)
@@ -801,7 +801,7 @@ vfs_search_recursive (vfs_items_list_t *items, int index, int count, char *filte
 
 int
 vfs_search_directchildren(vfs_item_t *item, int index,
-                           int count, char *filter,
+                           uint32_t count, char *filter,
                            char *search_criteria, didl_result_t *result)
 {
   vfs_items_list_t *items;

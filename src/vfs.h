@@ -127,7 +127,7 @@ vfs_browse_directchildren (vfs_item_t *item,
                            didl_result_t *result);
 int
 vfs_search_directchildren(vfs_item_t *item, int index,
-                           int count, char *filter,
+                           uint32_t count, char *filter,
                            char *search_criteria, didl_result_t *result);
 
 #endif
