@@ -356,6 +356,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
 
   didl_result_t result;
   result.didl = didl_new ();
+  result.lite = 1;
 
   /* find requested item in VFS */
   item = vfs_get_item_by_id (vfs, id);
@@ -424,6 +425,7 @@ cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
 
   didl_result_t result;
   result.didl = didl_new ();
+  result.lite = 1;
 
   vfs_search_directchildren (item, 
 			  index, count, filter, search_criteria, &result);

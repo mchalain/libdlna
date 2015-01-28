@@ -117,6 +117,7 @@ typedef struct didl_result_s
 	unsigned long updateid;
 	unsigned long nb_returned;
 	unsigned long total_match;
+	int	lite;
 } didl_result_t;
 
 int

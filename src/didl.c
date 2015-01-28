@@ -65,6 +65,13 @@
 #define DIDL_CONTAINER_CLASS                  "upnp:class"
 #define DIDL_CONTAINER_TITLE                  "dc:title"
 
+struct didl_s
+{
+  IXML_Document *doc;
+  IXML_Node *elem;
+};
+typedef struct didl_s didl_t;
+
 static int
 filter_has_val (const char *filter, const char *val)
 {
@@ -110,9 +117,13 @@ filter_has_val (const char *filter, const char *val)
 void *
 didl_new ()
 {
+  didl_t *didl;
   IXML_Document *doc;
   ixmlParseBufferEx( "<"DIDL_LITE" "DIDL_NAMESPACE"></"DIDL_LITE">",&doc);
-  return doc;
+  didl = calloc ( 1, sizeof(didl_t));
+  didl->doc = doc;
+  didl->elem = ixmlNode_getFirstChild( ( IXML_Node * ) doc );
+  return didl;
 }
 
 static IXML_Element *
@@ -133,7 +144,8 @@ didl_append_tag (IXML_Document *doc, IXML_Element *itemNode, char *tag, char *va
 int
 didl_append_item (void *didl, vfs_item_t *item, char *filter)
 {
-  IXML_Document *doc = didl;
+  didl_t *pdidl = didl;
+  IXML_Document *doc = pdidl->doc;
   if (item && item->type == DLNA_RESOURCE)
   {
     IXML_Element *elem;
@@ -255,8 +267,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
     if (dlna_item)
       dlna_item_metadata (dlna_item, FREE);
 
-    IXML_Node *first = ixmlNode_getFirstChild( ( IXML_Node * ) doc );
-    ixmlNode_appendChild (first, (IXML_Node *)elem);
+    ixmlNode_appendChild (pdidl->elem, (IXML_Node *)elem);
   }
   else
     return -1;
@@ -264,9 +275,16 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
 }
 
 int
+didl_create_container (void *didl)
+{
+  return 0;
+}
+
+int
 didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
 {
-  IXML_Document *doc = didl;
+  didl_t *pdidl = didl;
+  IXML_Document *doc = pdidl->doc;
   if (item && item->type == DLNA_CONTAINER)
   {
     IXML_Element *elem;
@@ -293,8 +311,7 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
     didl_append_tag (doc, elem, DIDL_CONTAINER_CLASS, class);
     didl_append_tag (doc, elem, DIDL_CONTAINER_TITLE, item->u.container.title);
 
-    IXML_Node *first = ixmlNode_getFirstChild( ( IXML_Node * ) doc );
-    ixmlNode_appendChild (first, (IXML_Node *)elem);
+    ixmlNode_appendChild (pdidl->elem, (IXML_Node *)elem);
   }
   else
     return -1;
@@ -304,7 +321,8 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
 void
 didl_print (void *didl, buffer_t *out)
 {
-  IXML_Document *doc = didl;
+  didl_t *pdidl = didl;
+  IXML_Document *doc = pdidl->doc;
   if (out)
     buffer_append(out, ixmlPrintDocument(doc));
 }
@@ -312,6 +330,8 @@ didl_print (void *didl, buffer_t *out)
 void
 didl_free (void *didl)
 {
-  IXML_Document *doc = didl;
+  didl_t *pdidl = didl;
+  IXML_Document *doc = pdidl->doc;
   ixmlDocument_free (doc);
+  free (pdidl);
 }

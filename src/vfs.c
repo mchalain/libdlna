@@ -775,9 +775,13 @@ vfs_search_recursive (vfs_items_list_t *items, int index, uint32_t count, char *
       switch (item->type)
       {
       case DLNA_CONTAINER:
+        if (!result->lite)
+          didl_create_container(result->didl);
         vfs_search_recursive (item->u.container.children (item), index,
                                 (count == 0) ? 0 : (count - result->nb_returned),
                                 filter, search_criteria, result);
+        if (!result->lite)
+          didl_append_container (result->didl, item, 1);
         break;
 
       case DLNA_RESOURCE:        
@@ -825,3 +829,51 @@ vfs_search_directchildren(vfs_item_t *item, int index,
   return ret;
 }
 
+#define DIDL_VIRTUAL_DIR "/didl"
+#define DIDL_VIRTUAL_DIR_LEN 9
+#define DIDL_ITEM_ID "id"
+static
+dlna_stream_t *
+vfs_stream_open (void *cookie, const char *url)
+{
+  dlna_stream_t *stream = NULL;
+  dlna_vfs_t *vfs = cookie;
+
+  if (strncmp (url, DIDL_VIRTUAL_DIR, DIDL_VIRTUAL_DIR_LEN))
+    return NULL;
+
+  uint32_t id = 0;
+  char *idstr = strstr (url, DIDL_ITEM_ID"=");
+  if (idstr)
+  {
+    id = atoi(idstr + strlen(DIDL_ITEM_ID"=") + 1);
+  }
+  vfs_item_t *item;
+  item = vfs_get_item_by_id(vfs, id);
+
+  didl_result_t result;
+  result.didl = didl_new ();
+  result.lite = 0;
+
+  vfs_search_directchildren(item, 0, 0, "*", "object", &result);
+
+  buffer_t *out = buffer_new();
+  didl_print (result.didl, out);
+  stream = memoryfile_open ((char *)url, out->buf, out->len, SERVICE_CONTENT_TYPE);
+  buffer_free (out);
+
+  didl_free (result.didl);
+  return stream;
+}
+
+void
+vfs_export_didl(dlna_vfs_t *vfs)
+{
+  printf("add %s\n", DIDL_VIRTUAL_DIR);
+  dlnaAddVirtualDir (DIDL_VIRTUAL_DIR);
+  dlna_http_callback_t *callback;
+  callback = calloc (1, sizeof (dlna_http_callback_t));
+  callback->cookie = (void *)vfs;
+  callback->open = vfs_stream_open;
+  dlna_http_set_callback(callback);
+}
