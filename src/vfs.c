@@ -60,6 +60,8 @@ dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 {
   protocol->next = vfs->protocols;
   vfs->protocols= protocol;
+  if (protocol->init)
+    protocol->init (vfs);
 }
 
 void
@@ -822,3 +824,4 @@ vfs_search_directchildren(vfs_item_t *item, int index,
 
   return ret;
 }
+

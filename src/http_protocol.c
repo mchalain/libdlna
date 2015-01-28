@@ -60,18 +60,26 @@ static dlna_protocol_t *static_http_protocol = NULL;
 static dlna_stream_t *
 dlna_http_stream_open (void *cookie, const char *url)
 {
-  vfs_item_t *item = (vfs_item_t *)cookie;
+  dlna_vfs_t *vfs = (dlna_vfs_t *)cookie;
+  vfs_item_t *item;
   dlna_item_t *dlna_item;
   dlna_stream_t *stream;
   vfs_resource_t *resource;
 
   if (strncmp (url, VIRTUAL_DIR, VIRTUAL_DIR_LEN))
     return NULL;
-  if (item->type != DLNA_RESOURCE)
-    return NULL;
 
+  uint32_t id;
   char *page;
   page = strchr (url, '/') + 1;
+  id = strtoul (strrchr(page, '/') + 1, NULL, 10);
+  item = vfs_get_item_by_id (vfs, id);
+
+  if (!item)
+    return NULL;
+
+  if (item->type != DLNA_RESOURCE)
+    return NULL;
 
   resource = vfs_resource_get (item);
   while (resource)
@@ -126,13 +134,7 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->cookie = cookie;
   resource->url = http_url;
 
-  dlna_http_callback_t *callback;
-  callback = calloc (1, sizeof (dlna_http_callback_t));
-  callback->cookie = item;
-  callback->open = dlna_http_stream_open;
-  dlna_http_set_callback(callback);
   dlna_item = vfs_item_get (item);
-
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
   resource->protocol_info->protocol = static_http_protocol;
   resource->protocol_info->profile = dlna_item->profile;
@@ -160,14 +162,29 @@ http_net ()
   return "*";
 }
 
+int
+dlna_http_init (dlna_vfs_t *vfs)
+{
+  dlna_http_callback_t *callback;
+  callback = calloc (1, sizeof (dlna_http_callback_t));
+  callback->cookie = vfs;
+  callback->open = dlna_http_stream_open;
+  dlna_http_set_callback(callback);
+  return 0;
+}
+
 dlna_protocol_t *
 http_protocol_new (dlna_t *dlna dlna_unused)
 {
-  static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
-  static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
-  static_http_protocol->create_resource = dlna_http_resource_new;
-  static_http_protocol->name = http_name;
-  static_http_protocol->net = http_net;
+  if (!static_http_protocol)
+  {
+    static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
+    static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+    static_http_protocol->create_resource = dlna_http_resource_new;
+    static_http_protocol->init = dlna_http_init;
+    static_http_protocol->name = http_name;
+    static_http_protocol->net = http_net;
+  }
   return static_http_protocol;
 }
 
