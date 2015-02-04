@@ -29,6 +29,8 @@
 #include "devices.h"
 #include "services.h"
 
+#define PRESENTATION_VIRTUAL_DIR "/presentation"
+
 static char *
 dlna_device_get_description (dlna_t *dlna);
 static dlna_stream_t *
@@ -37,25 +39,17 @@ dlna_device_stream_open (void *cookie, const char *url);
 static int
 dlna_device_init (dlna_t *dlna, dlna_device_t *device)
 {
-  int res = 0;
-
   /* check if it is the main device */
   if (device == dlna->device)
   {
-    res = dlnaAddVirtualDir (SERVICES_VIRTUAL_DIR);
-    if (res != DLNA_E_SUCCESS)
-    {
-      dlna_log (DLNA_MSG_CRITICAL,
-                "Cannot add virtual directory for services\n");
-    }
     dlna_http_callback_t *callback;
     callback = calloc (1, sizeof (dlna_http_callback_t));
     callback->cookie = device;
     callback->open = dlna_device_stream_open;
-    dlna_http_set_callback (callback);
+    dlna_http_set_callback (SERVICES_VIRTUAL_DIR, callback);
   }
 
-  return res;
+  return 0;
 }
 
 extern dlna_stream_t *
@@ -275,13 +269,12 @@ dlna_device_set_presentation_url (dlna_device_t *device, char *str,
     if (!fileurl)
     {
       fileurl = baseurl;
-      baseurl = strdup (SERVICES_VIRTUAL_DIR);
+      baseurl = strdup (PRESENTATION_VIRTUAL_DIR);
     }
     else
     {
       fileurl[0] = 0;
       fileurl = strdup (fileurl+1);
-      dlnaAddVirtualDir (baseurl);
     }
     device->presentation_url = malloc (strlen (baseurl) + strlen (fileurl) + 2);
     sprintf (device->presentation_url, "%s/%s", baseurl, fileurl);
@@ -292,7 +285,7 @@ dlna_device_set_presentation_url (dlna_device_t *device, char *str,
     device->presentation_url = strdup (str);
 
   if (callback)
-    dlna_http_set_callback (callback);
+    dlna_http_set_callback (baseurl, callback);
 }
 
 void

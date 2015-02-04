@@ -241,7 +241,7 @@ void dlna_log (dlna_verbosity_level_t level,
 const dlna_profile_t *dlna_get_media_profile_by_id (dlna_t *dlna, char *profileid);
 char * dlna_upnp_object_type (dlna_media_class_t media_class);
 
-void dlna_http_set_callback (dlna_http_callback_t *cb);
+void dlna_http_set_callback (const char *virtualdir, dlna_http_callback_t *cb);
 
 extern dlna_profiler_t upnpav_profiler;
 

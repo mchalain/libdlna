@@ -58,8 +58,7 @@ dlna_http_get_info (void *cookie,
   if (!cookie || !filename || !info)
     return HTTP_ERROR;
 
-  dlna_log (DLNA_MSG_INFO,
-            "%s, filename : %s\n", __FUNCTION__, filename);
+//  dlna_log (DLNA_MSG_INFO, "%s, filename : %s\n", __FUNCTION__, filename);
 
   /* trap application-level HTTP callback */
   dlna_http_callback_t *http_callback;
@@ -87,8 +86,7 @@ dlna_http_open (void *cookie,
   if (!cookie || !filename)
     return NULL;
 
-  dlna_log (DLNA_MSG_INFO,
-            "%s, filename : %s\n", __FUNCTION__, filename);
+  dlna_log (DLNA_MSG_INFO,"%s, filename : %s\n", __FUNCTION__, filename);
 
   if (mode != DLNA_READ)
     return NULL;
@@ -126,7 +124,7 @@ dlna_http_read (void *cookie,
 
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+//  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external)
@@ -179,7 +177,7 @@ dlna_http_seek (void *cookie,
 
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+//  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external)
@@ -206,7 +204,7 @@ dlna_http_close (void *cookie,
 
   dhdl = (dlna_http_file_handler_t *) fh;
   
-  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
+//  dlna_log (DLNA_MSG_INFO, "%s\n", __FUNCTION__);
 
   /* trap application-level HTTP callback */
   if (dhdl->external)
@@ -222,13 +220,24 @@ dlna_http_close (void *cookie,
 }
 
 void
-dlna_http_set_callback (dlna_http_callback_t *cb)
+dlna_http_set_callback (const char *virtualdir, dlna_http_callback_t *cb)
 {
   if (!cb)
     return;
 
   cb->next = dlna_http_callback;
   dlna_http_callback = cb;
+
+  if (virtualdir)
+  {
+    int res;
+    res = dlnaAddVirtualDir (virtualdir);
+    if (res != DLNA_E_SUCCESS)
+    {
+      dlna_log (DLNA_MSG_CRITICAL,
+                "Cannot add virtual directory %s for web server\n", virtualdir);
+    }
+  }
 }
 
 

@@ -60,8 +60,6 @@ dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 {
   protocol->next = vfs->protocols;
   vfs->protocols= protocol;
-  if (protocol->init)
-    protocol->init (vfs);
 }
 
 void
@@ -565,7 +563,7 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
   return first->u.container.children (first);
 #endif
 
-  for (children = first->u.container.children (first); children; children = children->next)
+  for (children = first->u.container.children (first); children && children->item; children = children->next)
   {
     vfs_item_t *child = children->item;
 
@@ -869,11 +867,9 @@ vfs_stream_open (void *cookie, const char *url)
 void
 vfs_export_didl(dlna_vfs_t *vfs)
 {
-  printf("add %s\n", DIDL_VIRTUAL_DIR);
-  dlnaAddVirtualDir (DIDL_VIRTUAL_DIR);
   dlna_http_callback_t *callback;
   callback = calloc (1, sizeof (dlna_http_callback_t));
   callback->cookie = (void *)vfs;
   callback->open = vfs_stream_open;
-  dlna_http_set_callback(callback);
+  dlna_http_set_callback(DIDL_VIRTUAL_DIR, callback);
 }

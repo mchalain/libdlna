@@ -98,25 +98,26 @@ dlna_http_stream_open (void *cookie, const char *url)
   }
   if (resource)
   {
-	  dlna_item = vfs_item_get(item);
-	  if (!dlna_item)
-		return NULL;
+    dlna_item = vfs_item_get(item);
+    if (!dlna_item)
+      return NULL;
 
-	  if (!dlna_item->filename)
-		return NULL;
+    if (!dlna_item->filename)
+      return NULL;
 
-	  stream = stream_open (dlna_item->filename);
-	  if (stream && resource->protocol_info->other)
-	  {
-		char *other = resource->protocol_info->other (resource->protocol_info);
-		char *mime = strdup (stream->mime);
-		snprintf (stream->mime, 199, 
-					"%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
-					mime, other,
-					resource->info.speed, resource->info.cnv, resource->info.op);
-		free (other);
-		free (mime);
-	  }
+    stream = stream_open (dlna_item->filename);
+    dlna_log (DLNA_MSG_INFO, "%s, file read %s\n", __FUNCTION__, dlna_item->filename);
+    if (stream && resource->protocol_info->other)
+    {
+      char *other = resource->protocol_info->other (resource->protocol_info);
+      char *mime = strdup (stream->mime);
+      snprintf (stream->mime, 199, 
+	    "%s:%s;DLNA.ORG_PS=%d;DLNA.ORG_CI=%d;DLNA.ORG_OP=%02d;", 
+	    mime, other,
+	    resource->info.speed, resource->info.cnv, resource->info.op);
+      free (other);
+      free (mime);
+    }
   }
   return stream;
 }
@@ -162,14 +163,14 @@ http_net ()
   return "*";
 }
 
-int
+static int
 dlna_http_init (dlna_vfs_t *vfs)
 {
   dlna_http_callback_t *callback;
   callback = calloc (1, sizeof (dlna_http_callback_t));
   callback->cookie = vfs;
   callback->open = dlna_http_stream_open;
-  dlna_http_set_callback(callback);
+  dlna_http_set_callback(VIRTUAL_DIR, callback);
   return 0;
 }
 
