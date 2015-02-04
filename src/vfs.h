@@ -99,7 +99,7 @@ struct dlna_vfs_s
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
   struct vfs_item_s *vfs_root;
-  dlna_protocol_t *protocols;
+  struct dlna_protocol_s *protocols;
   protocol_info_t *sources;
   uint32_t vfs_items;
   /* DLNA flags*/
