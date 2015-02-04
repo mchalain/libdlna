@@ -280,7 +280,7 @@ check_lib(){
     func="$2"
     shift 2
     temp_extralibs "$@"
-    check_header $header && check_func $func && add_extralibs "$@"
+    check_header $header && check_func $func
     err=$?
     restore_flags
     return $err
@@ -343,7 +343,7 @@ EOF
 add_pkgconfig_deps() {
     if `which pkg-config 1>/dev/null 2>&1`; then
         add_cflags `pkg-config "$1" --cflags`
-        add_extralibs `pkg-config "$1" --libs`
+        add_extralibs `pkg-config "$1" --libs-only-other --libs-only-L`
     fi
 }
 
@@ -828,7 +828,7 @@ if [ "$libupnp" = auto -o "$libupnp" = yes ]; then
   echolog "Checking for Portable UPnP ..."
   add_pkgconfig_deps libupnp
   libupnp=yes
-  check_lib upnp.h UpnpRegisterRootDevice2 -lupnp || set_all internal libupnp
+  check_lib upnp.h UpnpRegisterRootDevice2 -lupnp || set_all internal libupnp  && add_extralibs `pkg-config "libupnp" --libs`
 fi
 if [ "$libupnp" = yes ]; then
   add_cflags -DHAVE_EXTERNAL_LIBUPNP
