@@ -766,7 +766,7 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
   p = g_profiler->first_profile;
   while (p)
   {
-    dlna_profile_t *prof;
+    dlna_profile_t *prof = NULL;
     
     if (check_extensions)
     {
@@ -781,7 +781,8 @@ ffmpeg_profiler_guess_media_profile (dlna_stream_t *reader, void **cookie)
       }
     }
     
-    prof = p->probe (ctx, codecs);
+    if (p->probe)
+      prof = p->probe (ctx, codecs);
     if (prof)
     {
       profile = prof;
