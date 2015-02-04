@@ -106,7 +106,7 @@ lib_shared_info_post:
 
 lib_shared: lib_shared_info_pre $(LOBJS) lib_shared_info_post
 	$(CC) $(LIBNAME_FLAGS) $(LOBJS) \
-	  $(LDFLAGS) $(EXTRALIBS) -o $(LIBNAME_VERSION)
+	  $(LDFLAGS) $(EXTRALIBS) -o $(LIBNAME_VERSION) -lavformat -lavcodec
 	$(LN) -sf $(LIBNAME_VERSION) $(LIBNAME_MAJOR)
 	$(LN) -sf $(LIBNAME_MAJOR) $(LIBNAME_SHARED)
 
