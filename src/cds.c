@@ -746,18 +746,19 @@ static int
 cds_init (dlna_service_t *service)
 {
   cds_data_t *cds_data = (cds_data_t *)service->cookie;
-  int res;
-
-  res = dlnaAddVirtualDir (VIRTUAL_DIR);
-  if (res != DLNA_E_SUCCESS)
-  {
-    dlna_log (DLNA_MSG_CRITICAL,
-              "Cannot add virtual directory for web server\n");
-  }
   dlna_service_t *cms = dlna_service_find_id (service->device, DLNA_SERVICE_CONNECTION_MANAGER);
   cms_set_protocol_info (cms, cds_data->vfs->sources, 0);
+  dlna_protocol_t *proto = cds_data->vfs->protocols;
+  while (proto != NULL)
+  {
+    if(proto->init)
+    {
+      proto->init (cds_data->vfs);
+    }
+    proto = proto->next;
+  }
 
-  return res;
+  return 0;
 }
 
 static char *
