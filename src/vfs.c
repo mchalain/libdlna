@@ -562,9 +562,10 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
 #ifdef DISABLE_SORT
   return first->u.container.children (first);
 #endif
-
-  for (children = first->u.container.children (first); children && children->item; children = children->next)
+  for (children = first->u.container.children (first); children; children = children->next)
   {
+    if (!children->item)
+      continue;
     vfs_item_t *child = children->item;
 
     switch (child->type)
@@ -576,7 +577,6 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
       items = sort_insert (items, child, cmp_item_filename);
     break;
     }
-    free (children);
   }
   /* Rebuild the new children list*/
   children = containers;
@@ -640,6 +640,7 @@ vfs_browse_directchildren (vfs_item_t *item,
   
   result->nb_returned = 0;
 
+
   /* go to the child pointed out by index */
   items = vfs_sort(item, sort);
   for (s = 0; s < index; s++)
@@ -650,22 +651,21 @@ vfs_browse_directchildren (vfs_item_t *item,
      then all children must be returned */
   if (index == 0 && count == 0)
     count = item->u.container.children_count;
-
   for (; items; items = items->next)
   {
-    vfs_item_t *item = items->item;
+    vfs_item_t *child = items->item;
 
     /* only fetch the requested count number or all entries if count = 0 */
     if (count == 0 || result->nb_returned < count)
     {
-      switch (item->type)
+      switch (child->type)
       {
       case DLNA_CONTAINER:
-        didl_append_container (result->didl, item, 0);
+        didl_append_container (result->didl, child, 0);
         break;
 
       case DLNA_RESOURCE:
-        didl_append_item (result->didl, item, filter);
+        didl_append_item (result->didl, child, filter);
         break;
 
       default:

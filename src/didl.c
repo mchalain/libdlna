@@ -291,7 +291,6 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
     char valuestr[12];
 
     elem = ixmlDocument_createElement (doc, DIDL_CONTAINER);
-    printf ("container id= %u\n", item->id);
     snprintf (valuestr, 11, "%u", item->id);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_ID, valuestr);
     if (item->parent && item != item->parent)
