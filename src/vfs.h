@@ -96,6 +96,8 @@ struct dlna_protocol_s
 
 struct dlna_vfs_s
 {
+  vfs_item_t *(*get_item_by_id)(dlna_vfs_t *vfs, uint32_t id);
+
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
   struct vfs_item_s *vfs_root;
@@ -107,7 +109,6 @@ struct dlna_vfs_s
   int mode;
 };
 
-vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
 dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
 

@@ -37,7 +37,8 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
-vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
+static vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
+static vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 
 dlna_vfs_t *
@@ -47,6 +48,7 @@ dlna_vfs_new (dlna_t *dlna)
 
   vfs = calloc (1, sizeof (dlna_vfs_t));
   vfs->storage_type = DLNA_DMS_STORAGE_MEMORY;
+  vfs->get_item_by_id = vfs_get_item_by_id;
   vfs->vfs_root = NULL;
   vfs->vfs_items = 0;
   vfs->mode = dlna->mode;
@@ -179,7 +181,7 @@ vfs_provide_next_id (dlna_vfs_t *vfs, char *fullpath)
   return i;
 }
 
-vfs_item_t *
+static vfs_item_t *
 vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
 {
   vfs_item_t *item = NULL;
@@ -192,7 +194,7 @@ vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
   return item;
 }
 
-vfs_item_t *
+static vfs_item_t *
 vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
 {
   vfs_item_t *item = NULL;

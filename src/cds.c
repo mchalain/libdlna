@@ -257,13 +257,15 @@ cds_system_update_id (dlna_t *dlna dlna_unused, dlna_service_t *service)
   char *value;
   cds_data_t *cds_data;
   dlna_vfs_t *vfs;
+  vfs_item_t *root;
 
   if (!service)
     return NULL;
   cds_data = (cds_data_t *)service->cookie;
   vfs = (dlna_vfs_t *) cds_data->vfs;
+  root = vfs->get_item_by_id (vfs, 0);
   value = calloc (1, 11);
-  snprintf (value, 10, "%10u", vfs->vfs_root->u.container.updateID);
+  snprintf (value, 10, "%10u", root->u.container.updateID);
   return value;
 }
 
@@ -359,7 +361,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   result.lite = 1;
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (vfs, id);
+  item = vfs->get_item_by_id (vfs, id);
 
   if (!item)
   {
@@ -493,9 +495,9 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (vfs, id);
+  item = vfs->get_item_by_id (vfs, id);
   if (!item)
-    item = vfs_get_item_by_id (vfs, 0);
+    item = vfs->get_item_by_id (vfs, 0);
 
   if (!item)
   {

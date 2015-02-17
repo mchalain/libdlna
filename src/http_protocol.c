@@ -73,7 +73,7 @@ dlna_http_stream_open (void *cookie, const char *url)
   char *page;
   page = strchr (url, '/') + 1;
   id = strtoul (strrchr(page, '/') + 1, NULL, 10);
-  item = vfs_get_item_by_id (vfs, id);
+  item = vfs->get_item_by_id (vfs, id);
 
   if (!item)
     return NULL;
