@@ -45,12 +45,14 @@ dlna_vfs_t *
 dlna_vfs_new (dlna_t *dlna)
 {
   dlna_vfs_t *vfs;
+  struct dlna_vfs_cookie_s *cookie;
 
   vfs = calloc (1, sizeof (dlna_vfs_t));
   vfs->storage_type = DLNA_DMS_STORAGE_MEMORY;
   vfs->get_item_by_id = vfs_get_item_by_id;
-  vfs->vfs_root = NULL;
-  vfs->vfs_items = 0;
+  cookie = vfs->cookie = calloc (1, sizeof (struct dlna_vfs_cookie_s));
+  cookie->vfs_root = NULL;
+  cookie->vfs_items = 0;
   vfs->mode = dlna->mode;
   dlna_vfs_add_container (vfs, "root", 0, 0);
 
@@ -67,8 +69,12 @@ dlna_vfs_add_protocol (dlna_vfs_t *vfs, dlna_protocol_t *protocol)
 void
 dlna_vfs_free (dlna_vfs_t *vfs)
 {
-  vfs_item_free (vfs, vfs->vfs_root);
-  vfs->vfs_root = NULL;
+  struct dlna_vfs_cookie_s *cookie;
+
+  cookie = vfs->cookie;
+  vfs_item_free (vfs, cookie->vfs_root);
+  cookie->vfs_root = NULL;
+  free (vfs->cookie);
   free (vfs);
 }
 
@@ -83,10 +89,13 @@ vfs_item_get(vfs_item_t *item)
 void
 vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
 {
-  if (!vfs || !vfs->vfs_root || !item)
+  struct dlna_vfs_cookie_s *cookie;
+
+  cookie = vfs->cookie;
+  if (!vfs || !cookie->vfs_root || !item)
     return;
 
-  HASH_DEL (vfs->vfs_root, item);
+  HASH_DEL (cookie->vfs_root, item);
   
   switch (item->type)
   {
@@ -120,7 +129,7 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
   }
   
   item->parent = NULL;
-  vfs->vfs_items--;
+  cookie->vfs_items--;
   free (item);
 }
 
@@ -148,11 +157,14 @@ static dlna_status_code_t
 vfs_is_id_registered (dlna_vfs_t *vfs, uint32_t id)
 {
   vfs_item_t *item = NULL;
+  struct dlna_vfs_cookie_s *cookie;
 
-  if (!vfs || !vfs->vfs_root)
+  cookie = vfs->cookie;
+
+  if (!vfs || !cookie->vfs_root)
     return DLNA_ST_ERROR;
 
-  HASH_FIND_INT (vfs->vfs_root, &id, item);
+  HASH_FIND_INT (cookie->vfs_root, &id, item);
 
   return item ? DLNA_ST_OK : DLNA_ST_ERROR;
 }
@@ -162,12 +174,15 @@ vfs_provide_next_id (dlna_vfs_t *vfs, char *fullpath)
 {
   uint32_t i;
   uint32_t start = 1;
+  struct dlna_vfs_cookie_s *cookie;
+
+  cookie = vfs->cookie;
 
   if (vfs->mode & DLNA_CAPABILITY_UPNP_AV_XBOX)
     start += STARTING_ENTRY_ID_XBOX360;
 
 
-  if (!vfs->vfs_root)
+  if (!cookie->vfs_root)
     return (start - 1);
 
   for (i = start; i < UINT_MAX; i++)
@@ -185,11 +200,14 @@ static vfs_item_t *
 vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
 {
   vfs_item_t *item = NULL;
+  struct dlna_vfs_cookie_s *cookie;
 
-  if (!vfs || !vfs->vfs_root)
+  cookie = vfs->cookie;
+
+  if (!vfs || !cookie->vfs_root)
     return NULL;
 
-  HASH_FIND_INT (vfs->vfs_root, &id, item);
+  HASH_FIND_INT (cookie->vfs_root, &id, item);
 
   return item;
 }
@@ -198,11 +216,14 @@ static vfs_item_t *
 vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
 {
   vfs_item_t *item = NULL;
+  struct dlna_vfs_cookie_s *cookie;
 
-  if (!vfs || !vfs->vfs_root)
+  cookie = vfs->cookie;
+
+  if (!vfs || !cookie->vfs_root)
     return NULL;
   
-  for (item = vfs->vfs_root; item; item = item->hh.next)
+  for (item = cookie->vfs_root; item; item = item->hh.next)
   {
     switch (item->type)
     {
@@ -260,9 +281,12 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 {
   vfs_item_t *item;
   struct stat st;
+  struct dlna_vfs_cookie_s *cookie;
 
   if (!vfs || !name)
     return 0;
+
+  cookie = vfs->cookie;
 
   dlna_log (DLNA_MSG_INFO, "Adding container '%s'\n", name);
 
@@ -279,7 +303,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   else
     item->id = object_id;
 
-  HASH_ADD_INT (vfs->vfs_root, id, item);
+  HASH_ADD_INT (cookie->vfs_root, id, item);
   
   dlna_log (DLNA_MSG_INFO,
             "New container id (asked for #%u, granted #%u)\n",
@@ -298,7 +322,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   {
     item->parent = vfs_get_item_by_id (vfs, container_id);
     if (!item->parent)
-      item->parent = vfs->vfs_root;
+      item->parent = cookie->vfs_root;
     else
       item->parent->u.container.updateID ++;
     /* add new child to parent */
@@ -306,7 +330,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
     {
       if (item->parent->u.container.add_child)
         item->parent->u.container.add_child (item->parent, item);
-      vfs->vfs_items++;
+      cookie->vfs_items++;
     }
     item->root = item->parent->root;
   }
@@ -346,11 +370,13 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 {
   dlna_protocol_t *protocol;
   vfs_item_t *item;
+  struct dlna_vfs_cookie_s *cookie;
   
   if (!vfs || !name || !dlna_item)
     return 0;
 
-  if (!vfs->vfs_root)
+  cookie = vfs->cookie;
+  if (!cookie->vfs_root)
   {
     dlna_log (DLNA_MSG_ERROR, "No VFS root found. Add one first\n");
     return 0;
@@ -365,7 +391,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   item->u.resource.item = dlna_item;
 
-  HASH_ADD_INT (vfs->vfs_root, id, item);
+  HASH_ADD_INT (cookie->vfs_root, id, item);
   
   dlna_log (DLNA_MSG_INFO, "New resource id #%u (%s)\n",
             item->id, dlna_item->filename);
@@ -373,7 +399,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   /* check for a valid parent id */
   item->parent = vfs_get_item_by_id (vfs, container_id);
   if (!item->parent)
-    item->parent = vfs->vfs_root;
+    item->parent = cookie->vfs_root;
   else
     item->parent->u.container.updateID ++;
 
@@ -385,7 +411,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   /* add new child to parent */
   item->parent->u.container.add_child (item->parent, item);
-  vfs->vfs_items++;
+  cookie->vfs_items++;
 
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
   {
