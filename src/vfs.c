@@ -50,6 +50,7 @@ dlna_vfs_new (dlna_t *dlna)
   vfs = calloc (1, sizeof (dlna_vfs_t));
   vfs->storage_type = DLNA_DMS_STORAGE_MEMORY;
   vfs->get_item_by_id = vfs_get_item_by_id;
+  vfs->get_item_by_name = vfs_get_item_by_name;
   cookie = vfs->cookie = calloc (1, sizeof (struct dlna_vfs_cookie_s));
   cookie->vfs_root = NULL;
   cookie->vfs_items = 0;

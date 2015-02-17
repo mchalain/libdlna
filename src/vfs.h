@@ -104,6 +104,7 @@ struct dlna_vfs_cookie_s
 struct dlna_vfs_s
 {
   vfs_item_t *(*get_item_by_id)(dlna_vfs_t *vfs, uint32_t id);
+  vfs_item_t *(*get_item_by_name) (dlna_vfs_t *vfs, char *name);
 
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
