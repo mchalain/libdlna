@@ -55,7 +55,7 @@ http_url (vfs_resource_t *resource)
   return url;
 }
 
-static dlna_protocol_t *static_http_protocol = NULL;
+static dlna_protocol_t *singleton_http_protocol = NULL;
 
 static dlna_stream_t *
 dlna_http_stream_open (void *cookie, const char *url)
@@ -122,6 +122,22 @@ dlna_http_stream_open (void *cookie, const char *url)
   return stream;
 }
 
+static char *
+dlna_http_resource_other_dlna (protocol_info_t *pinfo)
+{
+  char dlna_other[256];
+  dlna_org_flags_t flags;
+
+  flags = DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
+    DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE |
+    DLNA_ORG_FLAG_CONNECTION_STALL |
+    DLNA_ORG_FLAG_DLNA_V15;
+  sprintf (dlna_other, "%s=%s;%s=%.8x%.24x",
+            "DLNA.ORG_PN", pinfo->profile->id,
+            "DLNA.ORG_FLAGS", flags, 0);
+  return strdup (dlna_other);
+}
+
 static vfs_resource_t *
 dlna_http_resource_new (vfs_item_t *item)
 {
@@ -137,8 +153,10 @@ dlna_http_resource_new (vfs_item_t *item)
 
   dlna_item = vfs_item_get (item);
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
-  resource->protocol_info->protocol = static_http_protocol;
+  resource->protocol_info->protocol = singleton_http_protocol;
   resource->protocol_info->profile = dlna_item->profile;
+  if ((singleton_http_protocol->mode & DLNA_CAPABILITY_DLNA) && resource->protocol_info->profile->id)
+    resource->protocol_info->other = dlna_http_resource_other_dlna;
 
   resource->size = dlna_item->filesize;
   dlna_properties_t *properties = dlna_item_properties (dlna_item);
@@ -175,17 +193,19 @@ dlna_http_init (dlna_vfs_t *vfs)
 }
 
 dlna_protocol_t *
-http_protocol_new (dlna_t *dlna dlna_unused)
+http_protocol_new (dlna_t *dlna)
 {
-  if (!static_http_protocol)
+  if (!singleton_http_protocol)
   {
-    static_http_protocol = calloc (1, sizeof (dlna_protocol_t));
-    static_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
-    static_http_protocol->create_resource = dlna_http_resource_new;
-    static_http_protocol->init = dlna_http_init;
-    static_http_protocol->name = http_name;
-    static_http_protocol->net = http_net;
+    singleton_http_protocol = calloc (1, sizeof (dlna_protocol_t));
+    singleton_http_protocol->type = DLNA_PROTOCOL_INFO_TYPE_HTTP;
+    singleton_http_protocol->create_resource = dlna_http_resource_new;
+    singleton_http_protocol->init = dlna_http_init;
+    singleton_http_protocol->name = http_name;
+    singleton_http_protocol->net = http_net;
+    if (dlna)
+      singleton_http_protocol->mode = dlna->mode;
   }
-  return static_http_protocol;
+  return singleton_http_protocol;
 }
 

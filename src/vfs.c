@@ -348,22 +348,6 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   return item->id;
 }
 
-static char *
-vfs_resource_other_dlna (protocol_info_t *pinfo)
-{
-  char dlna_other[256];
-  dlna_org_flags_t flags;
-
-  flags = DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
-    DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE |
-    DLNA_ORG_FLAG_CONNECTION_STALL |
-    DLNA_ORG_FLAG_DLNA_V15;
-  sprintf (dlna_other, "%s=%s;%s=%.8x%.24x",
-            "DLNA.ORG_PN", pinfo->profile->id,
-            "DLNA.ORG_FLAGS", flags, 0);
-  return strdup (dlna_other);
-}
-
 uint32_t
 dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
                        dlna_item_t *dlna_item, uint32_t container_id)
@@ -416,8 +400,6 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   for (protocol = vfs->protocols; protocol; protocol = protocol->next)
   {
     vfs_resource_t *resource = protocol->create_resource (item);
-    if ((vfs->mode & DLNA_CAPABILITY_DLNA) && resource->protocol_info->profile->id)
-      resource->protocol_info->other = vfs_resource_other_dlna;
     vfs_resource_add (item, resource);
     vfs_add_source (vfs, resource->protocol_info);
   }

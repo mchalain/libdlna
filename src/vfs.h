@@ -90,6 +90,7 @@ struct dlna_protocol_s
   int (*init) (dlna_vfs_t *vfs);
   const char *(*name)();
   const char *(*net)();
+  dlna_capability_mode_t mode;
   void *cookie;
   dlna_protocol_t *next;
 };
