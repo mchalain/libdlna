@@ -41,7 +41,7 @@ static vfs_item_t *dlna_vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
 static vfs_item_t *dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
 static void dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id);
 static void dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name);
-void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
+static void dlna_vfs_free_item (dlna_vfs_t *vfs, vfs_item_t *item);
 
 dlna_vfs_t *
 dlna_vfs_new (dlna_t *dlna)
@@ -55,6 +55,7 @@ dlna_vfs_new (dlna_t *dlna)
   vfs->get_item_by_name = dlna_vfs_get_item_by_name;
   vfs->remove_item_by_id = dlna_vfs_remove_item_by_id;
   vfs->remove_item_by_name = dlna_vfs_remove_item_by_name;
+  vfs->free_item = dlna_vfs_free_item;
   cookie = vfs->cookie = calloc (1, sizeof (struct dlna_vfs_cookie_s));
   cookie->vfs_root = NULL;
   cookie->vfs_items = 0;
@@ -77,7 +78,7 @@ dlna_vfs_free (dlna_vfs_t *vfs)
   struct dlna_vfs_cookie_s *cookie;
 
   cookie = vfs->cookie;
-  vfs_item_free (vfs, cookie->vfs_root);
+  vfs->free_item (vfs, cookie->vfs_root);
   cookie->vfs_root = NULL;
   free (vfs->cookie);
   free (vfs);
@@ -132,8 +133,8 @@ vfs_resource_get (vfs_item_t *item)
   return item->u.resource.resources;
 }
 
-void
-vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
+static void
+dlna_vfs_free_item (dlna_vfs_t *vfs, vfs_item_t *item)
 {
   struct dlna_vfs_cookie_s *cookie;
 
@@ -167,7 +168,7 @@ vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
     vfs_items_list_t *children;
     for (children = item->u.container.children (item); children; children = children->next)
     {
-      vfs_item_free (vfs, children->item);
+      vfs->free_item (vfs, children->item);
       free (children);
     }
     break;
@@ -424,7 +425,7 @@ dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id)
   {
     dlna_log (DLNA_MSG_INFO,
               "Removing item #%u\n", item->id);
-    vfs_item_free (vfs, item);
+    vfs->free_item (vfs, item);
   }
 }
 
@@ -441,7 +442,7 @@ dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name)
   {
     dlna_log (DLNA_MSG_INFO,
               "Removing item #%u (%s)\n", item->id, name);
-    vfs_item_free (vfs, item);
+    vfs->free_item (vfs, item);
   }
 }
 

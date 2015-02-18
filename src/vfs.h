@@ -132,6 +132,8 @@ struct dlna_vfs_s
  */
   void (*remove_item_by_name) (dlna_vfs_t *vfs, char *name);
 
+  void (*free_item) (dlna_vfs_t *vfs, vfs_item_t *item);
+
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
   struct dlna_protocol_s *protocols;
