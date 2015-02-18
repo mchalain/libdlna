@@ -91,6 +91,47 @@ vfs_item_get(vfs_item_t *item)
   return NULL;
 }
 
+static vfs_items_list_t *
+vfs_item_children (vfs_item_t *item)
+{
+  return item->u.container.children_cookie;
+}
+
+static void
+vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
+{
+  vfs_items_list_t *children;
+
+  if (!item || !child || !item->u.container.children)
+    return;
+
+  for (children = item->u.container.children (item); children; children = children->next)
+    if (children->item == child)
+      return; /* already present */
+
+  children = calloc (1, sizeof (vfs_items_list_t));
+  children->next = item->u.container.children (item);
+  children->previous = NULL;
+  children->item = child;
+  if (item->u.container.children_cookie)
+    ((vfs_items_list_t *)item->u.container.children_cookie)->previous = children;
+  item->u.container.children_cookie = (void *)children;
+  item->u.container.children_count++;
+}
+
+static void
+vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
+{
+  resource->next = item->u.resource.resources;
+  item->u.resource.resources = resource;
+}
+
+inline vfs_resource_t * 
+vfs_resource_get (vfs_item_t *item) 
+{
+  return item->u.resource.resources;
+}
+
 void
 vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item)
 {
@@ -143,19 +184,6 @@ vfs_add_source (dlna_vfs_t *vfs, protocol_info_t *source)
 {
   source->next = vfs->sources;
   vfs->sources = source;
-}
-
-static void
-vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
-{
-  resource->next = item->u.resource.resources;
-  item->u.resource.resources = resource;
-}
-
-inline vfs_resource_t * 
-vfs_resource_get (vfs_item_t *item) 
-{
-  return item->u.resource.resources;
 }
 
 static dlna_status_code_t
@@ -250,34 +278,6 @@ dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
     }
   }
   return NULL;
-}
-
-static vfs_items_list_t *
-vfs_item_children (vfs_item_t *item)
-{
-  return item->u.container.children_cookie;
-}
-
-static void
-vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
-{
-  vfs_items_list_t *children;
-
-  if (!item || !child || !item->u.container.children)
-    return;
-
-  for (children = item->u.container.children (item); children; children = children->next)
-    if (children->item == child)
-      return; /* already present */
-
-  children = calloc (1, sizeof (vfs_items_list_t));
-  children->next = item->u.container.children (item);
-  children->previous = NULL;
-  children->item = child;
-  if (item->u.container.children_cookie)
-    ((vfs_items_list_t *)item->u.container.children_cookie)->previous = children;
-  item->u.container.children_cookie = (void *)children;
-  item->u.container.children_count++;
 }
 
 uint32_t
