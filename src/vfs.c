@@ -145,7 +145,7 @@ vfs_add_source (dlna_vfs_t *vfs, protocol_info_t *source)
   vfs->sources = source;
 }
 
-void
+static void
 vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource) 
 {
   resource->next = item->u.resource.resources;

@@ -103,17 +103,29 @@ struct dlna_vfs_cookie_s
 
 struct dlna_vfs_s
 {
+/**
+ * Returns an existing item from VFS layer by ID.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] id           Unique ID of the item to be removed.
+ */
   vfs_item_t *(*get_item_by_id)(dlna_vfs_t *vfs, uint32_t id);
+/**
+ * Returns an existing item from VFS layer by name.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] name         Name of the item to be removed.
+ */
   vfs_item_t *(*get_item_by_name) (dlna_vfs_t *vfs, char *name);
 /**
- * Remove an existing item (and all its children) from VFS layer by ID.
+ * Removes an existing item (and all its children) from VFS layer by ID.
  *
  * @param[in] vfs          The VFS to manage.
  * @param[in] id           Unique ID of the item to be removed.
  */
   void (*remove_item_by_id) (dlna_vfs_t *vfs, uint32_t id);
 /**
- * Remove an existing item (and all its children) from VFS layer by name.
+ * Removes an existing item (and all its children) from VFS layer by name.
  *
  * @param[in] vfs          The VFS to manage.
  * @param[in] name         Name of the item to be removed.
