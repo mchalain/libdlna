@@ -37,8 +37,10 @@
 extern uint32_t
 crc32(uint32_t crc, const void *buf, size_t size);
 
-static vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
-static vfs_item_t *vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
+static vfs_item_t *dlna_vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
+static vfs_item_t *dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name);
+static void dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id);
+static void dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name);
 void vfs_item_free (dlna_vfs_t *vfs, vfs_item_t *item);
 
 dlna_vfs_t *
@@ -49,8 +51,10 @@ dlna_vfs_new (dlna_t *dlna)
 
   vfs = calloc (1, sizeof (dlna_vfs_t));
   vfs->storage_type = DLNA_DMS_STORAGE_MEMORY;
-  vfs->get_item_by_id = vfs_get_item_by_id;
-  vfs->get_item_by_name = vfs_get_item_by_name;
+  vfs->get_item_by_id = dlna_vfs_get_item_by_id;
+  vfs->get_item_by_name = dlna_vfs_get_item_by_name;
+  vfs->remove_item_by_id = dlna_vfs_remove_item_by_id;
+  vfs->remove_item_by_name = dlna_vfs_remove_item_by_name;
   cookie = vfs->cookie = calloc (1, sizeof (struct dlna_vfs_cookie_s));
   cookie->vfs_root = NULL;
   cookie->vfs_items = 0;
@@ -198,7 +202,7 @@ vfs_provide_next_id (dlna_vfs_t *vfs, char *fullpath)
 }
 
 static vfs_item_t *
-vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
+dlna_vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
 {
   vfs_item_t *item = NULL;
   struct dlna_vfs_cookie_s *cookie;
@@ -214,7 +218,7 @@ vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id)
 }
 
 static vfs_item_t *
-vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
+dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
 {
   vfs_item_t *item = NULL;
   struct dlna_vfs_cookie_s *cookie;
@@ -321,7 +325,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   
   if (item->id != 0)
   {
-    item->parent = vfs_get_item_by_id (vfs, container_id);
+    item->parent = dlna_vfs_get_item_by_id (vfs, container_id);
     if (!item->parent)
       item->parent = cookie->vfs_root;
     else
@@ -382,7 +386,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
             item->id, dlna_item->filename);
 
   /* check for a valid parent id */
-  item->parent = vfs_get_item_by_id (vfs, container_id);
+  item->parent = dlna_vfs_get_item_by_id (vfs, container_id);
   if (!item->parent)
     item->parent = cookie->vfs_root;
   else
@@ -407,7 +411,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   return item->id;
 }
 
-void
+static void
 dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id)
 {
   vfs_item_t *item;
@@ -415,7 +419,7 @@ dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id)
   if (!vfs)
     return;
   
-  item = vfs_get_item_by_id (vfs, id);
+  item = dlna_vfs_get_item_by_id (vfs, id);
   if (item)
   {
     dlna_log (DLNA_MSG_INFO,
@@ -424,15 +428,15 @@ dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id)
   }
 }
 
-void
-dlna_vfs_remove_item_by_title (dlna_vfs_t *vfs, char *name)
+static void
+dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name)
 {
   vfs_item_t *item;
 
   if (!vfs || !name)
     return;
 
-  item = vfs_get_item_by_name (vfs, name);
+  item = dlna_vfs_get_item_by_name (vfs, name);
   if (item)
   {
     dlna_log (DLNA_MSG_INFO,
@@ -858,7 +862,7 @@ vfs_stream_open (void *cookie, const char *url)
     id = atoi(idstr + strlen(DIDL_ITEM_ID"=") + 1);
   }
   vfs_item_t *item;
-  item = vfs_get_item_by_id(vfs, id);
+  item = vfs->get_item_by_id(vfs, id);
 
   didl_result_t result;
   result.didl = didl_new ();

@@ -726,22 +726,6 @@ uint32_t dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 uint32_t dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
                                 dlna_item_t *dlna_item, uint32_t container_id);
 
-/**
- * Remove an existing item (and all its children) from VFS layer by ID.
- *
- * @param[in] vfs          The VFS to manage.
- * @param[in] id           Unique ID of the item to be removed.
- */
-void dlna_vfs_remove_item_by_id (dlna_vfs_t *vfs, uint32_t id);
-
-/**
- * Remove an existing item (and all its children) from VFS layer by name.
- *
- * @param[in] vfs          The VFS to manage.
- * @param[in] name         Name of the item to be removed.
- */
-void dlna_vfs_remove_item_by_name (dlna_vfs_t *vfs, char *name);
-
 /***************************************************************************/
 /*                                                                         */
 /* DLNA WebServer Callbacks & Handlers                                     */
