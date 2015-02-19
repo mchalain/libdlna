@@ -42,6 +42,7 @@ SRCS :=  \
 	upnp.c \
 	buffer.c \
 	didl.c \
+	vfs_internal.c \
 	vfs.c \
 	crc32.c \
 	devices.c \
