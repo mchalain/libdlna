@@ -56,6 +56,11 @@ struct vfs_item_s {
   uint32_t id;
   dlna_restricted_t restricted;
 
+  char *(*name) (vfs_item_t *item);
+  dlna_item_t *(*data) (vfs_item_t *item);
+  vfs_items_list_t *(*children) (vfs_item_t *container);
+  void (*add_child) (vfs_item_t *container, vfs_item_t *child);
+
   enum {
     DLNA_RESOURCE,
     DLNA_CONTAINER
@@ -145,7 +150,6 @@ struct dlna_vfs_s
   void *cookie;
 };
 
-dlna_item_t *vfs_item_get(vfs_item_t *item);
 inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
 
 typedef struct didl_result_s

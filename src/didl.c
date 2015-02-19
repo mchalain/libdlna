@@ -164,7 +164,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
     ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
 
     dlna_item_t *dlna_item;
-    dlna_item = vfs_item_get (item);
+    dlna_item = item->data (item);
     IXML_Element *title = NULL;
     if (dlna_item)
     {

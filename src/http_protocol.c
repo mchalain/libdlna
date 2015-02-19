@@ -98,7 +98,7 @@ dlna_http_stream_open (void *cookie, const char *url)
   }
   if (resource)
   {
-    dlna_item = vfs_item_get(item);
+    dlna_item = item->data (item);
     if (!dlna_item)
       return NULL;
 
@@ -151,7 +151,7 @@ dlna_http_resource_new (vfs_item_t *item)
   resource->cookie = cookie;
   resource->url = http_url;
 
-  dlna_item = vfs_item_get (item);
+  dlna_item = item->data (item);
   resource->protocol_info = calloc (1, sizeof (protocol_info_t));
   resource->protocol_info->protocol = singleton_http_protocol;
   resource->protocol_info->profile = dlna_item->profile;

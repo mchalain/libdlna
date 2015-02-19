@@ -265,18 +265,27 @@ dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
       break;
     case DLNA_RESOURCE:
       {
-        dlna_item_t *dlna_item = vfs_item_get (item);
-        dlna_metadata_t *metadata = dlna_item_metadata (dlna_item, GET);
-        if (metadata && metadata->title && !strcmp (metadata->title, name))
+        if (!strcmp (item->name(item), name))
           return item;
-        else if (!strcmp (basename (dlna_item->filename), name))
-          return item;
-        dlna_item_metadata (dlna_item, FREE);
       }
       break;
     }
   }
   return NULL;
+}
+
+static char *
+dlna_vfs_get_item_name (vfs_item_t *item)
+{
+  char *name = NULL;
+  dlna_item_t *dlna_item = item->data (item);
+  dlna_metadata_t *metadata = dlna_item_metadata (dlna_item, GET);
+  if (metadata && metadata->title)
+    name = metadata->title;
+  else
+    name = basename (dlna_item->filename);
+  dlna_item_metadata (dlna_item, FREE);
+  return name;
 }
 
 uint32_t
@@ -374,6 +383,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   item->type = DLNA_RESOURCE;
   item->restricted = 1;
+  item->name = dlna_vfs_get_item_name;
+  item->data = vfs_item_get;
   
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
 
