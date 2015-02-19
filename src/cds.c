@@ -370,8 +370,8 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   result_count = meta ?
-  vfs_browse_metadata (item, filter, &result) :
-  vfs_browse_directchildren (item, index, count, filter, sort, &result);
+    vfs_browse_metadata (item, filter, &result) :
+    vfs_browse_directchildren (item, index, count, filter, sort, &result);
 
   if (result_count < 0)
   {
@@ -412,41 +412,6 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   return 0;
 }
 
-static int
-cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
-                           vfs_item_t *item, int index,
-                           uint32_t count, char *filter, char *search_criteria)
-{
-  char tmp[11];
-
-  index = 0;
-
-  /* searching only has a sense on containers */
-  if (item->type != DLNA_CONTAINER)
-    return -1;
-
-  didl_result_t result;
-  result.didl = didl_new ();
-  result.lite = 1;
-
-  vfs_search_directchildren (item, 
-			  index, count, filter, search_criteria, &result);
-
-  buffer_t *out = buffer_new ();
-  didl_print (result.didl, out);
-  upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
-  buffer_free (out);
-  
-  snprintf (tmp, 10, "%lu", result.nb_returned);
-  upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
-  snprintf (tmp, 10, "%lu", result.total_match);
-  upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
-
-  didl_free (result.didl);
-
-  return result.nb_returned;
-}
-
 /*
  * Search:
  *   This action allows the caller to search the content directory for
@@ -465,6 +430,7 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* output arguments */
   vfs_item_t *item;
+  didl_result_t result = {0};
 
   if (!dlna || !ev)
   {
@@ -504,26 +470,51 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
     ev->ar->ErrCode = CDS_ERR_INVALID_CONTAINER;
     goto search_err;
   }
+  /* searching only has a sense on containers */
+  if (item->type != DLNA_CONTAINER)
+  {
+    ev->ar->ErrCode = CDS_ERR_INVALID_CONTAINER;
+    goto search_err;
+  }
 
-  int result_count = 0;
-  result_count = cds_search_directchildren (dlna, ev, item, index, count,
-                                            filter, search_criteria);
-  if (result_count < 0)
+  result.didl = didl_new ();
+  result.lite = 1;
+
+  vfs_search_directchildren (item, 
+			  index, count, filter, search_criteria, &result);
+
+  if (result.nb_returned > 0)
+  {
+    char tmp[11];
+
+    buffer_t *out = buffer_new ();
+    didl_print (result.didl, out);
+    upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
+    buffer_free (out);
+
+    snprintf (tmp, 10, "%lu", result.nb_returned);
+    upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
+    snprintf (tmp, 10, "%lu", result.total_match);
+    upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
+    upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
+                       CDS_ROOT_OBJECT_ID);
+  }
+  else
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     goto search_err;
   }
 
-  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
-                     CDS_ROOT_OBJECT_ID);
-
+  didl_free (result.didl);
   free (search_criteria);
   free (filter);
   free (sort);
 
   return ev->status;
 
- search_err:
+search_err:
+  if (result.didl)
+    didl_free (result.didl);
   if (search_criteria)
     free (search_criteria);
   if (filter)
