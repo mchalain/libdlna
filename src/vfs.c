@@ -99,23 +99,25 @@ vfs_item_children (vfs_item_t *item)
 static void
 vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
 {
-  vfs_items_list_t *children;
+  vfs_items_list_t *children, *first;
 
-  if (!item || !child || !item->u.container.children)
+  if (!item || !child || !item->children)
     return;
 
-  for (children = item->u.container.children (item); children; children = children->next)
+  first = item->children (item);
+  for (children = first; children; children = children->next)
     if (children->item == child)
       return; /* already present */
 
   children = calloc (1, sizeof (vfs_items_list_t));
-  children->next = item->u.container.children (item);
+  if (!children)
+    return; /* not enought memory */
+  children->count = first->count + 1;
+  children->next = first;
   children->previous = NULL;
   children->item = child;
-  if (item->u.container.children_cookie)
-    ((vfs_items_list_t *)item->u.container.children_cookie)->previous = children;
+  first->previous = children;
   item->u.container.children_cookie = (void *)children;
-  item->u.container.children_count++;
 }
 
 static void
@@ -164,7 +166,7 @@ dlna_vfs_free_item (dlna_vfs_t *vfs, vfs_item_t *item)
     if (item->u.container.title)
       free (item->u.container.title);
     vfs_items_list_t *children;
-    for (children = item->u.container.children (item); children; children = children->next)
+    for (children = item->children (item); children; children = children->next)
     {
       vfs->free_item (vfs, children->item);
       free (children);
@@ -306,6 +308,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   item->restricted = 1;
   item->title = dlna_vfs_get_container_name;
   item->data = NULL;
+  item->children = vfs_item_children;
 
   /* is requested 'object_id' available ? */
   if (object_id == 0)
@@ -326,9 +329,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   else
     item->u.container.media_class = DLNA_CLASS_COLLECTION;
   item->u.container.title = strdup (basename (name));
-  item->u.container.children = vfs_item_children;
   item->u.container.add_child = vfs_item_add_child;
-  item->u.container.children_count = 0;
   
   if (item->id != 0)
   {
@@ -384,6 +385,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   item->restricted = 1;
   item->title = dlna_vfs_get_item_name;
   item->data = vfs_item_get;
+  item->children = NULL;
   
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
 

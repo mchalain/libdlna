@@ -31,6 +31,10 @@
 #include "didl.h"
 #include "cms.h"
 
+/*external function from stream.c */
+extern dlna_stream_t *
+memoryfile_open (char *url, char *buffer, int length, const char *mime);
+
 typedef int (*sort_cmp_cb)(vfs_item_t *, vfs_item_t *);
 
 static int
@@ -115,12 +119,15 @@ sort_insert (vfs_items_list_t *list, vfs_item_t *new, sort_cmp_cb cmp)
   item->item = new;
   if (!list)
   {
+    item->count = 1;
     list = item;
     return list;
   }
+  item->count = ++list->count;
   move = list;
   while (move && cmp (move->item, new) > 0 )
   {
+    move->count = item->count;
     item->previous = move;
     move = move->next;
   }
@@ -143,13 +150,13 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
   vfs_items_list_t *items = NULL;
   vfs_items_list_t *containers = NULL;
 
-  if (first->type != DLNA_CONTAINER || !first->u.container.children)
+  if (first->type != DLNA_CONTAINER || !first->children)
     return NULL;
 
 #ifdef DISABLE_SORT
-  return first->u.container.children (first);
+  return first->children (first);
 #endif
-  for (children = first->u.container.children (first); children; children = children->next)
+  for (children = first->children (first); children; children = children->next)
   {
     if (!children->item)
       continue;
@@ -172,15 +179,15 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
     while (children->next)
       children = children->next;
     if (items)
+    {
       items->previous = children;
+      children->count += items->count;
+    }
     children->next = items;
     children = containers;
   }
   else
     children = items;
-#ifdef STORE_CHILDREN
-  first->u.container.children = children;
-#endif
 
   return children;
 }
@@ -237,7 +244,7 @@ vfs_browse_directchildren (vfs_item_t *item,
   /* UPnP CDS compliance : If starting index = 0 and requested count = 0
      then all children must be returned */
   if (index == 0 && count == 0)
-    count = item->u.container.children_count;
+    count = items->count;
   for (; items; items = items->next)
   {
     vfs_item_t *child = items->item;
@@ -262,7 +269,7 @@ vfs_browse_directchildren (vfs_item_t *item,
     }
   }
 
-  result->total_match = item->u.container.children_count;
+  result->total_match = items->count;
   result->updateid = item->u.container.updateID;
 
   return result->nb_returned;
@@ -362,7 +369,7 @@ vfs_search_recursive (vfs_items_list_t *items, int index, uint32_t count, char *
       case DLNA_CONTAINER:
         if (!result->lite)
           didl_create_container(result->didl);
-        vfs_search_recursive (item->u.container.children (item), index,
+        vfs_search_recursive (item->children (item), index,
                                 (count == 0) ? 0 : (count - result->nb_returned),
                                 filter, search_criteria, result);
         if (!result->lite)
@@ -399,7 +406,7 @@ vfs_search_directchildren(vfs_item_t *item, int index,
   int i, ret;
 
   /* go to the child pointed out by index */
-  items = item->u.container.children (item);
+  items = item->children (item);
   for (i = 0; i < index; i++)
     if (items)
       items = items->next;
@@ -407,7 +414,7 @@ vfs_search_directchildren(vfs_item_t *item, int index,
   /* UPnP CDS compliance : If starting index = 0 and requested count = 0
      then all children must be returned */
   if (index == 0 && count == 0)
-    count = item->u.container.children_count;
+    count = items->count;
 
   ret = vfs_search_recursive (items, index, count, filter, search_criteria, result);
 

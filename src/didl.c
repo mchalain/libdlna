@@ -290,7 +290,13 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
     else
       strcpy (valuestr , "-1");
     ixmlElement_setAttribute (elem, DIDL_ITEM_PARENT_ID, valuestr);
-    snprintf (valuestr, 11, "%u", item->u.container.children_count);
+    uint32_t count = 0;
+    if (item->children)
+    {
+      vfs_items_list_t *children = item->children(item);
+      count = children->count;
+    }
+    snprintf (valuestr, 11, "%u", count);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_CHILD_COUNT, valuestr);
     snprintf (valuestr, 2, "%u", item->restricted?1:0);
     ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
