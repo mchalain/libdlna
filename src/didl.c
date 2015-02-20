@@ -163,7 +163,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
     snprintf (valuestr, 2, "%u", item->restricted?1:0);
     ixmlElement_setAttribute (elem, DIDL_ITEM_RESTRICTED, valuestr);
 
-    didl_append_tag (doc, elem, DIDL_ITEM_TITLE, item->name(item));
+    didl_append_tag (doc, elem, DIDL_ITEM_TITLE, item->title(item));
 
     dlna_item_t *dlna_item;
     dlna_item = item->data (item);
@@ -300,7 +300,7 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
     char *class;
     class = dlna_upnp_object_type (item->u.container.media_class);
     didl_append_tag (doc, elem, DIDL_CONTAINER_CLASS, class);
-    didl_append_tag (doc, elem, DIDL_CONTAINER_TITLE, item->name(item));
+    didl_append_tag (doc, elem, DIDL_CONTAINER_TITLE, item->title(item));
 
     ixmlNode_appendChild (pdidl->elem, (IXML_Node *)elem);
   }

@@ -36,7 +36,7 @@ typedef int (*sort_cmp_cb)(vfs_item_t *, vfs_item_t *);
 static int
 cmp_title (vfs_item_t *item1, vfs_item_t *item2)
 {
-  return strcasecmp (item1->name(item1), item2->name(item2));
+  return strcasecmp (item1->title(item1), item2->title(item2));
 }
 
 static int

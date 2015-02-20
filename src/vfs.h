@@ -56,7 +56,7 @@ struct vfs_item_s {
   uint32_t id;
   dlna_restricted_t restricted;
 
-  char *(*name) (vfs_item_t *item);
+  char *(*title) (vfs_item_t *item);
   dlna_item_t *(*data) (vfs_item_t *item);
   vfs_items_list_t *(*children) (vfs_item_t *container);
   void (*add_child) (vfs_item_t *container, vfs_item_t *child);

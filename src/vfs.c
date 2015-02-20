@@ -257,7 +257,7 @@ dlna_vfs_get_item_by_name (dlna_vfs_t *vfs, char *name)
   
   for (item = cookie->vfs_root; item; item = item->hh.next)
   {
-    if (!strcmp (item->name(item), name))
+    if (!strcmp (item->title(item), name))
       return item;
   }
   return NULL;
@@ -281,7 +281,7 @@ static char *
 dlna_vfs_get_container_name (vfs_item_t *item)
 {
   char *name = NULL;
-  name = item->u.container.title
+  name = item->u.container.title;
   return name;
 }
 
@@ -304,7 +304,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 
   item->type = DLNA_CONTAINER;
   item->restricted = 1;
-  item->name = dlna_vfs_get_container_name;
+  item->title = dlna_vfs_get_container_name;
   item->data = NULL;
 
   /* is requested 'object_id' available ? */
@@ -355,7 +355,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
 
   if (item->parent)
     dlna_log (DLNA_MSG_INFO, "Container is parent of #%u (%s)\n",
-            item->parent->id, item->parent->name(item->parent));
+            item->parent->id, item->parent->title(item->parent));
   
   return item->id;
 }
@@ -382,7 +382,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
 
   item->type = DLNA_RESOURCE;
   item->restricted = 1;
-  item->name = dlna_vfs_get_item_name;
+  item->title = dlna_vfs_get_item_name;
   item->data = vfs_item_get;
   
   item->id = vfs_provide_next_id (vfs, dlna_item->filename);
@@ -405,7 +405,7 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
     item->root = item->parent->root;
 
   dlna_log (DLNA_MSG_INFO,
-            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->name(item->parent));
+            "Resource is parent of #%u (%s)\n", item->parent->id, item->parent->title(item->parent));
 
   /* add new child to parent */
   item->parent->u.container.add_child (item->parent, item);
