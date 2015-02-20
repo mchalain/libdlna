@@ -34,9 +34,9 @@
 typedef int (*sort_cmp_cb)(vfs_item_t *, vfs_item_t *);
 
 static int
-cmp_container_title (vfs_item_t *item1, vfs_item_t *item2)
+cmp_title (vfs_item_t *item1, vfs_item_t *item2)
 {
-  return strcasecmp (item1->u.container.title, item2->u.container.title);
+  return strcasecmp (item1->name(item1), item2->name(item2));
 }
 
 static int
@@ -51,20 +51,6 @@ cmp_item_filename (vfs_item_t *item1, vfs_item_t *item2)
   dlna_item_t *ditem1 = item1->data (item1);
   dlna_item_t *ditem2 = item2->data (item2);
   return strcasecmp (ditem2->filename, ditem1->filename);
-}
-
-static int
-cmp_item_title (vfs_item_t *item1, vfs_item_t *item2)
-{
-  dlna_item_t *ditem1 = item1->data (item1);
-  dlna_metadata_t *meta1 = dlna_item_metadata (ditem1, GET);
-  dlna_item_t *ditem2 = item2->data (item2);
-  dlna_metadata_t *meta2 = dlna_item_metadata (ditem2, GET);
-  if (!meta2->title)
-    return -1;
-  if (!meta1->title)
-    return 1;
-  return strcasecmp (meta2->title, meta1->title);
 }
 
 static int
@@ -172,10 +158,10 @@ vfs_sort (vfs_item_t *first, char *sort dlna_unused)
     switch (child->type)
     {
     case DLNA_CONTAINER:
-      containers = sort_insert (containers, child, cmp_container_title);
+      containers = sort_insert (containers, child, cmp_title);
     break;
     case DLNA_RESOURCE:
-      items = sort_insert (items, child, cmp_item_filename);
+      items = sort_insert (items, child, cmp_title);
     break;
     }
   }
