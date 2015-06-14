@@ -81,7 +81,7 @@ dlna_http_stream_open (void *cookie, const char *url)
   if (item->type != DLNA_RESOURCE)
     return NULL;
 
-  resource = vfs_resource_get (item);
+  resource = item->resources (item);
   while (resource)
   {
     char *res_url = resource->url (resource);

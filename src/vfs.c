@@ -82,7 +82,7 @@ dlna_vfs_free (dlna_vfs_t *vfs)
   free (vfs);
 }
 
-dlna_item_t *
+static dlna_item_t *
 vfs_item_get(vfs_item_t *item)
 {
 	if (item->type == DLNA_RESOURCE)
@@ -125,12 +125,6 @@ vfs_resource_add (vfs_item_t *item, vfs_resource_t *resource)
 {
   resource->next = item->u.resource.resources;
   item->u.resource.resources = resource;
-}
-
-inline vfs_resource_t * 
-vfs_resource_get (vfs_item_t *item) 
-{
-  return item->u.resource.resources;
 }
 
 static void
@@ -279,12 +273,30 @@ dlna_vfs_get_item_name (vfs_item_t *item)
   return name;
 }
 
+unsigned long
+dlna_vfs_get_item_updateID (vfs_item_t *item)
+{
+  return item->root->u.container.updateID;
+}
+
+vfs_resource_t *
+dlna_vfs_get_item_resources (vfs_item_t *item)
+{
+  return item->u.resource.resources;
+}
+
 static char *
 dlna_vfs_get_container_name (vfs_item_t *item)
 {
   char *name = NULL;
   name = item->u.container.title;
   return name;
+}
+
+unsigned long
+dlna_vfs_get_container_updateID (vfs_item_t *item)
+{
+  return item->u.container.updateID;
 }
 
 uint32_t
@@ -307,6 +319,7 @@ dlna_vfs_add_container (dlna_vfs_t *vfs, char *name,
   item->type = DLNA_CONTAINER;
   item->restricted = 1;
   item->title = dlna_vfs_get_container_name;
+  item->updateID = dlna_vfs_get_container_updateID;
   item->data = NULL;
   item->children = vfs_item_children;
 
@@ -384,6 +397,8 @@ dlna_vfs_add_resource (dlna_vfs_t *vfs, char *name,
   item->type = DLNA_RESOURCE;
   item->restricted = 1;
   item->title = dlna_vfs_get_item_name;
+  item->updateID = dlna_vfs_get_item_updateID;
+  item->resources = dlna_vfs_get_item_resources;
   item->data = vfs_item_get;
   item->children = NULL;
   

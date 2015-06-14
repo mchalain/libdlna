@@ -202,11 +202,11 @@ vfs_browse_metadata (vfs_item_t *item, char *filter, didl_result_t *result)
   {
   case DLNA_RESOURCE:
     didl_append_item (result->didl, item, filter);
-    result->updateid = item->root->u.container.updateID;
+    result->updateid = item->updateID(item);
     break;
   case DLNA_CONTAINER:
     didl_append_container (result->didl, item, 1);
-    result->updateid = item->u.container.updateID;
+    result->updateid = item->updateID(item);
     break;
 
   default:
@@ -327,7 +327,7 @@ vfs_search_match (vfs_item_t *item, char *search_criteria)
     result = 1;
   else if (protocol_contains)
   {
-    vfs_resource_t *resource = item->u.resource.resources;
+    vfs_resource_t *resource = item->resources(item);
 
     while (resource)
     {

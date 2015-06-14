@@ -265,7 +265,7 @@ cds_system_update_id (dlna_t *dlna dlna_unused, dlna_service_t *service)
   vfs = (dlna_vfs_t *) cds_data->vfs;
   root = vfs->get_item_by_id (vfs, 0);
   value = calloc (1, 11);
-  snprintf (value, 10, "%10u", root->u.container.updateID);
+  snprintf (value, 10, "%10u", root->updateID(root));
   return value;
 }
 

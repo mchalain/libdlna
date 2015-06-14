@@ -209,7 +209,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
     {
       vfs_resource_t *resource;
 
-      resource = vfs_resource_get (item);
+      resource = item->resources (item);
       while (resource)
       {
         char *url;
