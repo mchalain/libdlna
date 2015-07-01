@@ -42,6 +42,7 @@ SRCS :=  \
 	upnp.c \
 	buffer.c \
 	didl.c \
+	vfs_internal.c \
 	vfs.c \
 	crc32.c \
 	devices.c \
@@ -165,7 +166,7 @@ install_shared: lib_shared
 
 install: install_$(LIBHTTP_PROTOCOL) $(INSTALL_RULES)
 	$(INSTALL) -d $(includedir)/upnp
-	$(INSTALL) -m 644 dlna.h $(includedir)/upnp
+	$(INSTALL) -m 644 vfs.h dlna.h $(includedir)/upnp
 
 depend:
 	$(CC) -MM $(CFLAGS) $(OPTFLAGS) $(SRCS) \

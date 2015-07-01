@@ -25,6 +25,7 @@
 
 typedef struct vfs_item_s vfs_item_t;
 typedef struct vfs_resource_s vfs_resource_t;
+typedef struct protocol_info_s protocol_info_t;
 
 typedef struct
 {
@@ -47,6 +48,7 @@ struct vfs_resource_s {
 typedef struct vfs_items_list_s vfs_items_list_t;
 
 struct vfs_items_list_s {
+  uint32_t count;
   vfs_item_t *item;
   vfs_items_list_t *next;
   vfs_items_list_t *previous;
@@ -56,6 +58,12 @@ struct vfs_item_s {
   uint32_t id;
   dlna_restricted_t restricted;
 
+  char *(*title) (vfs_item_t *item);
+  unsigned long (*updateID) (vfs_item_t *item);
+  dlna_item_t *(*data) (vfs_item_t *item);
+  vfs_resource_t *(*resources) (vfs_item_t *item);
+  vfs_items_list_t *(*children) (vfs_item_t *container);
+
   enum {
     DLNA_RESOURCE,
     DLNA_CONTAINER
@@ -64,13 +72,11 @@ struct vfs_item_s {
   union {
     struct {
       dlna_item_t *item;
-      vfs_resource_t *resources;        
+      vfs_resource_t *resources;
     } resource;
     struct {
       char *title;
-      vfs_items_list_t *(*children) (vfs_item_t *item);
       void (*add_child) (vfs_item_t *container, vfs_item_t *child);
-      uint32_t children_count;
       uint32_t updateID; /* UPnP/AV ContentDirectory v2 Service ch 2.2.9*/
       dlna_media_class_t media_class;
       void *children_cookie;
@@ -90,26 +96,60 @@ struct dlna_protocol_s
   int (*init) (dlna_vfs_t *vfs);
   const char *(*name)();
   const char *(*net)();
+  dlna_capability_mode_t mode;
   void *cookie;
   dlna_protocol_t *next;
 };
 
+struct dlna_vfs_cookie_s
+{
+  struct vfs_item_s *vfs_root;
+  uint32_t vfs_items;
+};
+
 struct dlna_vfs_s
 {
+/**
+ * Returns an existing item from VFS layer by ID.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] id           Unique ID of the item to be removed.
+ */
+  vfs_item_t *(*get_item_by_id)(dlna_vfs_t *vfs, uint32_t id);
+/**
+ * Returns an existing item from VFS layer by name.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] name         Name of the item to be removed.
+ */
+  vfs_item_t *(*get_item_by_name) (dlna_vfs_t *vfs, char *name);
+/**
+ * Removes an existing item (and all its children) from VFS layer by ID.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] id           Unique ID of the item to be removed.
+ */
+  void (*remove_item_by_id) (dlna_vfs_t *vfs, uint32_t id);
+/**
+ * Removes an existing item (and all its children) from VFS layer by name.
+ *
+ * @param[in] vfs          The VFS to manage.
+ * @param[in] name         Name of the item to be removed.
+ */
+  void (*remove_item_by_name) (dlna_vfs_t *vfs, char *name);
+
+  void (*free_item) (dlna_vfs_t *vfs, vfs_item_t *item);
+
   /* VFS for Content Directory */
   dlna_dms_storage_type_t storage_type;
-  struct vfs_item_s *vfs_root;
   struct dlna_protocol_s *protocols;
   protocol_info_t *sources;
-  uint32_t vfs_items;
   /* DLNA flags*/
   dlna_org_flags_t flags;
   int mode;
-};
 
-vfs_item_t *vfs_get_item_by_id (dlna_vfs_t *vfs, uint32_t id);
-dlna_item_t *vfs_item_get(vfs_item_t *item);
-inline vfs_resource_t *vfs_resource_get (vfs_item_t *item);
+  void *cookie;
+};
 
 typedef struct didl_result_s
 {

@@ -182,7 +182,10 @@ cds_search_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
   if (!service)
     return NULL;
   cds_data = (cds_data_t *)service->cookie;
-  return strdup (cds_data->search_caps);
+  if (cds_data->search_caps)
+    return strdup (cds_data->search_caps);
+  else
+    return strdup("");
 }
 
 static int
@@ -257,13 +260,15 @@ cds_system_update_id (dlna_t *dlna dlna_unused, dlna_service_t *service)
   char *value;
   cds_data_t *cds_data;
   dlna_vfs_t *vfs;
+  vfs_item_t *root;
 
   if (!service)
     return NULL;
   cds_data = (cds_data_t *)service->cookie;
   vfs = (dlna_vfs_t *) cds_data->vfs;
+  root = vfs->get_item_by_id (vfs, 0);
   value = calloc (1, 11);
-  snprintf (value, 10, "%10u", vfs->vfs_root->u.container.updateID);
+  snprintf (value, 10, "%10u", root->updateID(root));
   return value;
 }
 
@@ -359,7 +364,7 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   result.lite = 1;
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (vfs, id);
+  item = vfs->get_item_by_id (vfs, id);
 
   if (!item)
   {
@@ -368,8 +373,8 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   result_count = meta ?
-  vfs_browse_metadata (item, filter, &result) :
-  vfs_browse_directchildren (item, index, count, filter, sort, &result);
+    vfs_browse_metadata (item, filter, &result) :
+    vfs_browse_directchildren (item, index, count, filter, sort, &result);
 
   if (result_count < 0)
   {
@@ -410,41 +415,6 @@ cds_browse (dlna_t *dlna, upnp_action_event_t *ev)
   return 0;
 }
 
-static int
-cds_search_directchildren (dlna_t *dlna dlna_unused, upnp_action_event_t *ev,
-                           vfs_item_t *item, int index,
-                           uint32_t count, char *filter, char *search_criteria)
-{
-  char tmp[11];
-
-  index = 0;
-
-  /* searching only has a sense on containers */
-  if (item->type != DLNA_CONTAINER)
-    return -1;
-
-  didl_result_t result;
-  result.didl = didl_new ();
-  result.lite = 1;
-
-  vfs_search_directchildren (item, 
-			  index, count, filter, search_criteria, &result);
-
-  buffer_t *out = buffer_new ();
-  didl_print (result.didl, out);
-  upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
-  buffer_free (out);
-  
-  snprintf (tmp, 10, "%lu", result.nb_returned);
-  upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
-  snprintf (tmp, 10, "%lu", result.total_match);
-  upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
-
-  didl_free (result.didl);
-
-  return result.nb_returned;
-}
-
 /*
  * Search:
  *   This action allows the caller to search the content directory for
@@ -463,6 +433,7 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
 
   /* output arguments */
   vfs_item_t *item;
+  didl_result_t result = {0};
 
   if (!dlna || !ev)
   {
@@ -493,35 +464,60 @@ cds_search (dlna_t *dlna, upnp_action_event_t *ev)
   }
 
   /* find requested item in VFS */
-  item = vfs_get_item_by_id (vfs, id);
+  item = vfs->get_item_by_id (vfs, id);
   if (!item)
-    item = vfs_get_item_by_id (vfs, 0);
+    item = vfs->get_item_by_id (vfs, 0);
 
   if (!item)
   {
     ev->ar->ErrCode = CDS_ERR_INVALID_CONTAINER;
     goto search_err;
   }
+  /* searching only has a sense on containers */
+  if (item->type != DLNA_CONTAINER)
+  {
+    ev->ar->ErrCode = CDS_ERR_INVALID_CONTAINER;
+    goto search_err;
+  }
 
-  int result_count = 0;
-  result_count = cds_search_directchildren (dlna, ev, item, index, count,
-                                            filter, search_criteria);
-  if (result_count < 0)
+  result.didl = didl_new ();
+  result.lite = 1;
+
+  vfs_search_directchildren (item, 
+			  index, count, filter, search_criteria, &result);
+
+  if (result.nb_returned > 0)
+  {
+    char tmp[11];
+
+    buffer_t *out = buffer_new ();
+    didl_print (result.didl, out);
+    upnp_add_response (ev, CDS_DIDL_RESULT, out->buf);
+    buffer_free (out);
+
+    snprintf (tmp, 10, "%lu", result.nb_returned);
+    upnp_add_response (ev, CDS_DIDL_NUM_RETURNED, tmp);
+    snprintf (tmp, 10, "%lu", result.total_match);
+    upnp_add_response (ev, CDS_DIDL_TOTAL_MATCH, tmp);
+    upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
+                       CDS_ROOT_OBJECT_ID);
+  }
+  else
   {
     ev->ar->ErrCode = CDS_ERR_ACTION_FAILED;
     goto search_err;
   }
 
-  upnp_add_response (ev, CDS_DIDL_UPDATE_ID,
-                     CDS_ROOT_OBJECT_ID);
-
+  didl_free (result.didl);
   free (search_criteria);
   free (filter);
   free (sort);
 
   return ev->status;
 
- search_err:
+search_err:
+  if (result.didl)
+    didl_free (result.didl);
   if (search_criteria)
     free (search_criteria);
   if (filter)
