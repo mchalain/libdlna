@@ -296,7 +296,10 @@ didl_append_container (void *didl, vfs_item_t *item, uint32_t searchable)
     if (item->children)
     {
       vfs_items_list_t *children = item->children(item);
-      count = children->count;
+      if (children)
+        count = children->count;
+      else
+        count = 0;
     }
     snprintf (valuestr, 11, "%u", count);
     ixmlElement_setAttribute (elem, DIDL_CONTAINER_CHILD_COUNT, valuestr);
