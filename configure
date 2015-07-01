@@ -415,6 +415,8 @@ for opt do
   ;;
   --includedir=*) includedir="$optval"
   ;;
+  --sysconfdir=*) sysconfdir="$optval"
+  ;;
   --enable-static) static="yes"
   ;;
   --disable-static) static="no"
@@ -425,7 +427,7 @@ for opt do
   ;;
   --disable-libupnp) libupnp="internal"
   ;;
-  --disable-libupnp) libmpg123="no"
+  --disable-mpg123) libmpg123="no"
   ;;
   --disable-ffmpeg) libavcodec="no"
   libavformat="no"
@@ -445,6 +447,12 @@ for opt do
   --cross-prefix=*) cross_prefix="$optval"
   ;;
   --cross-compile) cross_compile="yes"
+  ;;
+  --host=*) cross_prefix="$optval"
+  ;;
+  --target=*) target="$optval"
+  ;;
+  --build=*) build="$optval"
   ;;
   --with-lavf=*) lavfdir="$optval";
   ;;
@@ -467,6 +475,9 @@ for opt do
   ;;
   esac
 done
+if [ $target != $build ]; then
+  cross_compile="yes"
+fi
 
 # Check for conflictual build options
 if [ "$shared" = no -a "$static" = no ]; then
@@ -807,9 +818,9 @@ if [ "$libmpg123" = yes ]; then
   for sound in $sounds
   do
   eval "state=\${$sound}"
-  if [ "${state}" = auto -o "${state}" = yes ]; then
-    if [ "${state}" = auto ]; then
-      eval "${sound}=yes"
+  if [ "${state}" = "auto" -o "${state}" = "yes" ]; then
+    if [ "${state}" = "auto" ]; then
+      eval ${sound}="yes"
       falsereturn="set_all no $sound"
     else
       falsereturn="die \"Error, can't find $sound !\""
@@ -874,6 +885,9 @@ echolog "  shared             ${shared}"
 echolog "  libupnp            ${libupnp}"
 echolog "  ffmpeg             ${libavformat}"
 echolog "  mpg123             ${libmpg123}"
+echolog ""
+echolog "  tinyalsa           ${tinyalsa}"
+echolog "  alsa               ${alsa}"
 echolog ""
 echolog "  CFLAGS             $CFLAGS"
 echolog "  LDFLAGS            $LDFLAGS"
