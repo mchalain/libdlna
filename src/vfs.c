@@ -112,11 +112,16 @@ vfs_item_add_child (vfs_item_t *item, vfs_item_t *child)
   children = calloc (1, sizeof (vfs_items_list_t));
   if (!children)
     return; /* not enought memory */
-  children->count = first->count + 1;
+  if (first)
+  {
+    children->count = first->count + 1;
+    first->previous = children;
+  }
+  else
+    children->count = 1;
   children->next = first;
   children->previous = NULL;
   children->item = child;
-  first->previous = children;
   item->u.container.children_cookie = (void *)children;
 }
 

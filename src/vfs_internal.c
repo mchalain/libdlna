@@ -243,7 +243,7 @@ vfs_browse_directchildren (vfs_item_t *item,
 
   /* UPnP CDS compliance : If starting index = 0 and requested count = 0
      then all children must be returned */
-  if (index == 0 && count == 0)
+  if (items && index == 0 && count == 0)
     count = items->count;
   for (; items; items = items->next)
   {
@@ -269,7 +269,10 @@ vfs_browse_directchildren (vfs_item_t *item,
     }
   }
 
-  result->total_match = items->count;
+  if (items)
+    result->total_match = items->count;
+  else
+    result->total_match = 0;
   result->updateid = item->u.container.updateID;
 
   return result->nb_returned;

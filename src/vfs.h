@@ -25,6 +25,7 @@
 
 typedef struct vfs_item_s vfs_item_t;
 typedef struct vfs_resource_s vfs_resource_t;
+typedef struct protocol_info_s protocol_info_t;
 
 typedef struct
 {

@@ -182,7 +182,10 @@ cds_search_capabilities (dlna_t *dlna dlna_unused, dlna_service_t *service)
   if (!service)
     return NULL;
   cds_data = (cds_data_t *)service->cookie;
-  return strdup (cds_data->search_caps);
+  if (cds_data->search_caps)
+    return strdup (cds_data->search_caps);
+  else
+    return strdup("");
 }
 
 static int

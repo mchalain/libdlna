@@ -150,7 +150,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
   {
     IXML_Element *elem;
     char valuestr[12];
-    dlna_metadata_t *metadata;
+    dlna_metadata_t *metadata = NULL;
 
     elem = ixmlDocument_createElement (doc, DIDL_ITEM);
     snprintf (valuestr, 11, "%u", item->id);
@@ -167,6 +167,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
 
     dlna_item_t *dlna_item;
     dlna_item = item->data (item);
+    metadata = dlna_item_metadata(dlna_item, GET);
 
     if (dlna_item)
     {
@@ -203,6 +204,7 @@ didl_append_item (void *didl, vfs_item_t *item, char *filter)
       {
         didl_append_tag (doc, elem, DIDL_ITEM_GENRE, metadata->genre);
       }
+      dlna_item_metadata(item, FREE);
     }
 
     if ((!filter || filter_has_val (filter, DIDL_RES)))
